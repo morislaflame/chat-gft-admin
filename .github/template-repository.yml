@@ -1,0 +1,11 @@
+# .github/template-repository.yml
+name: React Frontend Template
+description: A modern React + TypeScript + Vite template with MobX, React Router, Tailwind CSS, and Telegram WebApp integration
+topics:
+  - react
+  - typescript
+  - vite
+  - mobx
+  - tailwindcss
+  - telegram-webapp
+  - template
