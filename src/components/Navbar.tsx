@@ -90,8 +90,6 @@ const Navbar = observer(() => {
               <p className="font-semibold">Signed in as</p>
               <p className="font-semibold">Admin</p>
             </DropdownItem>
-            <DropdownItem key="settings">Settings</DropdownItem>
-            <DropdownItem key="help_and_feedback">Help & Feedback</DropdownItem>
             <DropdownItem 
               key="logout" 
               color="danger"

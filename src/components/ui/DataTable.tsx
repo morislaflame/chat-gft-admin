@@ -13,20 +13,20 @@ import {
 interface Column {
   key: string;
   label: string;
-  width?: string;
+  width?: string | number;
 }
 
-interface DataTableProps {
+interface DataTableProps<T = Record<string, unknown>> {
   title: string;
   columns: Column[];
-  data: any[];
+  data: T[];
   loading?: boolean;
-  renderCell?: (item: any, columnKey: string) => React.ReactNode;
+  renderCell?: (item: T, columnKey: string) => React.ReactNode;
   emptyMessage?: string;
   className?: string;
 }
 
-export const DataTable = ({ 
+export const DataTable = <T = Record<string, unknown>>({ 
   title, 
   columns, 
   data, 
@@ -34,9 +34,9 @@ export const DataTable = ({
   renderCell,
   emptyMessage = "No data available",
   className = ""
-}: DataTableProps) => {
-  const defaultRenderCell = (item: any, columnKey: string) => {
-    return item[columnKey] || '-';
+}: DataTableProps<T>) => {
+  const defaultRenderCell = (item: T, columnKey: string) => {
+    return (item as Record<string, unknown>)[columnKey] || '-';
   };
 
   return (
@@ -57,17 +57,17 @@ export const DataTable = ({
           <Table aria-label={`${title} table`}>
             <TableHeader>
               {columns.map((column) => (
-                <TableColumn key={column.key} width={column.width}>
+                <TableColumn key={column.key}>
                   {column.label}
                 </TableColumn>
               ))}
             </TableHeader>
             <TableBody>
               {data.map((item, index) => (
-                <TableRow key={item.id || index}>
+                <TableRow key={((item as Record<string, unknown>).id as string | number) || index}>
                   {columns.map((column) => (
                     <TableCell key={column.key}>
-                      {renderCell ? renderCell(item, column.key) : defaultRenderCell(item, column.key)}
+                      {renderCell ? renderCell(item, column.key) : String(defaultRenderCell(item, column.key))}
                     </TableCell>
                   ))}
                 </TableRow>
