@@ -39,7 +39,7 @@ const Navbar = observer(() => {
   };
 
   return (
-    <NextUINavbar maxWidth="full" className="bg-gradient-to-r from-blue-600 to-purple-600">
+    <NextUINavbar maxWidth="full" className="bg-zinc-800">
       <NavbarBrand>
         <Link 
           color="foreground" 

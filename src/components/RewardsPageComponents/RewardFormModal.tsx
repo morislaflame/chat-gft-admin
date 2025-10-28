@@ -9,7 +9,9 @@ import {
   Textarea,
   Switch
 } from '@heroui/react';
-import { Star, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
+import Lottie from 'lottie-react';
+import { useState, useEffect } from 'react';
 
 interface RewardFormData {
   name: string;
@@ -40,9 +42,30 @@ export const RewardFormModal = ({
   onImageFileChange,
   onSave
 }: RewardFormModalProps) => {
+  const [previewAnimation, setPreviewAnimation] = useState<Record<string, unknown> | null>(null);
+
   const handleInputChange = (field: keyof RewardFormData, value: string | boolean) => {
     onFormDataChange({ ...formData, [field]: value });
   };
+
+  // Загружаем анимацию для предпросмотра
+  useEffect(() => {
+    if (imageFile && imageFile.type === 'application/json') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const animationData = JSON.parse(e.target?.result as string);
+          setPreviewAnimation(animationData);
+        } catch (error) {
+          console.error('Error parsing JSON animation:', error);
+          setPreviewAnimation(null);
+        }
+      };
+      reader.readAsText(imageFile);
+    } else {
+      setPreviewAnimation(null);
+    }
+  }, [imageFile]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
@@ -64,13 +87,12 @@ export const RewardFormModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Price (Stars)"
+                label="Price"
                 type="number"
                 value={formData.price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                placeholder="Enter price in stars"
+                placeholder="Enter price in points"
                 isRequired
-                startContent={<Star className="w-4 h-4 text-gray-400" />}
               />
 
               <Input
@@ -114,6 +136,21 @@ export const RewardFormModal = ({
                   <p className="text-xs text-gray-500">Lottie animation files only</p>
                 </label>
               </div>
+              
+              {/* Предпросмотр анимации */}
+              {previewAnimation && (
+                <div className="mt-4 p-4 border border-gray-200 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                  <div className="flex justify-center">
+                    <Lottie
+                      animationData={previewAnimation}
+                      loop={false}
+                      autoplay={true}
+                      style={{ width: 120, height: 120 }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center space-x-2">
