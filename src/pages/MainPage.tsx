@@ -1,9 +1,12 @@
-const MainPage = () => {
+
+import { observer } from 'mobx-react-lite';
+
+const MainPage = observer(() => {
     return (
-        <div>
-            <h1>Main Page</h1>
+        <div className="min-h-screen bg-gray-50">
+            MainPage
         </div>
-    )
-}
+    );
+});
 
 export default MainPage;

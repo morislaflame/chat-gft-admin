@@ -2,6 +2,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import StoreProvider, { Context } from "@/store/StoreProvider";
+import { HeroUIProvider } from "@heroui/react";
 
 export { Context };
 
@@ -21,7 +22,11 @@ if (!window.__REACT_ROOT__) {
 }
 
 window.__REACT_ROOT__.render(
+  <HeroUIProvider>
     <StoreProvider>
+      <main className="h-screen overflow-y-auto w-screen dark text-foreground bg-background">
         <App />
+      </main>
     </StoreProvider>
+  </HeroUIProvider>
 );

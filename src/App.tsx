@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useTelegramApp } from '@/utils/useTelegramApp';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import LoadingIndicator from '@/components/LoadingIndicator';
+import Navbar from '@/components/Navbar';
 
 const AppRouter = lazy(() => import("@/router/AppRouter"));
 
@@ -68,6 +69,7 @@ const App = observer(() => {
   return (
       <BrowserRouter>
         <div>
+          {user.isAuth && <Navbar/>}
             <Suspense fallback={<LoadingIndicator />}>
               <AppRouter />
             </Suspense>

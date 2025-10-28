@@ -1,5 +1,5 @@
 import {makeAutoObservable, runInAction } from "mobx";
-import { fetchMyInfo, telegramAuth, check } from "@/http/userAPI";
+import { fetchMyInfo, telegramAuth, check, login, registration } from "@/http/userAPI";
 import { type UserInfo } from "@/types/types";
 
 export default class UserStore {
@@ -44,6 +44,7 @@ export default class UserStore {
         try {
             this.setIsAuth(false);
             this.setUser(null);
+            localStorage.removeItem('token')
         } catch (error) {
             console.error("Error during logout:", error);
         }
@@ -90,6 +91,48 @@ export default class UserStore {
             
         } catch (error) {
             console.error("Error during fetching my info:", error);
+        }
+    }
+
+    async loginUser(email: string, password: string) {
+        try {
+            this.setLoading(true);
+            const data = await login(email, password);
+            runInAction(() => {
+                this.setUser(data as UserInfo);
+                this.setIsAuth(true);
+                this.setServerError(false);
+                this.setLoading(false);
+            });
+            return { success: true };
+        } catch (error: any) {
+            console.error("Error during login:", error);
+            runInAction(() => {
+                this.setLoading(false);
+                this.setServerError(true, error.response?.data?.message || 'Login failed');
+            });
+            return { success: false, error: error.response?.data?.message || 'Login failed' };
+        }
+    }
+
+    async registerUser(email: string, password: string) {
+        try {
+            this.setLoading(true);
+            const data = await registration(email, password);
+            runInAction(() => {
+                this.setUser(data as UserInfo);
+                this.setIsAuth(true);
+                this.setServerError(false);
+                this.setLoading(false);
+            });
+            return { success: true };
+        } catch (error: any) {
+            console.error("Error during registration:", error);
+            runInAction(() => {
+                this.setLoading(false);
+                this.setServerError(true, error.response?.data?.message || 'Registration failed');
+            });
+            return { success: false, error: error.response?.data?.message || 'Registration failed' };
         }
     }
 
