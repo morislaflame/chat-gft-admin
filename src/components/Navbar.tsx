@@ -9,6 +9,7 @@ import {
   Package, 
   Gift, 
   BarChart3,
+  Bot,
   LogOut
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
@@ -28,6 +29,7 @@ const Navbar = observer(() => {
     { key: 'payments', label: 'Payments', icon: CreditCard, path: '/payments' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
     { key: 'rewards', label: 'Rewards', icon: Gift, path: '/rewards' },
+    { key: 'agents', label: 'Agents', icon: Bot, path: '/agents' },
   ];
 
   const isActive = (path: string) => {

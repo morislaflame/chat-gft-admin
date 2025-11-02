@@ -9,6 +9,7 @@ import QuestsPage from '@/pages/QuestsPage';
 import PaymentsPage from '@/pages/PaymentsPage';
 import ProductsPage from '@/pages/ProductsPage';
 import RewardsPage from '@/pages/RewardsPage';
+import AgentsPage from '@/pages/AgentsPage';
 import { 
   MAIN_ROUTE, 
   AUTH_ROUTE, 
@@ -18,7 +19,8 @@ import {
   QUESTS_ROUTE, 
   PAYMENTS_ROUTE, 
   PRODUCTS_ROUTE, 
-  REWARDS_ROUTE 
+  REWARDS_ROUTE,
+  AGENTS_ROUTE
 } from '@/utils/consts';
 
 interface Route {
@@ -39,4 +41,5 @@ export const privateRoutes: Route[] = [
   { path: PAYMENTS_ROUTE, Component: PaymentsPage },
   { path: PRODUCTS_ROUTE, Component: ProductsPage },
   { path: REWARDS_ROUTE, Component: RewardsPage },
+  { path: AGENTS_ROUTE, Component: AgentsPage },
 ];
