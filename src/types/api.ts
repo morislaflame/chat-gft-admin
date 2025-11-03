@@ -102,7 +102,7 @@ export interface Task {
   id: number;
   type: 'DAILY' | 'ONE_TIME' | 'SPECIAL';
   reward: number;
-  rewardType: 'tokens' | 'energy';
+  rewardType: string;
   description: string;
   targetCount: number;
   code?: string;

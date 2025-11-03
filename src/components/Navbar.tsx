@@ -1,16 +1,17 @@
 import { Navbar as NextUINavbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
-import { 
-  Users, 
-  MessageSquare, 
-  Target, 
-  CreditCard, 
-  Package, 
-  Gift, 
+import {
+  Users,
+  MessageSquare,
+  Target,
+  CreditCard,
+  Package,
+  Gift,
   BarChart3,
   Bot,
-  LogOut
+  LogOut,
+  Calendar
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
@@ -29,6 +30,7 @@ const Navbar = observer(() => {
     { key: 'payments', label: 'Payments', icon: CreditCard, path: '/payments' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
     { key: 'rewards', label: 'Rewards', icon: Gift, path: '/rewards' },
+    { key: 'dailyRewards', label: 'Daily Rewards', icon: Calendar, path: '/daily-rewards' },
     { key: 'agents', label: 'Agents', icon: Bot, path: '/agents' },
   ];
 

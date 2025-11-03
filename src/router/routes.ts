@@ -10,17 +10,19 @@ import PaymentsPage from '@/pages/PaymentsPage';
 import ProductsPage from '@/pages/ProductsPage';
 import RewardsPage from '@/pages/RewardsPage';
 import AgentsPage from '@/pages/AgentsPage';
-import { 
-  MAIN_ROUTE, 
-  AUTH_ROUTE, 
-  DASHBOARD_ROUTE, 
-  USERS_ROUTE, 
-  MESSAGES_ROUTE, 
-  QUESTS_ROUTE, 
-  PAYMENTS_ROUTE, 
-  PRODUCTS_ROUTE, 
+import DailyRewardsPage from '@/pages/DailyRewardsPage';
+import {
+  MAIN_ROUTE,
+  AUTH_ROUTE,
+  DASHBOARD_ROUTE,
+  USERS_ROUTE,
+  MESSAGES_ROUTE,
+  QUESTS_ROUTE,
+  PAYMENTS_ROUTE,
+  PRODUCTS_ROUTE,
   REWARDS_ROUTE,
-  AGENTS_ROUTE
+  AGENTS_ROUTE,
+  DAILY_REWARDS_ROUTE
 } from '@/utils/consts';
 
 interface Route {
@@ -42,4 +44,5 @@ export const privateRoutes: Route[] = [
   { path: PRODUCTS_ROUTE, Component: ProductsPage },
   { path: REWARDS_ROUTE, Component: RewardsPage },
   { path: AGENTS_ROUTE, Component: AgentsPage },
+  { path: DAILY_REWARDS_ROUTE, Component: DailyRewardsPage },
 ];

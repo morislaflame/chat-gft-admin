@@ -12,3 +12,4 @@ export const PAYMENTS_ROUTE = '/payments';
 export const PRODUCTS_ROUTE = '/products';
 export const REWARDS_ROUTE = '/rewards';
 export const AGENTS_ROUTE = '/agents';
+export const DAILY_REWARDS_ROUTE = '/daily-rewards';
