@@ -13,7 +13,7 @@ interface Task {
   rewardType: string;
   targetCount: number;
   code?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface TasksTableProps {
@@ -22,6 +22,13 @@ interface TasksTableProps {
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: number) => void;
 }
+
+const TASK_CODES: Record<string, string> = {
+  TELEGRAM_SUB: 'Подписка на канал Telegram',
+  REF_USERS: 'Приглашение пользователей',
+  STORY_SHARE: 'Поделиться историей',
+  CHAT_BOOST: 'Буст чата'
+};
 
 export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTableProps) => {
   const getTaskTypeColor = (type: string) => {
@@ -37,13 +44,56 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
     return type === 'energy' ? 'secondary' : 'primary';
   };
 
+  const formatMetadata = (task: Task): string => {
+    if (!task.metadata || Object.keys(task.metadata).length === 0) {
+      return '-';
+    }
+
+    if (task.code === 'TELEGRAM_SUB') {
+      const channelUsername = task.metadata.channelUsername;
+      return `Канал: @${typeof channelUsername === 'string' ? channelUsername : 'не указан'}`;
+    }
+
+    if (task.code === 'CHAT_BOOST') {
+      const channelUsername = task.metadata.channelUsername;
+      return typeof channelUsername === 'string' && channelUsername
+        ? `Канал: @${channelUsername}` 
+        : '-';
+    }
+
+    if (task.code === 'STORY_SHARE') {
+      const parts = [];
+      const mediaUrl = task.metadata.mediaUrl;
+      if (typeof mediaUrl === 'string' && mediaUrl) {
+        parts.push(`Медиа: ${mediaUrl.substring(0, 30)}...`);
+      }
+      const shareText = task.metadata.shareText;
+      if (typeof shareText === 'string' && shareText) {
+        parts.push(`Текст: "${shareText}"`);
+      }
+      const widgetName = task.metadata.widgetName;
+      if (typeof widgetName === 'string' && widgetName) {
+        parts.push(`Виджет: ${widgetName}`);
+      }
+      return parts.length > 0 ? parts.join(' | ') : '-';
+    }
+
+    // Для других кодов или без кода показываем JSON
+    try {
+      return JSON.stringify(task.metadata);
+    } catch {
+      return '-';
+    }
+  };
+
   const columns = [
-    { key: 'type', label: 'TYPE' },
-    { key: 'description', label: 'DESCRIPTION' },
-    { key: 'reward', label: 'REWARD' },
-    { key: 'target', label: 'TARGET' },
-    { key: 'code', label: 'CODE' },
-    { key: 'actions', label: 'ACTIONS' },
+    { key: 'type', label: 'ТИП' },
+    { key: 'description', label: 'ОПИСАНИЕ' },
+    { key: 'reward', label: 'НАГРАДА' },
+    { key: 'target', label: 'ЦЕЛЬ' },
+    { key: 'code', label: 'КОД' },
+    { key: 'metadata', label: 'МЕТАДАННЫЕ' },
+    { key: 'actions', label: 'ДЕЙСТВИЯ' },
   ];
 
   const renderCell = (task: Task, columnKey: string) => {
@@ -58,18 +108,13 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
         return (
           <div>
             <p className="font-medium">{task.description}</p>
-            {task.metadata && (
-              <p className="text-sm text-gray-500">
-                {JSON.stringify(task.metadata)}
-              </p>
-            )}
           </div>
         );
       case 'reward':
         return (
           <div className="flex items-center gap-2">
             <Chip color={getRewardTypeColor(task.rewardType)} size="sm">
-              {task.rewardType}
+              {task.rewardType === 'energy' ? 'Энергия' : 'Токены'}
             </Chip>
             <span className="font-semibold">{task.reward}</span>
           </div>
@@ -78,11 +123,19 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
         return <span className="font-medium">{task.targetCount}</span>;
       case 'code':
         return task.code ? (
-          <code className="px-2 py-1 rounded text-sm">
-            {task.code}
-          </code>
+          <Chip color="default" variant="flat" size="sm">
+            {TASK_CODES[task.code] || task.code}
+          </Chip>
         ) : (
           <span className="text-gray-400">-</span>
+        );
+      case 'metadata':
+        return (
+          <div className="max-w-xs">
+            <p className="text-sm text-gray-300 break-words">
+              {formatMetadata(task)}
+            </p>
+          </div>
         );
       case 'actions':
         return (
@@ -94,7 +147,7 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
               startContent={<Edit size={14} />}
               onClick={() => onEditTask(task)}
             >
-              Edit
+              Редактировать
             </Button>
             <Button
               size="sm"
@@ -103,7 +156,7 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
               startContent={<Trash2 size={14} />}
               onClick={() => onDeleteTask(task.id)}
             >
-              Delete
+              Удалить
             </Button>
           </div>
         );
@@ -114,12 +167,12 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
 
   return (
     <DataTable
-      title={`All Tasks (${tasks.length})`}
+      title={`Все задачи (${tasks.length})`}
       columns={columns}
       data={tasks}
       loading={loading}
       renderCell={renderCell}
-      emptyMessage="No tasks found"
+      emptyMessage="Задачи не найдены"
     />
   );
 };

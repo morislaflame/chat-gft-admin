@@ -9,17 +9,17 @@ export const createTask = async (taskData: {
     code?: string;
     metadata?: any;
 }) => {
-    const { data } = await $authHost.post('api/quest/create', taskData);
+    const { data } = await $authHost.post('api/quest/tasks', taskData);
     return data;
 };
 
 export const deleteTask = async (id: number) => {
-    const { data } = await $authHost.delete(`api/quest/delete/${id}`);
+    const { data } = await $authHost.delete(`api/quest/tasks/${id}`);
     return data;
 };
 
 export const updateTask = async (id: number, taskData: any) => {
-    const { data } = await $authHost.put(`api/quest/update/${id}`, taskData);
+    const { data } = await $authHost.put(`api/quest/tasks/${id}`, taskData);
     return data;
 };
 
@@ -40,16 +40,16 @@ export const getMyTasks = async () => {
 };
 
 export const checkChannelSubscription = async (taskId: number) => {
-    const { data } = await $authHost.post('api/quest/check-channel-subscription', { taskId });
+    const { data } = await $authHost.post('api/quest/check-subscription', { taskId });
     return data;
 };
 
 export const checkReferralUsersTask = async (taskId: number) => {
-    const { data } = await $authHost.post('api/quest/check-referral-users', { taskId });
+    const { data } = await $authHost.post('api/quest/check-referrals', { taskId });
     return data;
 };
 
 export const checkChatBoost = async (taskId: number) => {
-    const { data } = await $authHost.post('api/quest/check-chat-boost', { taskId });
+    const { data } = await $authHost.post('api/quest/check-boost', { taskId });
     return data;
 };

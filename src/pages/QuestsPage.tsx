@@ -17,12 +17,29 @@ interface Task {
   metadata?: Record<string, unknown>;
 }
 
+interface TaskFormData {
+  type: string;
+  reward: string;
+  rewardType: string;
+  description: string;
+  targetCount: string;
+  code: string;
+  metadata: string;
+  // Поля для метадаты TELEGRAM_SUB
+  channelUsername?: string;
+  // Поля для метадаты STORY_SHARE
+  mediaUrl?: string;
+  shareText?: string;
+  widgetName?: string;
+  widgetUrl?: string;
+}
+
 const QuestsPage = observer(() => {
   const { quest } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TaskFormData>({
     type: 'DAILY',
     reward: '',
     rewardType: 'energy',
@@ -47,7 +64,12 @@ const QuestsPage = observer(() => {
       description: '',
       targetCount: '1',
       code: '',
-      metadata: ''
+      metadata: '',
+      channelUsername: undefined,
+      mediaUrl: undefined,
+      shareText: undefined,
+      widgetName: undefined,
+      widgetUrl: undefined
     });
     onOpen();
   };
@@ -55,25 +77,81 @@ const QuestsPage = observer(() => {
   const handleEditTask = (task: Task) => {
     setSelectedTask(task);
     setIsEditing(true);
-    setFormData({
+    const metadata = task.metadata ? JSON.stringify(task.metadata) : '';
+    const formData: TaskFormData = {
       type: task.type,
       reward: task.reward.toString(),
       rewardType: task.rewardType,
       description: task.description,
       targetCount: task.targetCount.toString(),
       code: task.code || '',
-      metadata: task.metadata ? JSON.stringify(task.metadata) : ''
-    });
+      metadata: metadata,
+      channelUsername: undefined,
+      mediaUrl: undefined,
+      shareText: undefined,
+      widgetName: undefined,
+      widgetUrl: undefined
+    };
+    
+    // Инициализируем поля метадаты из парсера
+    if (task.metadata) {
+      if (task.code === 'TELEGRAM_SUB' || task.code === 'CHAT_BOOST') {
+        const channelUsername = task.metadata.channelUsername;
+        formData.channelUsername = typeof channelUsername === 'string' ? channelUsername : '';
+      }
+      if (task.code === 'STORY_SHARE') {
+        const mediaUrl = task.metadata.mediaUrl;
+        const shareText = task.metadata.shareText;
+        const widgetName = task.metadata.widgetName;
+        const widgetUrl = task.metadata.widgetUrl;
+        formData.mediaUrl = typeof mediaUrl === 'string' ? mediaUrl : '';
+        formData.shareText = typeof shareText === 'string' ? shareText : '';
+        formData.widgetName = typeof widgetName === 'string' ? widgetName : '';
+        formData.widgetUrl = typeof widgetUrl === 'string' ? widgetUrl : '';
+      }
+    }
+    
+    setFormData(formData);
     onOpen();
   };
 
   const handleSaveTask = async () => {
     try {
+      let metadataObj: Record<string, string | number> = {};
+      
+      // Если есть код, формируем метадату из полей формы
+      if (formData.code) {
+        if (formData.code === 'TELEGRAM_SUB') {
+          metadataObj = {
+            channelUsername: formData.channelUsername || ''
+          };
+        } else if (formData.code === 'STORY_SHARE') {
+          metadataObj = {
+            mediaUrl: formData.mediaUrl || '',
+            shareText: formData.shareText || '',
+            widgetName: formData.widgetName || '',
+            widgetUrl: formData.widgetUrl || ''
+          };
+        } else if (formData.code === 'CHAT_BOOST') {
+          metadataObj = {
+            channelUsername: formData.channelUsername || ''
+          };
+        }
+      } else if (formData.metadata) {
+        // Если код не выбран, пытаемся парсить метадату из JSON
+        try {
+          const parsed = JSON.parse(formData.metadata);
+          metadataObj = typeof parsed === 'object' && parsed !== null ? parsed as Record<string, string | number> : {};
+        } catch {
+          metadataObj = {};
+        }
+      }
+      
       const taskData = {
         ...formData,
         reward: parseInt(formData.reward),
         targetCount: parseInt(formData.targetCount),
-        metadata: formData.metadata ? JSON.parse(formData.metadata) : {}
+        metadata: Object.keys(metadataObj).length > 0 ? metadataObj : undefined
       };
 
       if (isEditing && selectedTask) {

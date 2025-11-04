@@ -15,7 +15,7 @@ const DailyRewardsPage = observer(() => {
   const [formData, setFormData] = useState({
     day: '',
     reward: '',
-    rewardType: 'tokens' as 'attempts' | 'tokens',
+    rewardType: 'tokens' as 'energy' | 'tokens',
     description: ''
   });
 
