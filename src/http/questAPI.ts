@@ -7,7 +7,7 @@ export const createTask = async (taskData: {
     description: string;
     targetCount: number;
     code?: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }) => {
     const { data } = await $authHost.post('api/quest/tasks', taskData);
     return data;
@@ -18,7 +18,7 @@ export const deleteTask = async (id: number) => {
     return data;
 };
 
-export const updateTask = async (id: number, taskData: any) => {
+export const updateTask = async (id: number, taskData: Record<string, unknown>) => {
     const { data } = await $authHost.put(`api/quest/tasks/${id}`, taskData);
     return data;
 };

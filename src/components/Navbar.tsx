@@ -1,4 +1,4 @@
-import { Navbar as NextUINavbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
+import { Navbar as NextUINavbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Tooltip } from '@heroui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import {
@@ -11,7 +11,9 @@ import {
   BarChart3,
   Bot,
   LogOut,
-  Calendar
+  Calendar,
+  Download,
+  Menu
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
@@ -21,7 +23,6 @@ const Navbar = observer(() => {
   const location = useLocation();
   const { user } = useContext(Context) as IStoreContext;
 
-
   const menuItems = [
     { key: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/' },
     { key: 'users', label: 'Users', icon: Users, path: '/users' },
@@ -30,6 +31,7 @@ const Navbar = observer(() => {
     { key: 'payments', label: 'Payments', icon: CreditCard, path: '/payments' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
     { key: 'rewards', label: 'Rewards', icon: Gift, path: '/rewards' },
+    { key: 'withdrawals', label: 'Withdrawals', icon: Download, path: '/withdrawals' },
     { key: 'dailyRewards', label: 'Daily Rewards', icon: Calendar, path: '/daily-rewards' },
     { key: 'agents', label: 'Agents', icon: Bot, path: '/agents' },
   ];
@@ -54,26 +56,61 @@ const Navbar = observer(() => {
         </Link>
       </NavbarBrand>
       
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
+      <NavbarContent className="hidden md:flex gap-1" justify="center">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const active = isActive(item.path);
           return (
-            <NavbarItem key={item.key} isActive={isActive(item.path)}>
-              <Link
-                color={isActive(item.path) ? "primary" : "foreground"}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  isActive(item.path) 
-                    ? 'bg-white/20 text-white' 
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-                onClick={() => navigate(item.path)}
-              >
-                <Icon size={18} />
-                {item.label}
-              </Link>
+            <NavbarItem key={item.key}>
+              <Tooltip content={item.label} placement="bottom" showArrow>
+                <Button
+                  isIconOnly
+                  variant="light"
+                  className={`min-w-10 h-10 ${
+                    active 
+                      ? 'bg-white/20 text-white' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                  onClick={() => navigate(item.path)}
+                  aria-label={item.label}
+                >
+                  <Icon size={20} />
+                </Button>
+              </Tooltip>
             </NavbarItem>
           );
         })}
+      </NavbarContent>
+
+      {/* Mobile/Tablet dropdown menu */}
+      <NavbarContent className="md:hidden" justify="center">
+        <Dropdown placement="bottom-end">
+          <DropdownTrigger>
+            <Button 
+              variant="light" 
+              className="text-white"
+              isIconOnly
+            >
+              <Menu size={20} />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu aria-label="Navigation Menu" variant="flat" className="max-h-[600px] overflow-y-auto">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              return (
+                <DropdownItem
+                  key={item.key}
+                  startContent={<Icon size={18} />}
+                  className={active ? 'bg-primary/20' : ''}
+                  onClick={() => navigate(item.path)}
+                >
+                  {item.label}
+                </DropdownItem>
+              );
+            })}
+          </DropdownMenu>
+        </Dropdown>
       </NavbarContent>
 
       <NavbarContent justify="end">
