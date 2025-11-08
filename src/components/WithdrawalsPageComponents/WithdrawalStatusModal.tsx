@@ -1,4 +1,4 @@
-import { Button, Chip, Select, SelectItem } from '@heroui/react';
+import { Button, Chip } from '@heroui/react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import { type WithdrawalRequest } from '@/http/withdrawalAPI';
 
