@@ -1,25 +1,46 @@
 import { useEffect, useState, useContext } from 'react';
 import { useDisclosure } from '@heroui/react';
-import { Plus } from 'lucide-react';
+import { Plus, Gift } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
-import { AgentStats, AgentsTable, AgentFormModal } from '@/components/AgentsPageComponents';
+import { 
+  AgentStats, 
+  AgentsTable, 
+  AgentFormModal,
+  StageRewardsTable,
+  StageRewardFormModal,
+  StageRewardStats
+} from '@/components/AgentsPageComponents';
 import { type Agent } from '@/http/agentAPI';
+import { type StageReward } from '@/http/stageRewardAPI';
 
 const AgentsPage = observer(() => {
-  const { agent } = useContext(Context) as IStoreContext;
+  const { agent, stageReward } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isRewardModalOpen, 
+    onOpen: onRewardModalOpen, 
+    onClose: onRewardModalClose 
+  } = useDisclosure();
+  
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [selectedReward, setSelectedReward] = useState<StageReward | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingReward, setIsEditingReward] = useState(false);
   const [formData, setFormData] = useState({
     historyName: '',
     systemPrompt: ''
   });
+  const [rewardFormData, setRewardFormData] = useState({
+    stageNumber: 1,
+    rewardAmount: 100
+  });
 
   useEffect(() => {
     agent.fetchAllAgents();
-  }, [agent]);
+    stageReward.fetchAllRewards();
+  }, [agent, stageReward]);
 
   const handleCreateAgent = () => {
     setSelectedAgent(null);
@@ -72,6 +93,66 @@ const AgentsPage = observer(() => {
     }
   };
 
+  const handleCreateReward = () => {
+    setSelectedReward(null);
+    setIsEditingReward(false);
+    setRewardFormData({
+      stageNumber: 1,
+      rewardAmount: 100
+    });
+    onRewardModalOpen();
+  };
+
+  const handleEditReward = (reward: StageReward) => {
+    setSelectedReward(reward);
+    setIsEditingReward(true);
+    setRewardFormData({
+      stageNumber: reward.stageNumber,
+      rewardAmount: reward.rewardAmount
+    });
+    onRewardModalOpen();
+  };
+
+  const handleSaveReward = async () => {
+    try {
+      const rewardData = {
+        stageNumber: rewardFormData.stageNumber,
+        rewardAmount: rewardFormData.rewardAmount
+      };
+
+      if (isEditingReward && selectedReward) {
+        await stageReward.updateReward(selectedReward.stageNumber, rewardData);
+      } else {
+        await stageReward.createReward(rewardData);
+      }
+      
+      onRewardModalClose();
+      stageReward.fetchAllRewards();
+    } catch (error) {
+      console.error('Failed to save stage reward:', error);
+    }
+  };
+
+  const handleDeleteReward = async (stageNumber: number) => {
+    if (window.confirm(`Are you sure you want to delete the reward for stage ${stageNumber}? This action cannot be undone.`)) {
+      try {
+        await stageReward.deleteReward(stageNumber);
+        stageReward.fetchAllRewards();
+      } catch (error) {
+        console.error('Failed to delete stage reward:', error);
+      }
+    }
+  };
+
+  const handleToggleActive = async (stageNumber: number, isActive: boolean) => {
+    try {
+      await stageReward.updateReward(stageNumber, { isActive });
+      stageReward.fetchAllRewards();
+    } catch (error) {
+      console.error('Failed to toggle stage reward status:', error);
+    }
+  };
+
   const totalAgents = agent.agents.length;
   const avgPromptLength = agent.agents.length > 0
     ? agent.agents.reduce((sum, ag) => sum + ag.systemPrompt.length, 0) / agent.agents.length
@@ -109,6 +190,43 @@ const AgentsPage = observer(() => {
         onFormDataChange={setFormData}
         onSave={handleSaveAgent}
       />
+
+      {/* Stage Rewards Section */}
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <PageHeader
+          title="Stage Rewards"
+          description="Manage rewards for each stage of the story (each story has 3 stages)"
+          actionButton={{
+            label: "Create Stage Reward",
+            icon: Gift,
+            onClick: handleCreateReward
+          }}
+        />
+
+        <div className="mt-6">
+          <StageRewardStats rewards={stageReward.rewards} />
+        </div>
+
+        <div className="mt-6">
+          <StageRewardsTable
+            rewards={stageReward.rewards}
+            loading={stageReward.loading}
+            onEditReward={handleEditReward}
+            onDeleteReward={handleDeleteReward}
+            onToggleActive={handleToggleActive}
+          />
+        </div>
+
+        <StageRewardFormModal
+          isOpen={isRewardModalOpen}
+          onClose={onRewardModalClose}
+          isEditing={isEditingReward}
+          formData={rewardFormData}
+          onFormDataChange={setRewardFormData}
+          onSave={handleSaveReward}
+          existingReward={selectedReward}
+        />
+      </div>
     </div>
   );
 });

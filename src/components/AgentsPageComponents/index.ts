@@ -1,4 +1,7 @@
 export { AgentStats } from './AgentStats';
 export { AgentsTable } from './AgentsTable';
 export { AgentFormModal } from './AgentFormModal';
+export { StageRewardsTable } from './StageRewardsTable';
+export { StageRewardFormModal } from './StageRewardFormModal';
+export { StageRewardStats } from './StageRewardStats';
 
