@@ -1,5 +1,4 @@
 import { 
-  Chip,
   Button,
   Switch
 } from '@heroui/react';

@@ -6,7 +6,6 @@ import {
   ModalFooter,
   Button,
   Input,
-  Switch
 } from '@heroui/react';
 import { Gift } from 'lucide-react';
 import { type StageReward } from '@/http/stageRewardAPI';
