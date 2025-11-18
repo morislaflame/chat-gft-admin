@@ -30,7 +30,8 @@ const AgentsPage = observer(() => {
   const [isEditingReward, setIsEditingReward] = useState(false);
   const [formData, setFormData] = useState({
     historyName: '',
-    systemPrompt: ''
+    systemPrompt: '',
+    description: ''
   });
   const [rewardFormData, setRewardFormData] = useState({
     stageNumber: 1,
@@ -47,7 +48,8 @@ const AgentsPage = observer(() => {
     setIsEditing(false);
     setFormData({
       historyName: '',
-      systemPrompt: ''
+      systemPrompt: '',
+      description: ''
     });
     onOpen();
   };
@@ -57,7 +59,8 @@ const AgentsPage = observer(() => {
     setIsEditing(true);
     setFormData({
       historyName: ag.historyName,
-      systemPrompt: ag.systemPrompt
+      systemPrompt: ag.systemPrompt,
+      description: ag.description || ''
     });
     onOpen();
   };
@@ -66,7 +69,8 @@ const AgentsPage = observer(() => {
     try {
       const agentData = {
         historyName: formData.historyName,
-        systemPrompt: formData.systemPrompt
+        systemPrompt: formData.systemPrompt,
+        description: formData.description || null
       };
 
       if (isEditing && selectedAgent) {

@@ -4,6 +4,7 @@ export interface Agent {
     id: number;
     historyName: string;
     systemPrompt: string;
+    description?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -11,11 +12,13 @@ export interface Agent {
 export interface CreateAgentData {
     historyName: string;
     systemPrompt: string;
+    description?: string | null;
 }
 
 export interface UpdateAgentData {
     historyName?: string;
     systemPrompt?: string;
+    description?: string | null;
 }
 
 export const createAgent = async (agentData: CreateAgentData) => {

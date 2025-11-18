@@ -13,6 +13,7 @@ import { Bot, MessageSquare } from 'lucide-react';
 interface AgentFormData {
   historyName: string;
   systemPrompt: string;
+  description: string;
 }
 
 interface AgentFormModalProps {
@@ -56,6 +57,19 @@ export const AgentFormModal = ({
               isRequired
               startContent={<Bot className="w-4 h-4 text-gray-400" />}
               description="Unique identifier for this agent's conversation history"
+            />
+
+            <Textarea
+              label="Description"
+              value={formData.description || ''}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Enter a brief description of this story/history (shown to users when selecting)"
+              minRows={2}
+              maxRows={4}
+              description="Brief description that will be shown to users when they select this history"
+              classNames={{
+                input: "resize-none",
+              }}
             />
 
             <Textarea
