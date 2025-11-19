@@ -12,6 +12,8 @@ import RewardsPage from '@/pages/RewardsPage';
 import AgentsPage from '@/pages/AgentsPage';
 import DailyRewardsPage from '@/pages/DailyRewardsPage';
 import WithdrawalsPage from '@/pages/WithdrawalsPage';
+import UserChatHistoryPage from '@/pages/UserChatHistoryPage';
+import UserDetailsPage from '@/pages/UserDetailsPage';
 import {
   MAIN_ROUTE,
   AUTH_ROUTE,
@@ -24,7 +26,9 @@ import {
   REWARDS_ROUTE,
   AGENTS_ROUTE,
   DAILY_REWARDS_ROUTE,
-  WITHDRAWALS_ROUTE
+  WITHDRAWALS_ROUTE,
+  USER_CHAT_HISTORY_ROUTE,
+  USER_DETAILS_ROUTE
 } from '@/utils/consts';
 
 interface Route {
@@ -40,6 +44,7 @@ export const publicRoutes: Route[] = [
 export const privateRoutes: Route[] = [
   { path: DASHBOARD_ROUTE, Component: DashboardPage },
   { path: USERS_ROUTE, Component: UsersPage },
+  { path: USER_DETAILS_ROUTE, Component: UserDetailsPage },
   { path: MESSAGES_ROUTE, Component: MessagesPage },
   { path: QUESTS_ROUTE, Component: QuestsPage },
   { path: PAYMENTS_ROUTE, Component: PaymentsPage },
@@ -48,4 +53,5 @@ export const privateRoutes: Route[] = [
   { path: AGENTS_ROUTE, Component: AgentsPage },
   { path: DAILY_REWARDS_ROUTE, Component: DailyRewardsPage },
   { path: WITHDRAWALS_ROUTE, Component: WithdrawalsPage },
+  { path: USER_CHAT_HISTORY_ROUTE, Component: UserChatHistoryPage },
 ];

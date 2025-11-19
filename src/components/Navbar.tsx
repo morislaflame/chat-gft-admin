@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import {
   Users,
-  MessageSquare,
   Target,
   CreditCard,
   Package,
@@ -13,7 +12,7 @@ import {
   LogOut,
   Calendar,
   Download,
-  Menu
+  Menu,
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
@@ -26,7 +25,6 @@ const Navbar = observer(() => {
   const menuItems = [
     { key: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/' },
     { key: 'users', label: 'Users', icon: Users, path: '/users' },
-    { key: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
     { key: 'quests', label: 'Quests', icon: Target, path: '/quests' },
     { key: 'payments', label: 'Payments', icon: CreditCard, path: '/payments' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
