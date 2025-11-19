@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
@@ -65,14 +65,7 @@ const UserDetailsPage = observer(() => {
   const [balanceAmount, setBalanceAmount] = useState<string>('');
   const [energyAmount, setEnergyAmount] = useState<string>('');
 
-  useEffect(() => {
-    if (userId) {
-      loadUserDetails();
-      loadHistories();
-    }
-  }, [userId]);
-
-  const loadUserDetails = async () => {
+  const loadUserDetails = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     setError(null);
@@ -82,13 +75,21 @@ const UserDetailsPage = observer(() => {
       if (details.user.selectedHistoryName) {
         setSelectedHistoryName(details.user.selectedHistoryName);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load user details:', err);
-      setError(err.response?.data?.message || 'Failed to load user details');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to load user details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      loadUserDetails();
+      loadHistories();
+    }
+  }, [userId, loadUserDetails]);
 
   const loadHistories = async () => {
     try {
@@ -110,9 +111,10 @@ const UserDetailsPage = observer(() => {
     try {
       const history = await getUserChatHistory(parseInt(userId), selectedHistoryName);
       setChatHistory(history);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load chat history:', err);
-      setError(err.response?.data?.message || 'Failed to load chat history');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to load chat history');
       setChatHistory(null);
     } finally {
       setLoadingHistory(false);
@@ -138,9 +140,10 @@ const UserDetailsPage = observer(() => {
         await handleLoadChatHistory();
       }
       await loadUserDetails();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to reset history:', err);
-      setError(err.response?.data?.message || 'Failed to reset history');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to reset history');
     } finally {
       setLoading(false);
     }
@@ -162,9 +165,10 @@ const UserDetailsPage = observer(() => {
       onBalanceModalClose();
       setBalanceAmount('');
       await loadUserDetails();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update balance:', err);
-      setError(err.response?.data?.message || 'Failed to update balance');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to update balance');
     } finally {
       setLoading(false);
     }
@@ -186,9 +190,10 @@ const UserDetailsPage = observer(() => {
       onEnergyModalClose();
       setEnergyAmount('');
       await loadUserDetails();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update energy:', err);
-      setError(err.response?.data?.message || 'Failed to update energy');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to update energy');
     } finally {
       setLoading(false);
     }
@@ -207,9 +212,10 @@ const UserDetailsPage = observer(() => {
       await deleteUser(parseInt(userId));
       alert('User deleted successfully!');
       navigate(USERS_ROUTE);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to delete user:', err);
-      setError(err.response?.data?.message || 'Failed to delete user');
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to delete user');
     } finally {
       setLoading(false);
     }

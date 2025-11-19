@@ -1,20 +1,13 @@
 import { Card, CardBody, CardHeader } from '@heroui/react';
 import { getInitials } from '@/utils/formatters';
-
-interface User {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  username?: string;
-  balance: number;
-  createdAt: string;
-}
+import type { User } from '@/store/AdminStore';
 
 interface RecentUsersProps {
   users?: User[];
 }
 
 export const RecentUsers = ({ users }: RecentUsersProps) => {
+  
   return (
     <Card>
       <CardHeader>
@@ -27,10 +20,10 @@ export const RecentUsers = ({ users }: RecentUsersProps) => {
               <div key={user.id} className="flex items-center justify-between p-3 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                    {getInitials(user.firstName, user.lastName, user.username)}
+                    {getInitials(user.firstName || '', user.lastName || '', user.username || '')}
                   </div>
                   <div>
-                    <p className="font-medium">{user.firstName} {user.lastName}</p>
+                    <p className="font-medium">{user.firstName || ''} {user.lastName || ''}</p>
                     <p className="text-sm text-gray-300">@{user.username || 'No username'}</p>
                   </div>
                 </div>

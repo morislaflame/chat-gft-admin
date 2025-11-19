@@ -3,22 +3,39 @@ import { getUsers, getUserDetails, getTotalPurchases, getAnalytics, getDashboard
 
 export interface User {
     id: number;
-    telegramId: number;
-    username?: string;
-    firstName?: string;
-    lastName?: string;
-    language?: string;
+    telegramId: number | null;
+    username?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    language?: string | null;
     balance: number;
+    energy: number;
     createdAt: string;
 }
 
-export interface UserDetails extends User {
+export interface UserDetails {
+    userId: number;
+    user: {
+        id: number;
+        telegramId: number | null;
+        username: string | null;
+        firstName: string | null;
+        lastName: string | null;
+        language: string | null;
+        balance: number;
+        energy: number;
+        createdAt: string;
+        selectedHistoryName: string;
+    };
     registeredAt: string;
     messageCount: number;
-    firstMessageAt?: string;
-    gifts: any[];
-    purchases: any[];
-    messages: any[];
+    firstMessageAt: string | null;
+    purchases: Array<{
+        starsAmount: number;
+        createdAt: string;
+    }>;
+    referralCount: number;
+    purchasedRewardsCount: number;
 }
 
 export interface PurchaseStats {
@@ -115,9 +132,10 @@ export default class AdminStore {
             runInAction(() => {
                 this.setUsers(data.users);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch users');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to fetch users');
             });
         } finally {
             runInAction(() => {
@@ -134,9 +152,10 @@ export default class AdminStore {
             runInAction(() => {
                 this.setSelectedUser(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch user details');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to fetch user details');
             });
         } finally {
             runInAction(() => {
@@ -153,9 +172,10 @@ export default class AdminStore {
             runInAction(() => {
                 this.setPurchaseStats(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch purchase stats');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to fetch purchase stats');
             });
         } finally {
             runInAction(() => {
@@ -172,9 +192,10 @@ export default class AdminStore {
             runInAction(() => {
                 this.setAnalytics(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch analytics');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to fetch analytics');
             });
         } finally {
             runInAction(() => {
@@ -191,9 +212,10 @@ export default class AdminStore {
             runInAction(() => {
                 this.setDashboardData(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch dashboard data');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to fetch dashboard data');
             });
         } finally {
             runInAction(() => {

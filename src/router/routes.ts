@@ -12,7 +12,6 @@ import RewardsPage from '@/pages/RewardsPage';
 import AgentsPage from '@/pages/AgentsPage';
 import DailyRewardsPage from '@/pages/DailyRewardsPage';
 import WithdrawalsPage from '@/pages/WithdrawalsPage';
-import UserChatHistoryPage from '@/pages/UserChatHistoryPage';
 import UserDetailsPage from '@/pages/UserDetailsPage';
 import {
   MAIN_ROUTE,
@@ -27,7 +26,6 @@ import {
   AGENTS_ROUTE,
   DAILY_REWARDS_ROUTE,
   WITHDRAWALS_ROUTE,
-  USER_CHAT_HISTORY_ROUTE,
   USER_DETAILS_ROUTE
 } from '@/utils/consts';
 
@@ -53,5 +51,4 @@ export const privateRoutes: Route[] = [
   { path: AGENTS_ROUTE, Component: AgentsPage },
   { path: DAILY_REWARDS_ROUTE, Component: DailyRewardsPage },
   { path: WITHDRAWALS_ROUTE, Component: WithdrawalsPage },
-  { path: USER_CHAT_HISTORY_ROUTE, Component: UserChatHistoryPage },
 ];
