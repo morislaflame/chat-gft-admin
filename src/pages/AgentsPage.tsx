@@ -193,6 +193,11 @@ const AgentsPage = observer(() => {
         formData={formData}
         onFormDataChange={setFormData}
         onSave={handleSaveAgent}
+        selectedAgent={selectedAgent}
+        onUploadVideo={async (agentId, videoFile) => {
+          await agent.uploadVideo(agentId, videoFile);
+          agent.fetchAllAgents();
+        }}
       />
 
       {/* Stage Rewards Section */}

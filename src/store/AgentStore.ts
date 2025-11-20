@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { createAgent, getAllAgents, updateAgent, deleteAgent, type Agent, type CreateAgentData, type UpdateAgentData } from "@/http/agentAPI";
+import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, type Agent, type CreateAgentData, type UpdateAgentData } from "@/http/agentAPI";
 
 export default class AgentStore {
     _agents: Agent[] = [];
@@ -31,9 +31,10 @@ export default class AgentStore {
                 this._agents.unshift(data);
             });
             return data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to create agent');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to create agent');
             });
             throw error;
         } finally {
@@ -55,9 +56,10 @@ export default class AgentStore {
                 }
             });
             return data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to update agent');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to update agent');
             });
             throw error;
         } finally {
@@ -75,9 +77,10 @@ export default class AgentStore {
             runInAction(() => {
                 this._agents = this._agents.filter(agent => agent.id !== id);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to delete agent');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to delete agent');
             });
             throw error;
         } finally {
@@ -95,10 +98,36 @@ export default class AgentStore {
             runInAction(() => {
                 this.setAgents(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch agents');
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to fetch agents');
             });
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async uploadVideo(agentId: number, videoFile: File) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await uploadAgentVideo(agentId, videoFile);
+            runInAction(() => {
+                const index = this._agents.findIndex(agent => agent.id === agentId);
+                if (index !== -1) {
+                    this._agents[index] = data.agent;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to upload video');
+            });
+            throw error;
         } finally {
             runInAction(() => {
                 this.setLoading(false);

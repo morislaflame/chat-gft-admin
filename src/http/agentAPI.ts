@@ -1,12 +1,27 @@
 import { $authHost } from "./index";
 
+export interface MediaFile {
+    id: number;
+    fileName: string;
+    originalName: string;
+    mimeType: string;
+    size: number;
+    bucket: string;
+    url: string | null;
+    entityType: string;
+    entityId: number | null;
+    createdAt: string;
+}
+
 export interface Agent {
     id: number;
     historyName: string;
     systemPrompt: string;
     description?: string | null;
+    videoId?: number | null;
     createdAt: string;
     updatedAt: string;
+    video?: MediaFile | null;
 }
 
 export interface CreateAgentData {
@@ -43,6 +58,24 @@ export const updateAgent = async (id: number, agentData: UpdateAgentData) => {
 
 export const deleteAgent = async (id: number) => {
     const { data } = await $authHost.delete(`api/agent/${id}`);
+    return data;
+};
+
+export interface UploadVideoResponse {
+    success: boolean;
+    agent: Agent;
+    video: MediaFile;
+}
+
+export const uploadAgentVideo = async (id: number, videoFile: File): Promise<UploadVideoResponse> => {
+    const formData = new FormData();
+    formData.append('video', videoFile);
+    
+    const { data } = await $authHost.post(`api/agent/${id}/upload-video`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return data;
 };
 

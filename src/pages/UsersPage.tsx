@@ -218,7 +218,7 @@ const UsersPage = observer(() => {
         </CardBody>
       </Card>
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="rounded-lg shadow">
         <Table aria-label="Users table">
           <TableHeader columns={columns}>
             {(column) => (

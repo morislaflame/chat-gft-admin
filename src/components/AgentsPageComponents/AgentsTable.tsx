@@ -2,7 +2,7 @@ import {
   Chip,
   Button
 } from '@heroui/react';
-import { Edit, Trash2, Bot } from 'lucide-react';
+import { Edit, Trash2, Bot, Video } from 'lucide-react';
 import { DataTable } from '@/components/ui/DataTable';
 import { formatDate } from '@/utils/formatters';
 import { type Agent } from '@/http/agentAPI';
@@ -22,6 +22,7 @@ export const AgentsTable = ({
 }: AgentsTableProps) => {
   const columns = [
     { key: 'name', label: 'HISTORY NAME' },
+    { key: 'video', label: 'VIDEO' },
     { key: 'prompt', label: 'SYSTEM PROMPT' },
     { key: 'length', label: 'PROMPT LENGTH' },
     { key: 'created', label: 'CREATED' },
@@ -41,6 +42,27 @@ export const AgentsTable = ({
               <p className="font-medium">{agent.historyName}</p>
               <p className="text-sm text-gray-500">ID: {agent.id}</p>
             </div>
+          </div>
+        );
+      case 'video':
+        return (
+          <div className="flex items-center">
+            {agent.video ? (
+              <Chip
+                color="success"
+                variant="flat"
+                startContent={<Video className="w-4 h-4" />}
+              >
+                Has Video
+              </Chip>
+            ) : (
+              <Chip
+                color="default"
+                variant="flat"
+              >
+                No Video
+              </Chip>
+            )}
           </div>
         );
       case 'prompt':
