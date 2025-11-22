@@ -13,6 +13,8 @@ interface ProductFormData {
   name: string;
   energy: string;
   starsPrice: string;
+  referralBonusEnergy: string;
+  referralBonusBalance: string;
 }
 
 interface ProductFormModalProps {
@@ -88,6 +90,28 @@ export const ProductFormModal = ({
                 </p>
               </div>
             )}
+
+            <div className="pt-2 border-t border-gray-200">
+              <p className="text-sm font-semibold text-gray-700 mb-3">Referral Bonus (Optional)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Bonus Energy"
+                  type="number"
+                  value={formData.referralBonusEnergy}
+                  onChange={(e) => handleInputChange('referralBonusEnergy', e.target.value)}
+                  placeholder="Energy for referrer"
+                  description="Energy bonus for the referrer"
+                />
+                <Input
+                  label="Bonus Balance"
+                  type="number"
+                  value={formData.referralBonusBalance}
+                  onChange={(e) => handleInputChange('referralBonusBalance', e.target.value)}
+                  placeholder="Balance for referrer"
+                  description="Balance bonus for the referrer"
+                />
+              </div>
+            </div>
           </div>
         </ModalBody>
         <ModalFooter>

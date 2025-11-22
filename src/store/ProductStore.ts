@@ -1,11 +1,17 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { createProduct, getAllProducts, updateProduct, deleteProduct } from "@/http/productAPI";
 
+export interface ReferralBonus {
+    energy?: number;
+    balance?: number;
+}
+
 export interface Product {
     id: number;
     name: string;
     energy: number;
     starsPrice: number;
+    referralBonus?: ReferralBonus | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -35,6 +41,7 @@ export default class ProductStore {
         name: string;
         energy: number;
         starsPrice: number;
+        referralBonus?: ReferralBonus | null;
     }) {
         try {
             this.setLoading(true);
@@ -60,6 +67,7 @@ export default class ProductStore {
         name?: string;
         energy?: number;
         starsPrice?: number;
+        referralBonus?: ReferralBonus | null;
     }) {
         try {
             this.setLoading(true);

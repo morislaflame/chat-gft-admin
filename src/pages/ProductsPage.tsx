@@ -15,7 +15,9 @@ const ProductsPage = observer(() => {
   const [formData, setFormData] = useState({
     name: '',
     energy: '',
-    starsPrice: ''
+    starsPrice: '',
+    referralBonusEnergy: '',
+    referralBonusBalance: ''
   });
 
   useEffect(() => {
@@ -28,7 +30,9 @@ const ProductsPage = observer(() => {
     setFormData({
       name: '',
       energy: '',
-      starsPrice: ''
+      starsPrice: '',
+      referralBonusEnergy: '',
+      referralBonusBalance: ''
     });
     onOpen();
   };
@@ -39,17 +43,28 @@ const ProductsPage = observer(() => {
     setFormData({
       name: prod.name,
       energy: prod.energy.toString(),
-      starsPrice: prod.starsPrice.toString()
+      starsPrice: prod.starsPrice.toString(),
+      referralBonusEnergy: prod.referralBonus?.energy?.toString() || '',
+      referralBonusBalance: prod.referralBonus?.balance?.toString() || ''
     });
     onOpen();
   };
 
   const handleSaveProduct = async () => {
     try {
+      const referralBonus = 
+        (formData.referralBonusEnergy || formData.referralBonusBalance) 
+          ? {
+              energy: formData.referralBonusEnergy ? parseInt(formData.referralBonusEnergy) : undefined,
+              balance: formData.referralBonusBalance ? parseInt(formData.referralBonusBalance) : undefined
+            }
+          : null;
+
       const productData = {
         name: formData.name,
         energy: parseInt(formData.energy),
-        starsPrice: parseInt(formData.starsPrice)
+        starsPrice: parseInt(formData.starsPrice),
+        referralBonus: referralBonus
       };
 
       if (isEditing && selectedProduct) {

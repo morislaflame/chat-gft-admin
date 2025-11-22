@@ -1,9 +1,15 @@
 import { $authHost } from "./index";
 
+export interface ReferralBonus {
+    energy?: number;
+    balance?: number;
+}
+
 export const createProduct = async (productData: {
     name: string;
     energy: number;
     starsPrice: number;
+    referralBonus?: ReferralBonus | null;
 }) => {
     const { data } = await $authHost.post('api/product/create', productData);
     return data;
@@ -18,6 +24,7 @@ export const updateProduct = async (id: number, productData: {
     name?: string;
     energy?: number;
     starsPrice?: number;
+    referralBonus?: ReferralBonus | null;
 }) => {
     const { data } = await $authHost.put(`api/product/update/${id}`, productData);
     return data;
