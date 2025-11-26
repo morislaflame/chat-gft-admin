@@ -198,6 +198,14 @@ const AgentsPage = observer(() => {
           await agent.uploadVideo(agentId, videoFile);
           agent.fetchAllAgents();
         }}
+        onUploadAvatar={async (agentId, avatarFile) => {
+          await agent.uploadAvatar(agentId, avatarFile);
+          agent.fetchAllAgents();
+        }}
+        onUploadPreview={async (agentId, previewFile) => {
+          await agent.uploadPreview(agentId, previewFile);
+          agent.fetchAllAgents();
+        }}
       />
 
       {/* Stage Rewards Section */}

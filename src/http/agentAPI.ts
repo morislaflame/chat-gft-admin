@@ -19,9 +19,13 @@ export interface Agent {
     systemPrompt: string;
     description?: string | null;
     videoId?: number | null;
+    avatarId?: number | null;
+    previewId?: number | null;
     createdAt: string;
     updatedAt: string;
     video?: MediaFile | null;
+    avatar?: MediaFile | null;
+    preview?: MediaFile | null;
 }
 
 export interface CreateAgentData {
@@ -34,6 +38,9 @@ export interface UpdateAgentData {
     historyName?: string;
     systemPrompt?: string;
     description?: string | null;
+    videoId?: number | null;
+    avatarId?: number | null;
+    previewId?: number | null;
 }
 
 export const createAgent = async (agentData: CreateAgentData) => {
@@ -72,6 +79,42 @@ export const uploadAgentVideo = async (id: number, videoFile: File): Promise<Upl
     formData.append('video', videoFile);
     
     const { data } = await $authHost.post(`api/agent/${id}/upload-video`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return data;
+};
+
+export interface UploadAvatarResponse {
+    success: boolean;
+    agent: Agent;
+    avatar: MediaFile;
+}
+
+export const uploadAgentAvatar = async (id: number, avatarFile: File): Promise<UploadAvatarResponse> => {
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
+    
+    const { data } = await $authHost.post(`api/agent/${id}/upload-avatar`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return data;
+};
+
+export interface UploadPreviewResponse {
+    success: boolean;
+    agent: Agent;
+    preview: MediaFile;
+}
+
+export const uploadAgentPreview = async (id: number, previewFile: File): Promise<UploadPreviewResponse> => {
+    const formData = new FormData();
+    formData.append('preview', previewFile);
+    
+    const { data } = await $authHost.post(`api/agent/${id}/upload-preview`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
