@@ -54,7 +54,7 @@ const AgentsPage = observer(() => {
     onOpen();
   };
 
-  const handleEditAgent = (ag: Agent) => {
+  const handleEditAgent = async (ag: Agent) => {
     setSelectedAgent(ag);
     setIsEditing(true);
     setFormData({
@@ -62,6 +62,8 @@ const AgentsPage = observer(() => {
       systemPrompt: ag.systemPrompt,
       description: ag.description || ''
     });
+    // Загружаем миссии для выбранного агента
+    await agent.fetchAgentMissions(ag.id);
     onOpen();
   };
 
@@ -194,6 +196,8 @@ const AgentsPage = observer(() => {
         onFormDataChange={setFormData}
         onSave={handleSaveAgent}
         selectedAgent={selectedAgent}
+        missions={selectedAgent ? agent.getMissions(selectedAgent.id) : []}
+        missionsLoading={selectedAgent ? agent.isMissionsLoading(selectedAgent.id) : false}
         onUploadVideo={async (agentId, videoFile) => {
           await agent.uploadVideo(agentId, videoFile);
           agent.fetchAllAgents();
@@ -205,6 +209,18 @@ const AgentsPage = observer(() => {
         onUploadPreview={async (agentId, previewFile) => {
           await agent.uploadPreview(agentId, previewFile);
           agent.fetchAllAgents();
+        }}
+        onCreateMission={async (agentId, missionData) => {
+          await agent.createAgentMission(agentId, missionData);
+          agent.fetchAgentMissions(agentId);
+        }}
+        onUpdateMission={async (agentId, missionId, missionData) => {
+          await agent.updateAgentMission(agentId, missionId, missionData);
+          agent.fetchAgentMissions(agentId);
+        }}
+        onDeleteMission={async (agentId, missionId) => {
+          await agent.deleteAgentMission(agentId, missionId);
+          agent.fetchAgentMissions(agentId);
         }}
       />
 
@@ -244,6 +260,7 @@ const AgentsPage = observer(() => {
           existingReward={selectedReward}
         />
       </div>
+
     </div>
   );
 });

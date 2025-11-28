@@ -122,3 +122,44 @@ export const uploadAgentPreview = async (id: number, previewFile: File): Promise
     return data;
 };
 
+export interface Mission {
+    id: number;
+    agentId: number;
+    title: string;
+    description?: string | null;
+    orderIndex: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateMissionData {
+    title: string;
+    description?: string | null;
+    orderIndex: number;
+}
+
+export interface UpdateMissionData {
+    title?: string;
+    description?: string | null;
+    orderIndex?: number;
+}
+
+export const getAgentMissions = async (agentId: number): Promise<Mission[]> => {
+    const { data } = await $authHost.get(`api/agent/${agentId}/missions`);
+    return data;
+};
+
+export const createMission = async (agentId: number, missionData: CreateMissionData): Promise<Mission> => {
+    const { data } = await $authHost.post(`api/agent/${agentId}/missions`, missionData);
+    return data;
+};
+
+export const updateMission = async (agentId: number, missionId: number, missionData: UpdateMissionData): Promise<Mission> => {
+    const { data } = await $authHost.put(`api/agent/${agentId}/missions/${missionId}`, missionData);
+    return data;
+};
+
+export const deleteMission = async (agentId: number, missionId: number): Promise<void> => {
+    await $authHost.delete(`api/agent/${agentId}/missions/${missionId}`);
+};
+
