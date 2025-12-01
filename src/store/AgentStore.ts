@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, uploadAgentAvatar, uploadAgentPreview, getAgentMissions, createMission, updateMission, deleteMission, type Agent, type CreateAgentData, type UpdateAgentData, type Mission, type CreateMissionData, type UpdateMissionData } from "@/http/agentAPI";
+import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, uploadAgentAvatar, uploadAgentPreview, uploadAgentBackground, getAgentMissions, createMission, updateMission, deleteMission, type Agent, type CreateAgentData, type UpdateAgentData, type Mission, type CreateMissionData, type UpdateMissionData } from "@/http/agentAPI";
 
 export default class AgentStore {
     _agents: Agent[] = [];
@@ -178,6 +178,31 @@ export default class AgentStore {
             runInAction(() => {
                 const err = error as { response?: { data?: { message?: string } } };
                 this.setError(err.response?.data?.message || 'Failed to upload preview');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async uploadBackground(agentId: number, backgroundFile: File) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await uploadAgentBackground(agentId, backgroundFile);
+            runInAction(() => {
+                const index = this._agents.findIndex(agent => agent.id === agentId);
+                if (index !== -1) {
+                    this._agents[index] = data.agent;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to upload background');
             });
             throw error;
         } finally {

@@ -210,6 +210,10 @@ const AgentsPage = observer(() => {
           await agent.uploadPreview(agentId, previewFile);
           agent.fetchAllAgents();
         }}
+        onUploadBackground={async (agentId, backgroundFile) => {
+          await agent.uploadBackground(agentId, backgroundFile);
+          agent.fetchAllAgents();
+        }}
         onCreateMission={async (agentId, missionData) => {
           await agent.createAgentMission(agentId, missionData);
           agent.fetchAgentMissions(agentId);

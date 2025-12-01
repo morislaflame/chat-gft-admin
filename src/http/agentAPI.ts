@@ -21,11 +21,13 @@ export interface Agent {
     videoId?: number | null;
     avatarId?: number | null;
     previewId?: number | null;
+    backgroundId?: number | null;
     createdAt: string;
     updatedAt: string;
     video?: MediaFile | null;
     avatar?: MediaFile | null;
     preview?: MediaFile | null;
+    background?: MediaFile | null;
 }
 
 export interface CreateAgentData {
@@ -41,6 +43,7 @@ export interface UpdateAgentData {
     videoId?: number | null;
     avatarId?: number | null;
     previewId?: number | null;
+    backgroundId?: number | null;
 }
 
 export const createAgent = async (agentData: CreateAgentData) => {
@@ -115,6 +118,24 @@ export const uploadAgentPreview = async (id: number, previewFile: File): Promise
     formData.append('preview', previewFile);
     
     const { data } = await $authHost.post(`api/agent/${id}/upload-preview`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return data;
+};
+
+export interface UploadBackgroundResponse {
+    success: boolean;
+    agent: Agent;
+    background: MediaFile;
+}
+
+export const uploadAgentBackground = async (id: number, backgroundFile: File): Promise<UploadBackgroundResponse> => {
+    const formData = new FormData();
+    formData.append('background', backgroundFile);
+    
+    const { data } = await $authHost.post(`api/agent/${id}/upload-background`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
