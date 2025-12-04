@@ -2,21 +2,26 @@ import { Button, Input, Textarea } from '@heroui/react';
 import { Target, Edit, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Mission } from '@/http/agentAPI';
+import { MediaUploadField } from './MediaUploadField';
 
 interface AgentMissionsSectionProps {
   missions: Mission[];
   loading: boolean;
+  agentId: number;
   onCreateMission: (missionData: { title: string; description?: string | null; orderIndex: number }) => Promise<void>;
   onUpdateMission: (missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => Promise<void>;
   onDeleteMission: (missionId: number) => Promise<void>;
+  onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
 }
 
 export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   missions,
   loading,
+  agentId,
   onCreateMission,
   onUpdateMission,
-  onDeleteMission
+  onDeleteMission,
+  onUploadMissionVideo
 }) => {
   const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [showMissionForm, setShowMissionForm] = useState(false);
@@ -25,6 +30,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     description: '',
     orderIndex: ''
   });
+  const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     // Сбрасываем форму при изменении missions
@@ -157,36 +163,58 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             sortedMissions.map((mission) => (
               <div
                 key={mission.id}
-                className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-4 flex items-start justify-between"
+                className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-4 space-y-4"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">#{mission.orderIndex}</span>
-                    <h4 className="font-semibold text-gray-700 dark:text-gray-300">{mission.title}</h4>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">#{mission.orderIndex}</span>
+                      <h4 className="font-semibold text-gray-700 dark:text-gray-300">{mission.title}</h4>
+                    </div>
+                    {mission.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{mission.description}</p>
+                    )}
                   </div>
-                  {mission.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{mission.description}</p>
-                  )}
+                  <div className="flex gap-2 ml-4">
+                    <Button
+                      size="sm"
+                      variant="light"
+                      startContent={<Edit className="w-3 h-3" />}
+                      onClick={() => handleEditMission(mission)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="danger"
+                      variant="light"
+                      startContent={<Trash2 className="w-3 h-3" />}
+                      onClick={() => handleDeleteMission(mission.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2 ml-4">
-                  <Button
-                    size="sm"
-                    variant="light"
-                    startContent={<Edit className="w-3 h-3" />}
-                    onClick={() => handleEditMission(mission)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    color="danger"
-                    variant="light"
-                    startContent={<Trash2 className="w-3 h-3" />}
-                    onClick={() => handleDeleteMission(mission.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                {onUploadMissionVideo && (
+                  <div className="border-t border-gray-200 dark:border-zinc-700 pt-4">
+                    <MediaUploadField
+                      label="Mission Video"
+                      icon={<Target className="w-4 h-4" />}
+                      accept="video/*"
+                      mediaType="video"
+                      currentMedia={mission.video || null}
+                      onUpload={async (file) => {
+                        setUploadingVideo({ ...uploadingVideo, [mission.id]: true });
+                        try {
+                          await onUploadMissionVideo(agentId, mission.id, file);
+                        } finally {
+                          setUploadingVideo({ ...uploadingVideo, [mission.id]: false });
+                        }
+                      }}
+                      uploading={uploadingVideo[mission.id] || false}
+                    />
+                  </div>
+                )}
               </div>
             ))
           ) : (

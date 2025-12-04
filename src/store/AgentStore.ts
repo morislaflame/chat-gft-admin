@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, uploadAgentAvatar, uploadAgentPreview, uploadAgentBackground, getAgentMissions, createMission, updateMission, deleteMission, type Agent, type CreateAgentData, type UpdateAgentData, type Mission, type CreateMissionData, type UpdateMissionData } from "@/http/agentAPI";
+import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, uploadAgentAvatar, uploadAgentPreview, uploadAgentBackground, getAgentMissions, createMission, updateMission, deleteMission, uploadMissionVideo, type Agent, type CreateAgentData, type UpdateAgentData, type Mission, type CreateMissionData, type UpdateMissionData } from "@/http/agentAPI";
 
 export default class AgentStore {
     _agents: Agent[] = [];
@@ -320,6 +320,33 @@ export default class AgentStore {
             runInAction(() => {
                 const err = error as { response?: { data?: { message?: string } } };
                 this.setError(err.response?.data?.message || 'Failed to delete mission');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async uploadMissionVideo(agentId: number, missionId: number, videoFile: File) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await uploadMissionVideo(agentId, missionId, videoFile);
+            runInAction(() => {
+                if (this._missions[agentId]) {
+                    const index = this._missions[agentId].findIndex(m => m.id === missionId);
+                    if (index !== -1) {
+                        this._missions[agentId][index] = data.mission;
+                    }
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to upload mission video');
             });
             throw error;
         } finally {

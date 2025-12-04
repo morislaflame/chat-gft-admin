@@ -38,6 +38,7 @@ interface AgentFormModalProps {
   onCreateMission?: (agentId: number, missionData: { title: string; description?: string | null; orderIndex: number }) => Promise<void>;
   onUpdateMission?: (agentId: number, missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => Promise<void>;
   onDeleteMission?: (agentId: number, missionId: number) => Promise<void>;
+  onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
 }
 
 export const AgentFormModal = ({
@@ -56,7 +57,8 @@ export const AgentFormModal = ({
   missionsLoading = false,
   onCreateMission,
   onUpdateMission,
-  onDeleteMission
+  onDeleteMission,
+  onUploadMissionVideo
 }: AgentFormModalProps) => {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -237,9 +239,11 @@ export const AgentFormModal = ({
               <AgentMissionsSection
                 missions={missions}
                 loading={missionsLoading}
+                agentId={selectedAgent.id}
                 onCreateMission={handleCreateMission}
                 onUpdateMission={handleUpdateMission}
                 onDeleteMission={handleDeleteMission}
+                onUploadMissionVideo={onUploadMissionVideo}
               />
             )}
           </div>

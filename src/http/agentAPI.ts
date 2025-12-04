@@ -149,8 +149,10 @@ export interface Mission {
     title: string;
     description?: string | null;
     orderIndex: number;
+    videoId?: number | null;
     createdAt: string;
     updatedAt: string;
+    video?: MediaFile | null;
 }
 
 export interface CreateMissionData {
@@ -182,5 +184,23 @@ export const updateMission = async (agentId: number, missionId: number, missionD
 
 export const deleteMission = async (agentId: number, missionId: number): Promise<void> => {
     await $authHost.delete(`api/agent/${agentId}/missions/${missionId}`);
+};
+
+export interface UploadMissionVideoResponse {
+    success: boolean;
+    mission: Mission;
+    video: MediaFile;
+}
+
+export const uploadMissionVideo = async (agentId: number, missionId: number, videoFile: File): Promise<UploadMissionVideoResponse> => {
+    const formData = new FormData();
+    formData.append('video', videoFile);
+    
+    const { data } = await $authHost.post(`api/agent/${agentId}/missions/${missionId}/upload-video`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return data;
 };
 

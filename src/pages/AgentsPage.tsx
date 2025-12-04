@@ -226,6 +226,10 @@ const AgentsPage = observer(() => {
           await agent.deleteAgentMission(agentId, missionId);
           agent.fetchAgentMissions(agentId);
         }}
+        onUploadMissionVideo={async (agentId, missionId, videoFile) => {
+          await agent.uploadMissionVideo(agentId, missionId, videoFile);
+          agent.fetchAgentMissions(agentId);
+        }}
       />
 
       {/* Stage Rewards Section */}
