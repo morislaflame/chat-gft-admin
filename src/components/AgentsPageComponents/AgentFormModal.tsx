@@ -19,6 +19,7 @@ interface AgentFormData {
   historyName: string;
   systemPrompt: string;
   description: string;
+  orderIndex: string;
 }
 
 interface AgentFormModalProps {
@@ -168,6 +169,15 @@ export const AgentFormModal = ({
               classNames={{
                 input: "resize-none",
               }}
+            />
+
+            <Input
+              label="Order Index"
+              type="number"
+              value={formData.orderIndex}
+              onChange={(e) => handleInputChange('orderIndex', e.target.value)}
+              placeholder="0"
+              description="Lower numbers appear first in the list. Default: 0"
             />
 
             <Textarea

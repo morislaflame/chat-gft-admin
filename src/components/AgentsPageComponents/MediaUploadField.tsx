@@ -1,6 +1,6 @@
 import { Button } from '@heroui/react';
 import { X, Image as ImageIcon, Video } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import type { MediaFile } from '@/http/agentAPI';
 
 export type MediaType = 'image' | 'video' | 'mixed'; // mixed = image, video, or JSON
@@ -29,7 +29,8 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileId = `media-upload-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const uniqueId = useId(); // Генерирует уникальный ID для каждого экземпляра компонента
+  const fileId = `media-upload-${label.toLowerCase().replace(/\s+/g, '-')}-${uniqueId}`;
 
   // Обновляем превью при изменении currentMedia
   useEffect(() => {

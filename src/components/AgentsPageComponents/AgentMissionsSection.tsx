@@ -154,17 +154,18 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div>
           {loading ? (
             <div className="text-center py-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">Loading missions...</p>
             </div>
           ) : sortedMissions.length > 0 ? (
-            sortedMissions.map((mission) => (
-              <div
-                key={mission.id}
-                className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-4 space-y-4"
-              >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {sortedMissions.map((mission) => (
+                <div
+                  key={mission.id}
+                  className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-4 space-y-4"
+                >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -198,25 +199,27 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                 {onUploadMissionVideo && (
                   <div className="border-t border-gray-200 dark:border-zinc-700 pt-4">
                     <MediaUploadField
+                      key={`mission-video-${mission.id}`}
                       label="Mission Video"
                       icon={<Target className="w-4 h-4" />}
                       accept="video/*"
                       mediaType="video"
                       currentMedia={mission.video || null}
                       onUpload={async (file) => {
-                        setUploadingVideo({ ...uploadingVideo, [mission.id]: true });
+                        setUploadingVideo(prev => ({ ...prev, [mission.id]: true }));
                         try {
                           await onUploadMissionVideo(agentId, mission.id, file);
                         } finally {
-                          setUploadingVideo({ ...uploadingVideo, [mission.id]: false });
+                          setUploadingVideo(prev => ({ ...prev, [mission.id]: false }));
                         }
                       }}
                       uploading={uploadingVideo[mission.id] || false}
                     />
                   </div>
                 )}
-              </div>
-            ))
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-4 bg-gray-50 dark:bg-zinc-800 rounded-lg">
               <p className="text-sm text-gray-500 dark:text-gray-400">No missions yet.</p>

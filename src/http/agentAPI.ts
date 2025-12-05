@@ -18,6 +18,7 @@ export interface Agent {
     historyName: string;
     systemPrompt: string;
     description?: string | null;
+    orderIndex: number;
     videoId?: number | null;
     avatarId?: number | null;
     previewId?: number | null;
@@ -34,12 +35,14 @@ export interface CreateAgentData {
     historyName: string;
     systemPrompt: string;
     description?: string | null;
+    orderIndex?: number;
 }
 
 export interface UpdateAgentData {
     historyName?: string;
     systemPrompt?: string;
     description?: string | null;
+    orderIndex?: number;
     videoId?: number | null;
     avatarId?: number | null;
     previewId?: number | null;
