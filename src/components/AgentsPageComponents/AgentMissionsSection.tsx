@@ -1,5 +1,5 @@
 import { Button, Input, Textarea } from '@heroui/react';
-import { Target, Edit, Trash2 } from 'lucide-react';
+import { Target, Edit, Trash2, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Mission } from '@/http/agentAPI';
 import { MediaUploadField } from './MediaUploadField';
@@ -89,6 +89,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     setMissionFormData({ title: '', description: '', orderIndex: '' });
   };
 
+  const handleCreateNewMission = () => {
+    setEditingMission(null);
+    setMissionFormData({ 
+      title: '', 
+      description: '', 
+      orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
+    });
+    setShowMissionForm(true);
+  };
+
   const sortedMissions = [...missions].sort((a, b) => a.orderIndex - b.orderIndex);
 
   return (
@@ -98,6 +108,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
           <Target className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">Missions</p>
         </div>
+        {!showMissionForm && (
+          <Button
+            size="sm"
+            color="primary"
+            startContent={<Plus className="w-4 h-4" />}
+            onClick={handleCreateNewMission}
+          >
+            Create Mission
+          </Button>
+        )}
       </div>
 
       {showMissionForm ? (
