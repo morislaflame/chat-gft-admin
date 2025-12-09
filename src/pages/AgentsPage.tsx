@@ -32,7 +32,8 @@ const AgentsPage = observer(() => {
     historyName: '',
     systemPrompt: '',
     description: '',
-    orderIndex: '0'
+    orderIndex: '0',
+    isActive: true
   });
   const [rewardFormData, setRewardFormData] = useState({
     stageNumber: 1,
@@ -51,7 +52,8 @@ const AgentsPage = observer(() => {
       historyName: '',
       systemPrompt: '',
       description: '',
-      orderIndex: '0'
+      orderIndex: '0',
+      isActive: true
     });
     onOpen();
   };
@@ -63,7 +65,8 @@ const AgentsPage = observer(() => {
       historyName: ag.historyName,
       systemPrompt: ag.systemPrompt,
       description: ag.description || '',
-      orderIndex: ag.orderIndex.toString()
+      orderIndex: ag.orderIndex.toString(),
+      isActive: ag.isActive ?? true
     });
     // Загружаем миссии для выбранного агента
     await agent.fetchAgentMissions(ag.id);
@@ -76,7 +79,8 @@ const AgentsPage = observer(() => {
         historyName: formData.historyName,
         systemPrompt: formData.systemPrompt,
         description: formData.description || null,
-        orderIndex: parseInt(formData.orderIndex) || 0
+        orderIndex: parseInt(formData.orderIndex) || 0,
+        isActive: formData.isActive
       };
 
       if (isEditing && selectedAgent) {

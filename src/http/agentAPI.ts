@@ -23,6 +23,7 @@ export interface Agent {
     avatarId?: number | null;
     previewId?: number | null;
     backgroundId?: number | null;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
     video?: MediaFile | null;
@@ -36,6 +37,7 @@ export interface CreateAgentData {
     systemPrompt: string;
     description?: string | null;
     orderIndex?: number;
+    isActive?: boolean;
 }
 
 export interface UpdateAgentData {
@@ -47,6 +49,7 @@ export interface UpdateAgentData {
     avatarId?: number | null;
     previewId?: number | null;
     backgroundId?: number | null;
+    isActive?: boolean;
 }
 
 export const createAgent = async (agentData: CreateAgentData) => {

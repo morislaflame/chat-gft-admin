@@ -6,7 +6,8 @@ import {
   ModalFooter,
   Button,
   Input,
-  Textarea
+  Textarea,
+  Switch
 } from '@heroui/react';
 import { Bot, Video, Image } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -20,6 +21,7 @@ interface AgentFormData {
   systemPrompt: string;
   description: string;
   orderIndex: string;
+  isActive: boolean;
 }
 
 interface AgentFormModalProps {
@@ -94,7 +96,7 @@ export const AgentFormModal = ({
     }
   }, [isOpen]);
 
-  const handleInputChange = (field: keyof AgentFormData, value: string) => {
+  const handleInputChange = (field: keyof AgentFormData, value: string | boolean) => {
     onFormDataChange({ ...formData, [field]: value });
   };
 
@@ -237,6 +239,13 @@ export const AgentFormModal = ({
               placeholder="0"
               description="Lower numbers appear first in the list. Default: 0"
             />
+
+            <Switch
+              isSelected={formData.isActive}
+              onValueChange={(value) => handleInputChange('isActive', value)}
+            >
+              Active
+            </Switch>
 
             <Textarea
               label="System Prompt"
