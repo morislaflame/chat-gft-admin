@@ -12,6 +12,7 @@ interface AgentMissionsSectionProps {
   onUpdateMission: (missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => Promise<void>;
   onDeleteMission: (missionId: number) => Promise<void>;
   onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
+  onDeleteMissionVideo?: (agentId: number, missionId: number) => Promise<void>;
 }
 
 export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
@@ -21,7 +22,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   onCreateMission,
   onUpdateMission,
   onDeleteMission,
-  onUploadMissionVideo
+  onUploadMissionVideo,
+  onDeleteMissionVideo
 }) => {
   const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [showMissionForm, setShowMissionForm] = useState(false);
@@ -31,6 +33,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     orderIndex: ''
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
+  const [deletingVideo, setDeletingVideo] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     // Сбрасываем форму при изменении missions
@@ -233,7 +236,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                           setUploadingVideo(prev => ({ ...prev, [mission.id]: false }));
                         }
                       }}
+                      onDelete={onDeleteMissionVideo ? async () => {
+                        setDeletingVideo(prev => ({ ...prev, [mission.id]: true }));
+                        try {
+                          await onDeleteMissionVideo(agentId, mission.id);
+                        } finally {
+                          setDeletingVideo(prev => ({ ...prev, [mission.id]: false }));
+                        }
+                      } : undefined}
                       uploading={uploadingVideo[mission.id] || false}
+                      deleting={deletingVideo[mission.id] || false}
                     />
                   </div>
                 )}

@@ -207,3 +207,35 @@ export const uploadMissionVideo = async (agentId: number, missionId: number, vid
     return data;
 };
 
+export interface DeleteMediaResponse {
+    success: boolean;
+    agent?: Agent;
+    mission?: Mission;
+    message: string;
+}
+
+export const deleteAgentVideo = async (agentId: number): Promise<DeleteMediaResponse> => {
+    const { data } = await $authHost.delete(`api/agent/${agentId}/video`);
+    return data;
+};
+
+export const deleteAgentAvatar = async (agentId: number): Promise<DeleteMediaResponse> => {
+    const { data } = await $authHost.delete(`api/agent/${agentId}/avatar`);
+    return data;
+};
+
+export const deleteAgentPreview = async (agentId: number): Promise<DeleteMediaResponse> => {
+    const { data } = await $authHost.delete(`api/agent/${agentId}/preview`);
+    return data;
+};
+
+export const deleteAgentBackground = async (agentId: number): Promise<DeleteMediaResponse> => {
+    const { data } = await $authHost.delete(`api/agent/${agentId}/background`);
+    return data;
+};
+
+export const deleteMissionVideo = async (agentId: number, missionId: number): Promise<DeleteMediaResponse> => {
+    const { data } = await $authHost.delete(`api/agent/${agentId}/missions/${missionId}/video`);
+    return data;
+};
+

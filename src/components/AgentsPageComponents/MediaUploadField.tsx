@@ -12,7 +12,9 @@ interface MediaUploadFieldProps {
   mediaType: MediaType;
   currentMedia?: MediaFile | null;
   onUpload: (file: File) => Promise<void>;
+  onDelete?: () => Promise<void>;
   uploading?: boolean;
+  deleting?: boolean;
   previewClassName?: string;
 }
 
@@ -23,7 +25,9 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
   mediaType,
   currentMedia,
   onUpload,
+  onDelete,
   uploading = false,
+  deleting = false,
   previewClassName = ''
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -80,6 +84,18 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
     setPreview(currentMedia?.url || null);
     if (inputRef.current) {
       inputRef.current.value = '';
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete || !currentMedia) return;
+    if (window.confirm(`Are you sure you want to delete this ${label.toLowerCase()}?`)) {
+      try {
+        await onDelete();
+      } catch (error) {
+        console.error(`Failed to delete ${label.toLowerCase()}:`, error);
+        alert(`Failed to delete ${label.toLowerCase()}`);
+      }
     }
   };
 
@@ -212,6 +228,18 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
             disabled={uploading}
           >
             Upload
+          </Button>
+        )}
+        {!selectedFile && currentMedia && onDelete && (
+          <Button
+            color="danger"
+            variant="bordered"
+            onClick={handleDelete}
+            isLoading={deleting}
+            disabled={deleting}
+            startContent={<X className="w-4 h-4" />}
+          >
+            Delete
           </Button>
         )}
       </div>

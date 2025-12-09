@@ -34,12 +34,17 @@ interface AgentFormModalProps {
   onUploadAvatar?: (agentId: number, avatarFile: File) => Promise<void>;
   onUploadPreview?: (agentId: number, previewFile: File) => Promise<void>;
   onUploadBackground?: (agentId: number, backgroundFile: File) => Promise<void>;
+  onDeleteVideo?: (agentId: number) => Promise<void>;
+  onDeleteAvatar?: (agentId: number) => Promise<void>;
+  onDeletePreview?: (agentId: number) => Promise<void>;
+  onDeleteBackground?: (agentId: number) => Promise<void>;
   missions?: Mission[];
   missionsLoading?: boolean;
   onCreateMission?: (agentId: number, missionData: { title: string; description?: string | null; orderIndex: number }) => Promise<void>;
   onUpdateMission?: (agentId: number, missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => Promise<void>;
   onDeleteMission?: (agentId: number, missionId: number) => Promise<void>;
   onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
+  onDeleteMissionVideo?: (agentId: number, missionId: number) => Promise<void>;
 }
 
 export const AgentFormModal = ({
@@ -54,17 +59,26 @@ export const AgentFormModal = ({
   onUploadAvatar,
   onUploadPreview,
   onUploadBackground,
+  onDeleteVideo,
+  onDeleteAvatar,
+  onDeletePreview,
+  onDeleteBackground,
   missions = [],
   missionsLoading = false,
   onCreateMission,
   onUpdateMission,
   onDeleteMission,
-  onUploadMissionVideo
+  onUploadMissionVideo,
+  onDeleteMissionVideo
 }: AgentFormModalProps) => {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingPreview, setUploadingPreview] = useState(false);
   const [uploadingBackground, setUploadingBackground] = useState(false);
+  const [deletingVideo, setDeletingVideo] = useState(false);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
+  const [deletingPreview, setDeletingPreview] = useState(false);
+  const [deletingBackground, setDeletingBackground] = useState(false);
 
   // Сбрасываем состояние при закрытии/открытии
   useEffect(() => {
@@ -73,6 +87,10 @@ export const AgentFormModal = ({
       setUploadingAvatar(false);
       setUploadingPreview(false);
       setUploadingBackground(false);
+      setDeletingVideo(false);
+      setDeletingAvatar(false);
+      setDeletingPreview(false);
+      setDeletingBackground(false);
     }
   }, [isOpen]);
 
@@ -117,6 +135,46 @@ export const AgentFormModal = ({
       await onUploadBackground(selectedAgent.id, file);
     } finally {
       setUploadingBackground(false);
+    }
+  };
+
+  const handleDeleteVideo = async () => {
+    if (!selectedAgent || !onDeleteVideo) return;
+    setDeletingVideo(true);
+    try {
+      await onDeleteVideo(selectedAgent.id);
+    } finally {
+      setDeletingVideo(false);
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!selectedAgent || !onDeleteAvatar) return;
+    setDeletingAvatar(true);
+    try {
+      await onDeleteAvatar(selectedAgent.id);
+    } finally {
+      setDeletingAvatar(false);
+    }
+  };
+
+  const handleDeletePreview = async () => {
+    if (!selectedAgent || !onDeletePreview) return;
+    setDeletingPreview(true);
+    try {
+      await onDeletePreview(selectedAgent.id);
+    } finally {
+      setDeletingPreview(false);
+    }
+  };
+
+  const handleDeleteBackground = async () => {
+    if (!selectedAgent || !onDeleteBackground) return;
+    setDeletingBackground(true);
+    try {
+      await onDeleteBackground(selectedAgent.id);
+    } finally {
+      setDeletingBackground(false);
     }
   };
 
@@ -207,7 +265,9 @@ export const AgentFormModal = ({
                     mediaType="image"
                     currentMedia={selectedAgent.avatar}
                     onUpload={handleUploadAvatar}
+                    onDelete={onDeleteAvatar ? handleDeleteAvatar : undefined}
                     uploading={uploadingAvatar}
+                    deleting={deletingAvatar}
                     previewClassName="inline-block"
                   />
 
@@ -218,7 +278,9 @@ export const AgentFormModal = ({
                     mediaType="mixed"
                     currentMedia={selectedAgent.preview}
                     onUpload={handleUploadPreview}
+                    onDelete={onDeletePreview ? handleDeletePreview : undefined}
                     uploading={uploadingPreview}
+                    deleting={deletingPreview}
                   />
 
                   <MediaUploadField
@@ -228,7 +290,9 @@ export const AgentFormModal = ({
                     mediaType="mixed"
                     currentMedia={selectedAgent.background}
                     onUpload={handleUploadBackground}
+                    onDelete={onDeleteBackground ? handleDeleteBackground : undefined}
                     uploading={uploadingBackground}
+                    deleting={deletingBackground}
                   />
 
                   <MediaUploadField
@@ -238,7 +302,9 @@ export const AgentFormModal = ({
                     mediaType="video"
                     currentMedia={selectedAgent.video}
                     onUpload={handleUploadVideo}
+                    onDelete={onDeleteVideo ? handleDeleteVideo : undefined}
                     uploading={uploadingVideo}
+                    deleting={deletingVideo}
                   />
                 </div>
               </div>
@@ -254,6 +320,7 @@ export const AgentFormModal = ({
                 onUpdateMission={handleUpdateMission}
                 onDeleteMission={handleDeleteMission}
                 onUploadMissionVideo={onUploadMissionVideo}
+                onDeleteMissionVideo={onDeleteMissionVideo}
               />
             )}
           </div>

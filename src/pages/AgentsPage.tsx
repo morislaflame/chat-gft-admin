@@ -234,6 +234,26 @@ const AgentsPage = observer(() => {
           await agent.uploadMissionVideo(agentId, missionId, videoFile);
           agent.fetchAgentMissions(agentId);
         }}
+        onDeleteVideo={async (agentId) => {
+          await agent.deleteAgentVideo(agentId);
+          agent.fetchAllAgents();
+        }}
+        onDeleteAvatar={async (agentId) => {
+          await agent.deleteAgentAvatar(agentId);
+          agent.fetchAllAgents();
+        }}
+        onDeletePreview={async (agentId) => {
+          await agent.deleteAgentPreview(agentId);
+          agent.fetchAllAgents();
+        }}
+        onDeleteBackground={async (agentId) => {
+          await agent.deleteAgentBackground(agentId);
+          agent.fetchAllAgents();
+        }}
+        onDeleteMissionVideo={async (agentId, missionId) => {
+          await agent.deleteMissionVideo(agentId, missionId);
+          agent.fetchAgentMissions(agentId);
+        }}
       />
 
       {/* Stage Rewards Section */}

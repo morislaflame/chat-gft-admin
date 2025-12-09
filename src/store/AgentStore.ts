@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, uploadAgentAvatar, uploadAgentPreview, uploadAgentBackground, getAgentMissions, createMission, updateMission, deleteMission, uploadMissionVideo, type Agent, type CreateAgentData, type UpdateAgentData, type Mission, type CreateMissionData, type UpdateMissionData } from "@/http/agentAPI";
+import { createAgent, getAllAgents, updateAgent, deleteAgent, uploadAgentVideo, uploadAgentAvatar, uploadAgentPreview, uploadAgentBackground, getAgentMissions, createMission, updateMission, deleteMission, uploadMissionVideo, deleteAgentVideo, deleteAgentAvatar, deleteAgentPreview, deleteAgentBackground, deleteMissionVideo, type Agent, type CreateAgentData, type UpdateAgentData, type Mission, type CreateMissionData, type UpdateMissionData } from "@/http/agentAPI";
 
 export default class AgentStore {
     _agents: Agent[] = [];
@@ -347,6 +347,133 @@ export default class AgentStore {
             runInAction(() => {
                 const err = error as { response?: { data?: { message?: string } } };
                 this.setError(err.response?.data?.message || 'Failed to upload mission video');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async deleteAgentVideo(agentId: number) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await deleteAgentVideo(agentId);
+            runInAction(() => {
+                const index = this._agents.findIndex(agent => agent.id === agentId);
+                if (index !== -1 && data.agent) {
+                    this._agents[index] = data.agent;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to delete agent video');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async deleteAgentAvatar(agentId: number) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await deleteAgentAvatar(agentId);
+            runInAction(() => {
+                const index = this._agents.findIndex(agent => agent.id === agentId);
+                if (index !== -1 && data.agent) {
+                    this._agents[index] = data.agent;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to delete agent avatar');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async deleteAgentPreview(agentId: number) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await deleteAgentPreview(agentId);
+            runInAction(() => {
+                const index = this._agents.findIndex(agent => agent.id === agentId);
+                if (index !== -1 && data.agent) {
+                    this._agents[index] = data.agent;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to delete agent preview');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async deleteAgentBackground(agentId: number) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await deleteAgentBackground(agentId);
+            runInAction(() => {
+                const index = this._agents.findIndex(agent => agent.id === agentId);
+                if (index !== -1 && data.agent) {
+                    this._agents[index] = data.agent;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to delete agent background');
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async deleteMissionVideo(agentId: number, missionId: number) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await deleteMissionVideo(agentId, missionId);
+            runInAction(() => {
+                if (this._missions[agentId]) {
+                    const index = this._missions[agentId].findIndex(m => m.id === missionId);
+                    if (index !== -1 && data.mission) {
+                        this._missions[agentId][index] = data.mission;
+                    }
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                const err = error as { response?: { data?: { message?: string } } };
+                this.setError(err.response?.data?.message || 'Failed to delete mission video');
             });
             throw error;
         } finally {
