@@ -15,7 +15,7 @@ const DailyRewardsPage = observer(() => {
   const [formData, setFormData] = useState({
     day: '',
     reward: '',
-    rewardType: 'tokens' as 'energy' | 'tokens',
+    secondReward: '',
     description: ''
   });
 
@@ -29,7 +29,7 @@ const DailyRewardsPage = observer(() => {
     setFormData({
       day: '',
       reward: '',
-      rewardType: 'tokens',
+      secondReward: '',
       description: ''
     });
     onOpen();
@@ -41,7 +41,7 @@ const DailyRewardsPage = observer(() => {
     setFormData({
       day: reward.day.toString(),
       reward: reward.reward.toString(),
-      rewardType: reward.rewardType,
+      secondReward: (reward.secondReward ?? 0).toString(),
       description: reward.description
     });
     onOpen();
@@ -53,16 +53,20 @@ const DailyRewardsPage = observer(() => {
         await dailyReward.updateDailyRewardByDay(
           selectedReward.day,
           {
-            reward: parseInt(formData.reward),
-            rewardType: formData.rewardType,
+            reward: parseInt(formData.reward || '0'),
+            rewardType: 'energy',
+            secondReward: parseInt(formData.secondReward || '0'),
+            secondRewardType: 'tokens',
             description: formData.description
           }
         );
       } else {
         await dailyReward.createDailyReward({
           day: parseInt(formData.day),
-          reward: parseInt(formData.reward),
-          rewardType: formData.rewardType,
+          reward: parseInt(formData.reward || '0'),
+          rewardType: 'energy',
+          secondReward: parseInt(formData.secondReward || '0'),
+          secondRewardType: 'tokens',
           description: formData.description
         });
       }

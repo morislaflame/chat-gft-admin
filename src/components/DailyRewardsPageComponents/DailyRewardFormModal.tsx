@@ -15,7 +15,7 @@ import { useMemo } from 'react';
 interface DailyRewardFormData {
   day: string;
   reward: string;
-  rewardType: 'energy' | 'tokens';
+  secondReward: string;
   description: string;
 }
 
@@ -47,10 +47,6 @@ export const DailyRewardFormModal = ({
     return formData.day ? new Set([formData.day]) : new Set<string>();
   }, [formData.day]);
 
-  const selectedRewardTypeKeys = useMemo(() => {
-    return formData.rewardType ? new Set([formData.rewardType]) : new Set<string>();
-  }, [formData.rewardType]);
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <ModalContent>
@@ -81,31 +77,21 @@ export const DailyRewardFormModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Reward Amount"
+                label="Energy Reward"
                 type="number"
                 value={formData.reward}
                 onChange={(e) => handleInputChange('reward', e.target.value)}
-                placeholder="Enter reward amount"
-                isRequired
-                min="1"
+                placeholder="Enter energy amount (>=0)"
+                min="0"
               />
-
-              <Select
-                label="Reward Type"
-                selectedKeys={selectedRewardTypeKeys}
-                onSelectionChange={(keys) => {
-                  const selectedType = Array.from(keys)[0] as 'energy' | 'tokens';
-                  handleInputChange('rewardType', selectedType || 'energy');
-                }}
-                isRequired
-              >
-                <SelectItem key="energy">
-                  Energy
-                </SelectItem>
-                <SelectItem key="tokens">
-                  Tokens
-                </SelectItem>
-              </Select>
+              <Input
+                label="Token Reward"
+                type="number"
+                value={formData.secondReward}
+                onChange={(e) => handleInputChange('secondReward', e.target.value)}
+                placeholder="Enter token amount (>=0)"
+                min="0"
+              />
             </div>
 
             <Textarea
@@ -125,7 +111,12 @@ export const DailyRewardFormModal = ({
           <Button
             color="primary"
             onPress={onSave}
-            disabled={!formData.day || !formData.reward || !formData.rewardType || !formData.description}
+            disabled={
+              !formData.day ||
+              (!formData.reward && !formData.secondReward) ||
+              (Number(formData.reward || '0') <= 0 && Number(formData.secondReward || '0') <= 0) ||
+              !formData.description
+            }
           >
             {isEditing ? 'Update' : 'Create'}
           </Button>

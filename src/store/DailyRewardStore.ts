@@ -33,6 +33,8 @@ export default class DailyRewardStore {
     day: number;
     reward: number;
     rewardType: 'energy' | 'tokens';
+    secondReward?: number;
+    secondRewardType?: 'energy' | 'tokens' | null;
     description: string;
   }) {
     try {
@@ -60,6 +62,8 @@ export default class DailyRewardStore {
   async updateDailyRewardByDay(day: number, rewardData: {
     reward?: number;
     rewardType?: 'energy' | 'tokens';
+    secondReward?: number;
+    secondRewardType?: 'energy' | 'tokens' | null;
     description?: string;
   }) {
     try {

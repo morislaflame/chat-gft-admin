@@ -5,6 +5,8 @@ export interface DailyReward {
   day: number;
   reward: number;
   rewardType: 'energy' | 'tokens';
+  secondReward: number;
+  secondRewardType: 'energy' | 'tokens' | null;
   description: string;
   createdAt: string;
   updatedAt: string;
@@ -14,6 +16,8 @@ export const createDailyReward = async (rewardData: {
   day: number;
   reward: number;
   rewardType: 'energy' | 'tokens';
+  secondReward?: number;
+  secondRewardType?: 'energy' | 'tokens' | null;
   description: string;
 }) => {
   const { data } = await $authHost.post('api/dailyReward/create', rewardData);
@@ -28,6 +32,8 @@ export const getAllDailyRewards = async () => {
 export const updateDailyRewardByDay = async (day: number, rewardData: {
   reward?: number;
   rewardType?: 'energy' | 'tokens';
+  secondReward?: number;
+  secondRewardType?: 'energy' | 'tokens' | null;
   description?: string;
 }) => {
   const { data } = await $authHost.put(`api/dailyReward/update/day/${day}`, rewardData);

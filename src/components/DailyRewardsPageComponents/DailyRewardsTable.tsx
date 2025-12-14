@@ -22,8 +22,7 @@ export const DailyRewardsTable = ({
 }: DailyRewardsTableProps) => {
   const columns = [
     { key: 'day', label: 'DAY' },
-    { key: 'reward', label: 'REWARD' },
-    { key: 'type', label: 'TYPE' },
+    { key: 'rewards', label: 'REWARDS' },
     { key: 'description', label: 'DESCRIPTION' },
     { key: 'created', label: 'CREATED' },
     { key: 'actions', label: 'ACTIONS' },
@@ -40,24 +39,18 @@ export const DailyRewardsTable = ({
           </div>
         );
       case 'reward':
+      case 'rewards':
         return (
-          <div className="flex items-center space-x-2">
-            {reward.rewardType === 'energy' ? (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center space-x-1">
               <Zap className="w-4 h-4 text-yellow-500" />
-            ) : (
+              <span className="font-semibold">{reward.reward}</span>
+            </div>
+            <div className="flex items-center space-x-1">
               <Coins className="w-4 h-4 text-green-500" />
-            )}
-            <span className="font-semibold">{reward.reward}</span>
+              <span className="font-semibold">{reward.secondReward}</span>
+            </div>
           </div>
-        );
-      case 'type':
-        return (
-          <Chip
-            color={reward.rewardType === 'energy' ? 'warning' : 'success'}
-            variant="flat"
-          >
-            {reward.rewardType === 'energy' ? 'Energy' : 'Tokens'}
-          </Chip>
         );
       case 'description':
         return (
