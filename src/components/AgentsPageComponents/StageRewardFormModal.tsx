@@ -52,13 +52,12 @@ export const StageRewardFormModal = ({
               type="number"
               value={formData.stageNumber.toString()}
               onChange={(e) => handleInputChange('stageNumber', parseInt(e.target.value) || 0)}
-              placeholder="1, 2, or 3"
+              placeholder="1, 2, 3, ..."
               isRequired
               isDisabled={isEditing}
               min={1}
-              max={3}
               startContent={<Gift className="w-4 h-4 text-gray-400" />}
-              description="Stage number must be between 1 and 3"
+              description="Stage number must be greater than or equal to 1"
             />
 
             <Input
@@ -80,7 +79,7 @@ export const StageRewardFormModal = ({
           <Button 
             color="primary" 
             onPress={onSave}
-            disabled={!formData.stageNumber || formData.stageNumber < 1 || formData.stageNumber > 3 || !formData.rewardAmount || formData.rewardAmount < 0}
+            disabled={!formData.stageNumber || formData.stageNumber < 1 || !formData.rewardAmount || formData.rewardAmount < 0}
           >
             {isEditing ? 'Update' : 'Create'}
           </Button>
