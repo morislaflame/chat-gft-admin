@@ -19,6 +19,7 @@ interface RewardFormData {
   tonPrice: string;
   description: string;
   isActive: boolean;
+  onlyCase: boolean;
 }
 
 interface RewardFormModalProps {
@@ -159,6 +160,14 @@ export const RewardFormModal = ({
                 onValueChange={(value) => handleInputChange('isActive', value)}
               />
               <span className="text-sm text-gray-700">Active</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                isSelected={formData.onlyCase}
+                onValueChange={(value) => handleInputChange('onlyCase', value)}
+              />
+              <span className="text-sm text-gray-700">Only for cases</span>
             </div>
           </div>
         </ModalBody>

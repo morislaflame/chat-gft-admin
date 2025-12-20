@@ -30,6 +30,7 @@ export interface Reward {
     tonPrice?: number;
     description?: string;
     isActive: boolean;
+    onlyCase?: boolean;
     createdAt: string;
     updatedAt: string;
     reward?: MediaFile;
@@ -109,6 +110,8 @@ export default class RewardStore {
         price: number;
         tonPrice?: number;
         description?: string;
+        onlyCase?: boolean;
+        isActive?: boolean;
     }, imageFile?: File) {
         try {
             this.setLoading(true);
@@ -136,6 +139,7 @@ export default class RewardStore {
         tonPrice?: number;
         description?: string;
         isActive?: boolean;
+        onlyCase?: boolean;
     }, imageFile?: File) {
         try {
             this.setLoading(true);

@@ -1,7 +1,7 @@
 import { useEffect, useContext } from 'react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
-import { DashboardStats, AnalyticsSection, RecentUsers } from '@/components/DashboardPageComponents';
+import { DashboardStats, AnalyticsSection } from '@/components/DashboardPageComponents';
 
 const DashboardPage = observer(() => {
   const { admin } = useContext(Context) as IStoreContext;
@@ -21,7 +21,6 @@ const DashboardPage = observer(() => {
 
       <DashboardStats dashboardData={admin.dashboardData || undefined} />
       <AnalyticsSection dashboardData={admin.dashboardData || undefined} />
-      <RecentUsers users={admin.dashboardData?.users} />
     </div>
   );
 });

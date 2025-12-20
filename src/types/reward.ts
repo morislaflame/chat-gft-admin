@@ -5,6 +5,7 @@ export interface Reward {
   tonPrice?: number;
   description?: string;
   isActive: boolean;
+  onlyCase?: boolean;
   createdAt: string;
   updatedAt: string;
   mediaFile?: {

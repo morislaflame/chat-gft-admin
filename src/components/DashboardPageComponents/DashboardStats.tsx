@@ -2,7 +2,9 @@ import { Users, MessageSquare, Target, Gift, TrendingUp, DollarSign } from 'luci
 import { StatsCard } from '@/components/ui/StatsCard';
 
 interface DashboardData {
-  users?: any[];
+  userStats?: {
+    totalUsers: number;
+  };
   messageStats?: {
     messageCount: number;
   };
@@ -34,7 +36,7 @@ export const DashboardStats = ({ dashboardData }: DashboardStatsProps) => {
   const statsCards = [
     {
       title: 'Total Users',
-      value: dashboardData?.users?.length || 0,
+      value: dashboardData?.userStats?.totalUsers || 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',

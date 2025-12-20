@@ -17,7 +17,8 @@ const RewardsPage = observer(() => {
     price: '',
     tonPrice: '',
     description: '',
-    isActive: true
+    isActive: true,
+    onlyCase: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -34,7 +35,8 @@ const RewardsPage = observer(() => {
       price: '',
       tonPrice: '',
       description: '',
-      isActive: true
+      isActive: true,
+      onlyCase: false,
     });
     setImageFile(null);
     onOpen();
@@ -48,7 +50,8 @@ const RewardsPage = observer(() => {
       price: rew.price.toString(),
       tonPrice: rew.tonPrice?.toString() || '',
       description: rew.description || '',
-      isActive: rew.isActive
+      isActive: rew.isActive,
+      onlyCase: !!rew.onlyCase,
     });
     setImageFile(null);
     onOpen();
@@ -61,7 +64,8 @@ const RewardsPage = observer(() => {
         price: parseInt(formData.price),
         tonPrice: formData.tonPrice ? parseFloat(formData.tonPrice) : undefined,
         description: formData.description,
-        isActive: formData.isActive
+        isActive: formData.isActive,
+        onlyCase: formData.onlyCase,
       };
 
       if (isEditing && selectedReward) {

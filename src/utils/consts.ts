@@ -11,6 +11,7 @@ export const QUESTS_ROUTE = '/quests';
 export const PAYMENTS_ROUTE = '/payments';
 export const PRODUCTS_ROUTE = '/products';
 export const REWARDS_ROUTE = '/rewards';
+export const CASES_ROUTE = '/cases';
 export const AGENTS_ROUTE = '/agents';
 export const DAILY_REWARDS_ROUTE = '/daily-rewards';
 export const WITHDRAWALS_ROUTE = '/withdrawals';

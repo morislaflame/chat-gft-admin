@@ -57,10 +57,11 @@ export interface Analytics {
 }
 
 export interface DashboardData {
-    users: User[];
+    userStats: {
+        totalUsers: number;
+    };
     messageStats: {
         messageCount: number;
-        congratulationsCount: number;
     };
     questStats: {
         activeQuests: number;

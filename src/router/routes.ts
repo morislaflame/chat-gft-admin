@@ -9,6 +9,7 @@ import QuestsPage from '@/pages/QuestsPage';
 import PaymentsPage from '@/pages/PaymentsPage';
 import ProductsPage from '@/pages/ProductsPage';
 import RewardsPage from '@/pages/RewardsPage';
+import CasesPage from '@/pages/CasesPage';
 import AgentsPage from '@/pages/AgentsPage';
 import DailyRewardsPage from '@/pages/DailyRewardsPage';
 import WithdrawalsPage from '@/pages/WithdrawalsPage';
@@ -23,6 +24,7 @@ import {
   PAYMENTS_ROUTE,
   PRODUCTS_ROUTE,
   REWARDS_ROUTE,
+  CASES_ROUTE,
   AGENTS_ROUTE,
   DAILY_REWARDS_ROUTE,
   WITHDRAWALS_ROUTE,
@@ -48,6 +50,7 @@ export const privateRoutes: Route[] = [
   { path: PAYMENTS_ROUTE, Component: PaymentsPage },
   { path: PRODUCTS_ROUTE, Component: ProductsPage },
   { path: REWARDS_ROUTE, Component: RewardsPage },
+  { path: CASES_ROUTE, Component: CasesPage },
   { path: AGENTS_ROUTE, Component: AgentsPage },
   { path: DAILY_REWARDS_ROUTE, Component: DailyRewardsPage },
   { path: WITHDRAWALS_ROUTE, Component: WithdrawalsPage },

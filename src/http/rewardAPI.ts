@@ -5,6 +5,8 @@ export const createReward = async (rewardData: {
     price: number;
     tonPrice?: number;
     description?: string;
+    onlyCase?: boolean;
+    isActive?: boolean;
 }, imageFile?: File) => {
     const formData = new FormData();
     formData.append('name', rewardData.name);
@@ -14,6 +16,12 @@ export const createReward = async (rewardData: {
     }
     if (rewardData.description) {
         formData.append('description', rewardData.description);
+    }
+    if (rewardData.onlyCase !== undefined) {
+        formData.append('onlyCase', rewardData.onlyCase.toString());
+    }
+    if (rewardData.isActive !== undefined) {
+        formData.append('isActive', rewardData.isActive.toString());
     }
     if (imageFile) {
         formData.append('image', imageFile);
@@ -38,6 +46,7 @@ export const updateReward = async (id: number, rewardData: {
     tonPrice?: number;
     description?: string;
     isActive?: boolean;
+    onlyCase?: boolean;
 }, imageFile?: File) => {
     const formData = new FormData();
     if (rewardData.name !== undefined) {
@@ -54,6 +63,9 @@ export const updateReward = async (id: number, rewardData: {
     }
     if (rewardData.isActive !== undefined) {
         formData.append('isActive', rewardData.isActive.toString());
+    }
+    if (rewardData.onlyCase !== undefined) {
+        formData.append('onlyCase', rewardData.onlyCase.toString());
     }
     if (imageFile) {
         formData.append('image', imageFile);

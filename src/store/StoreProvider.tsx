@@ -11,6 +11,7 @@ import AgentStore from "@/store/AgentStore";
 import DailyRewardStore from "@/store/DailyRewardStore";
 import WithdrawalStore from "@/store/WithdrawalStore";
 import StageRewardStore from "@/store/StageRewardStore";
+import CaseStore from "@/store/CaseStore";
 
 // Определяем интерфейс для нашего контекста
 export interface IStoreContext {
@@ -25,6 +26,7 @@ export interface IStoreContext {
   dailyReward: DailyRewardStore;
   withdrawal: WithdrawalStore;
   stageReward: StageRewardStore;
+  caseStore: CaseStore;
 }
 
 let storeInstance: IStoreContext | null = null;
@@ -58,6 +60,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
     dailyReward: DailyRewardStore;
     withdrawal: WithdrawalStore;
     stageReward: StageRewardStore;
+    caseStore: CaseStore;
   } | null>(null);
 
   useEffect(() => {
@@ -74,6 +77,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         { default: DailyRewardStore },
         { default: WithdrawalStore },
         { default: StageRewardStore },
+        { default: CaseStore },
       ] = await Promise.all([
         import("@/store/UserStore"),
         import("@/store/AdminStore"),
@@ -86,6 +90,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         import("@/store/DailyRewardStore"),
         import("@/store/WithdrawalStore"),
         import("@/store/StageRewardStore"),
+        import("@/store/CaseStore"),
       ]);
 
       setStores({
@@ -100,6 +105,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         dailyReward: new DailyRewardStore(),
         withdrawal: new WithdrawalStore(),
         stageReward: new StageRewardStore(),
+        caseStore: new CaseStore(),
       });
     };
 
