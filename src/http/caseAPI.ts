@@ -39,7 +39,8 @@ const appendCaseFormData = (formData: FormData, payload: {
   if (payload.name !== undefined) formData.append("name", payload.name);
   if (payload.description !== undefined) formData.append("description", payload.description ?? "");
   if (payload.price !== undefined) formData.append("price", payload.price.toString());
-  if (payload.image !== undefined) formData.append("image", payload.image);
+  // FormData doesn't accept null values
+  if (payload.image !== undefined && payload.image !== null) formData.append("image", payload.image);
   if (payload.isActive !== undefined) formData.append("isActive", payload.isActive.toString());
   if (payload.items !== undefined) formData.append("items", JSON.stringify(payload.items));
 };
