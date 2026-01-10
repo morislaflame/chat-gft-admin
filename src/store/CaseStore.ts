@@ -4,9 +4,11 @@ import {
   deleteCase,
   getActiveCases,
   getAllCasesAdmin,
+  getUserOpenedCasesHistory,
   updateCase,
   type Case,
   type CaseItemPayload,
+  type UserOpenedCasesHistoryResponse,
 } from "@/http/caseAPI";
 
 export default class CaseStore {
@@ -14,6 +16,11 @@ export default class CaseStore {
   _activeCases: Case[] = [];
   _loading = false;
   _error = "";
+
+  _userOpenedCasesHistory: UserOpenedCasesHistoryResponse | null = null;
+  _userOpenedCasesHistoryLoading = false;
+  _userOpenedCasesHistoryError = "";
+  _userOpenedCasesHistoryForUserId: number | string | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -33,6 +40,19 @@ export default class CaseStore {
 
   setError(error: string) {
     this._error = error;
+  }
+
+  setUserOpenedCasesHistory(history: UserOpenedCasesHistoryResponse | null, userId: number | string | null) {
+    this._userOpenedCasesHistory = history;
+    this._userOpenedCasesHistoryForUserId = userId;
+  }
+
+  setUserOpenedCasesHistoryLoading(loading: boolean) {
+    this._userOpenedCasesHistoryLoading = loading;
+  }
+
+  setUserOpenedCasesHistoryError(error: string) {
+    this._userOpenedCasesHistoryError = error;
   }
 
   async fetchAllCasesAdmin() {
@@ -147,6 +167,26 @@ export default class CaseStore {
     }
   }
 
+  async fetchUserOpenedCasesHistory(userId: number | string, params?: { limit?: number; offset?: number }) {
+    try {
+      this.setUserOpenedCasesHistoryLoading(true);
+      this.setUserOpenedCasesHistoryError("");
+      const data = await getUserOpenedCasesHistory(userId, params);
+      runInAction(() => {
+        this.setUserOpenedCasesHistory(data, userId);
+      });
+    } catch (error: any) {
+      runInAction(() => {
+        this.setUserOpenedCasesHistory(null, userId);
+        this.setUserOpenedCasesHistoryError(
+          error.response?.data?.message || "Не удалось загрузить историю открытий кейсов"
+        );
+      });
+    } finally {
+      runInAction(() => this.setUserOpenedCasesHistoryLoading(false));
+    }
+  }
+
   get cases() {
     return this._cases;
   }
@@ -161,5 +201,21 @@ export default class CaseStore {
 
   get error() {
     return this._error;
+  }
+
+  get userOpenedCasesHistory() {
+    return this._userOpenedCasesHistory;
+  }
+
+  get userOpenedCasesHistoryLoading() {
+    return this._userOpenedCasesHistoryLoading;
+  }
+
+  get userOpenedCasesHistoryError() {
+    return this._userOpenedCasesHistoryError;
+  }
+
+  get userOpenedCasesHistoryForUserId() {
+    return this._userOpenedCasesHistoryForUserId;
   }
 }

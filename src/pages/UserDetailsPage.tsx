@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useContext, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
@@ -15,6 +15,7 @@ import {
 import { getAllAgents, type Agent } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
 import { formatDate } from '@/utils/formatters';
+import { Context, type IStoreContext } from '@/store/StoreProvider';
 import {
   Card,
   CardBody,
@@ -49,6 +50,7 @@ import {
 const UserDetailsPage = observer(() => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { caseStore } = useContext(Context) as IStoreContext;
   const [userDetails, setUserDetails] = useState<UserDetailsResponse | null>(null);
   const [chatHistory, setChatHistory] = useState<UserChatHistoryResponse | null>(null);
   const [histories, setHistories] = useState<Agent[]>([]);
@@ -88,8 +90,21 @@ const UserDetailsPage = observer(() => {
     if (userId) {
       loadUserDetails();
       loadHistories();
+      // Admin-only: case open history for this user
+      if (caseStore.userOpenedCasesHistoryForUserId !== userId) {
+        caseStore.fetchUserOpenedCasesHistory(userId, { limit: 500, offset: 0 });
+      }
     }
-  }, [userId, loadUserDetails]);
+  }, [userId, loadUserDetails, caseStore]);
+
+  const caseOpenHistory = caseStore.userOpenedCasesHistory;
+  const caseOpenHistoryByCaseLabel = useMemo(() => {
+    if (!caseOpenHistory?.byCase?.length) return null;
+    return caseOpenHistory.byCase
+      .slice(0, 10)
+      .map((c) => `${c.caseName}: ${c.count}`)
+      .join(' • ');
+  }, [caseOpenHistory]);
 
   const loadHistories = async () => {
     try {
@@ -355,6 +370,89 @@ const UserDetailsPage = observer(() => {
               Add Energy
             </Button>
           </div>
+        </CardBody>
+      </Card>
+
+      {/* Case Open History */}
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Case Open History</h3>
+          </div>
+
+          {caseStore.userOpenedCasesHistoryError ? (
+            <div className="text-sm text-red-500">{caseStore.userOpenedCasesHistoryError}</div>
+          ) : null}
+
+          {caseStore.userOpenedCasesHistoryLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : null}
+
+          {!caseStore.userOpenedCasesHistoryLoading && caseOpenHistory ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-zinc-800 rounded">
+                  <div className="text-sm text-gray-200">Total Opened</div>
+                  <div className="text-xl font-bold">{caseOpenHistory.totalOpened}</div>
+                </div>
+                <div className="text-center p-3 bg-zinc-800 rounded">
+                  <div className="text-sm text-gray-200">Rewards</div>
+                  <div className="text-xl font-bold">{caseOpenHistory.byDropType.reward}</div>
+                </div>
+                <div className="text-center p-3 bg-zinc-800 rounded">
+                  <div className="text-sm text-gray-200">Gems / Energy</div>
+                  <div className="text-xl font-bold">
+                    {caseOpenHistory.byDropType.gems} / {caseOpenHistory.byDropType.energy}
+                  </div>
+                </div>
+              </div>
+
+              {caseOpenHistoryByCaseLabel ? (
+                <div className="text-xs text-gray-400">{caseOpenHistoryByCaseLabel}</div>
+              ) : null}
+
+              {caseOpenHistory.opens?.length ? (
+                <Table aria-label="Case open history table">
+                  <TableHeader>
+                    <TableColumn>OPENED AT</TableColumn>
+                    <TableColumn>CASE</TableColumn>
+                    <TableColumn>DROP</TableColumn>
+                  </TableHeader>
+                  <TableBody>
+                    {caseOpenHistory.opens.map((row) => {
+                      const type = row.result?.type;
+                      const drop =
+                        type === 'reward'
+                          ? row.result?.reward?.name || (row.result?.reward?.id ? `Reward #${row.result.reward.id}` : 'Reward')
+                          : type === 'gems'
+                            ? `+${row.result?.amount ?? '?'} Gems`
+                            : type === 'energy'
+                              ? `+${row.result?.amount ?? '?'} Energy`
+                              : 'Unknown';
+
+                      return (
+                        <TableRow key={row.userCaseId}>
+                          <TableCell>
+                            <div className="text-xs text-gray-500">{formatDate(row.openedAt)}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">{row.case?.name || 'Unknown case'}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">{drop}</div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-gray-400">No opened cases found.</div>
+              )}
+            </>
+          ) : null}
         </CardBody>
       </Card>
 

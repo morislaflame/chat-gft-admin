@@ -28,6 +28,55 @@ export interface Case {
   items?: CaseItem[];
 }
 
+export type CaseOpenResultType = "reward" | "gems" | "energy";
+
+export interface CaseOpenHistoryReward {
+  id: number;
+  name: string;
+  description?: string | null;
+  onlyCase?: boolean;
+  isActive?: boolean;
+  price?: number;
+  mediaFile?: {
+    id: number;
+    url: string;
+    mimeType: string;
+  } | null;
+}
+
+export interface UserOpenedCaseHistoryEntry {
+  userCaseId: number;
+  purchasedAt: string;
+  openedAt: string;
+  case: {
+    id: number;
+    name: string;
+    description?: string | null;
+    price: number;
+    isActive: boolean;
+    mediaFile?: {
+      id: number;
+      url: string;
+      mimeType: string;
+    } | null;
+  } | null;
+  result: {
+    type: CaseOpenResultType | null;
+    caseItemId: number | null;
+    amount?: number;
+    reward?: CaseOpenHistoryReward;
+  };
+}
+
+export interface UserOpenedCasesHistoryResponse {
+  userId: number;
+  totalOpened: number;
+  byCase: Array<{ caseId: number; caseName: string; count: number }>;
+  byDropType: { reward: number; gems: number; energy: number };
+  opens: UserOpenedCaseHistoryEntry[];
+  pagination: { limit: number; offset: number; returned: number };
+}
+
 const appendCaseFormData = (formData: FormData, payload: {
   name?: string;
   description?: string | null;
@@ -102,5 +151,13 @@ export const getAllCasesAdmin = async () => {
 
 export const getActiveCases = async () => {
   const { data } = await $authHost.get("api/case/active");
+  return data;
+};
+
+export const getUserOpenedCasesHistory = async (
+  userId: number | string,
+  params?: { limit?: number; offset?: number }
+): Promise<UserOpenedCasesHistoryResponse> => {
+  const { data } = await $authHost.get(`api/case/user/${userId}/open-history`, { params });
   return data;
 };
