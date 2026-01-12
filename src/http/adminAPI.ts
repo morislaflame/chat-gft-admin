@@ -96,6 +96,16 @@ export const updateUserEnergy = async (userId: number, amount: number): Promise<
     return data;
 };
 
+export const setUserBalance = async (userId: number, balance: number): Promise<UpdateBalanceResponse> => {
+    const { data } = await $authHost.put(`api/admin/user/${userId}/balance/set`, { balance });
+    return data;
+};
+
+export const setUserEnergy = async (userId: number, energy: number): Promise<UpdateEnergyResponse> => {
+    const { data } = await $authHost.put(`api/admin/user/${userId}/energy/set`, { energy });
+    return data;
+};
+
 export interface DeleteUserResponse {
     success: boolean;
     message: string;

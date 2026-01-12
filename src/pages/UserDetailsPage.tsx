@@ -6,8 +6,8 @@ import {
   getUserDetails,
   getUserChatHistory,
   resetUserHistory,
-  updateUserBalance,
-  updateUserEnergy,
+  setUserBalance,
+  setUserEnergy,
   deleteUser,
   type UserDetailsResponse,
   type UserChatHistoryResponse
@@ -164,19 +164,19 @@ const UserDetailsPage = observer(() => {
     }
   };
 
-  const handleAddBalance = async () => {
-    if (!userId || !balanceAmount) return;
-    const amount = parseInt(balanceAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('Please enter a valid positive number');
+  const handleSetBalance = async () => {
+    if (!userId) return;
+    const nextBalance = parseInt(balanceAmount);
+    if (isNaN(nextBalance) || nextBalance < 0) {
+      setError('Please enter a valid number (>= 0)');
       return;
     }
 
     setLoading(true);
     setError(null);
     try {
-      await updateUserBalance(parseInt(userId), amount);
-      alert(`Balance updated successfully!`);
+      await setUserBalance(parseInt(userId), nextBalance);
+      alert(`Balance set successfully!`);
       onBalanceModalClose();
       setBalanceAmount('');
       await loadUserDetails();
@@ -189,19 +189,19 @@ const UserDetailsPage = observer(() => {
     }
   };
 
-  const handleAddEnergy = async () => {
-    if (!userId || !energyAmount) return;
-    const amount = parseInt(energyAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('Please enter a valid positive number');
+  const handleSetEnergy = async () => {
+    if (!userId) return;
+    const nextEnergy = parseInt(energyAmount);
+    if (isNaN(nextEnergy) || nextEnergy < 0) {
+      setError('Please enter a valid number (>= 0)');
       return;
     }
 
     setLoading(true);
     setError(null);
     try {
-      await updateUserEnergy(parseInt(userId), amount);
-      alert(`Energy updated successfully!`);
+      await setUserEnergy(parseInt(userId), nextEnergy);
+      alert(`Energy set successfully!`);
       onEnergyModalClose();
       setEnergyAmount('');
       await loadUserDetails();
@@ -359,7 +359,7 @@ const UserDetailsPage = observer(() => {
               startContent={<Coins size={16} />}
               onPress={onBalanceModalOpen}
             >
-              Add Balance
+              Set Balance
             </Button>
             <Button
               color="warning"
@@ -367,7 +367,7 @@ const UserDetailsPage = observer(() => {
               startContent={<Zap size={16} />}
               onPress={onEnergyModalOpen}
             >
-              Add Energy
+              Set Energy
             </Button>
           </div>
         </CardBody>
@@ -569,20 +569,20 @@ const UserDetailsPage = observer(() => {
       {/* Modals */}
       <Modal isOpen={isBalanceModalOpen} onClose={onBalanceModalClose}>
         <ModalContent>
-          <ModalHeader>Add Balance</ModalHeader>
+          <ModalHeader>Set Balance</ModalHeader>
           <ModalBody>
             <Input
-              label="Amount"
+              label="New balance"
               type="number"
-              placeholder="Enter amount"
+              placeholder="Enter value (>= 0)"
               value={balanceAmount}
               onChange={(e) => setBalanceAmount(e.target.value)}
             />
           </ModalBody>
           <ModalFooter>
             <Button variant="light" onPress={onBalanceModalClose}>Cancel</Button>
-            <Button color="success" onPress={handleAddBalance} isLoading={loading}>
-              Add
+            <Button color="success" onPress={handleSetBalance} isLoading={loading}>
+              Set
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -590,20 +590,20 @@ const UserDetailsPage = observer(() => {
 
       <Modal isOpen={isEnergyModalOpen} onClose={onEnergyModalClose}>
         <ModalContent>
-          <ModalHeader>Add Energy</ModalHeader>
+          <ModalHeader>Set Energy</ModalHeader>
           <ModalBody>
             <Input
-              label="Amount"
+              label="New energy"
               type="number"
-              placeholder="Enter amount"
+              placeholder="Enter value (>= 0)"
               value={energyAmount}
               onChange={(e) => setEnergyAmount(e.target.value)}
             />
           </ModalBody>
           <ModalFooter>
             <Button variant="light" onPress={onEnergyModalClose}>Cancel</Button>
-            <Button color="warning" onPress={handleAddEnergy} isLoading={loading}>
-              Add
+            <Button color="warning" onPress={handleSetEnergy} isLoading={loading}>
+              Set
             </Button>
           </ModalFooter>
         </ModalContent>
