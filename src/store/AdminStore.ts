@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { getUsers, getUserDetails, getTotalPurchases, getAnalytics, getDashboardData } from "@/http/adminAPI";
+import { getUsers, getUserDetails, getTotalPurchases, getAnalytics, getDashboardData, type RecentUserSession } from "@/http/adminAPI";
 
 export interface User {
     id: number;
@@ -82,6 +82,7 @@ export interface DashboardData {
         total_purchases: number;
         total_stars: number;
     };
+    recentUsers?: RecentUserSession[];
 }
 
 export default class AdminStore {

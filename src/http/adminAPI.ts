@@ -126,7 +126,29 @@ export const getAnalytics = async () => {
     return data;
 };
 
-export const getDashboardData = async () => {
+export interface RecentUserSession {
+    userId: number;
+    telegramId: number | null;
+    username: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    historyName: string;
+    lastActiveAt: string;
+    sessionUserMessages: number;
+}
+
+export interface DashboardDataResponse {
+    userStats: { totalUsers: number };
+    messageStats: { messageCount: number };
+    questStats: { activeQuests: number };
+    rewardStats: { totalRewards: number; activeRewards: number; totalPurchases: number };
+    orderStats: { totalOrders: number; completedOrders: number };
+    productStats: { totalProducts: number };
+    purchaseStats: { total_purchases: number; total_stars: number };
+    recentUsers?: RecentUserSession[];
+}
+
+export const getDashboardData = async (): Promise<DashboardDataResponse> => {
     const { data } = await $authHost.get('api/admin/dashboard');
     return data;
 };
