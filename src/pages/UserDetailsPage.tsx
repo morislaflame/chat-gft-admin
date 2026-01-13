@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useContext, useMemo } from 'react';
+import { useEffect, useState, useCallback, useContext, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
@@ -8,9 +8,12 @@ import {
   resetUserHistory,
   setUserBalance,
   setUserEnergy,
+  getUserPurchasedRewards,
   deleteUser,
   type UserDetailsResponse,
-  type UserChatHistoryResponse
+  type UserChatHistoryResponse,
+  type PurchasedRewardAdmin,
+  type WithdrawalStatus
 } from '@/http/adminAPI';
 import { getAllAgents, type Agent } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
@@ -19,6 +22,7 @@ import { Context, type IStoreContext } from '@/store/StoreProvider';
 import {
   Card,
   CardBody,
+  Image,
   Button,
   Input,
   Select,
@@ -44,8 +48,10 @@ import {
   RotateCcw, 
   MessageSquare,
   Zap,
-  Coins
+  Coins,
+  Gift
 } from 'lucide-react';
+import Lottie from 'lottie-react';
 
 const UserDetailsPage = observer(() => {
   const { userId } = useParams<{ userId: string }>();
@@ -58,6 +64,11 @@ const UserDetailsPage = observer(() => {
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [purchasedRewards, setPurchasedRewards] = useState<PurchasedRewardAdmin[]>([]);
+  const [purchasedRewardsLoading, setPurchasedRewardsLoading] = useState(false);
+  const [purchasedRewardsError, setPurchasedRewardsError] = useState<string | null>(null);
+  const [rewardAnimations, setRewardAnimations] = useState<{ [url: string]: Record<string, unknown> }>({});
+  const loadedRewardAnimationUrls = useRef<Set<string>>(new Set());
   
   // Модалки для действий
   const { isOpen: isBalanceModalOpen, onOpen: onBalanceModalOpen, onClose: onBalanceModalClose } = useDisclosure();
@@ -94,8 +105,54 @@ const UserDetailsPage = observer(() => {
       if (caseStore.userOpenedCasesHistoryForUserId !== userId) {
         caseStore.fetchUserOpenedCasesHistory(userId, { limit: 500, offset: 0 });
       }
+
+      // Purchased rewards list for this user
+      setPurchasedRewardsLoading(true);
+      setPurchasedRewardsError(null);
+      getUserPurchasedRewards(userId)
+        .then((data) => setPurchasedRewards(data.purchases || []))
+        .catch((err: unknown) => {
+          console.error('Failed to load purchased rewards:', err);
+          const errorObj = err as { response?: { data?: { message?: string } } };
+          setPurchasedRewardsError(errorObj.response?.data?.message || 'Failed to load purchased rewards');
+          setPurchasedRewards([]);
+        })
+        .finally(() => setPurchasedRewardsLoading(false));
     }
   }, [userId, loadUserDetails, caseStore]);
+
+  // Load Lottie JSON animations for purchased rewards
+  useEffect(() => {
+    const run = async () => {
+      const newAnimations: { [url: string]: Record<string, unknown> } = {};
+      for (const pr of purchasedRewards) {
+        const mediaFile = pr.reward?.mediaFile;
+        if (!mediaFile) continue;
+        if (mediaFile.mimeType !== 'application/json') continue;
+        if (loadedRewardAnimationUrls.current.has(mediaFile.url)) continue;
+        try {
+          const resp = await fetch(mediaFile.url);
+          const json = await resp.json();
+          newAnimations[mediaFile.url] = json;
+          loadedRewardAnimationUrls.current.add(mediaFile.url);
+        } catch (e) {
+          console.error(`Error loading animation for ${mediaFile.url}:`, e);
+        }
+      }
+      if (Object.keys(newAnimations).length > 0) {
+        setRewardAnimations((prev) => ({ ...prev, ...newAnimations }));
+      }
+    };
+    run();
+  }, [purchasedRewards]);
+
+  const getWithdrawalStatus = (reward: PurchasedRewardAdmin): WithdrawalStatus | null => {
+    const list = reward.withdrawalRequests || [];
+    if (!list.length) return null;
+    // Backend returns sorted desc, but keep it safe
+    const latest = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    return latest?.status ?? null;
+  };
 
   const caseOpenHistory = caseStore.userOpenedCasesHistory;
   const caseOpenHistoryByCaseLabel = useMemo(() => {
@@ -452,6 +509,142 @@ const UserDetailsPage = observer(() => {
                 <div className="text-center py-8 text-gray-400">No opened cases found.</div>
               )}
             </>
+          ) : null}
+        </CardBody>
+      </Card>
+
+      {/* Purchased Rewards */}
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Purchased Rewards</h3>
+            <Chip size="sm" variant="flat" color="secondary">
+              {purchasedRewards.length}
+            </Chip>
+          </div>
+
+          {purchasedRewardsError ? (
+            <div className="text-sm text-red-500">{purchasedRewardsError}</div>
+          ) : null}
+
+          {purchasedRewardsLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : null}
+
+          {!purchasedRewardsLoading ? (
+            purchasedRewards.length > 0 ? (
+              <Table aria-label="Purchased rewards table">
+                <TableHeader>
+                  <TableColumn>REWARD</TableColumn>
+                  <TableColumn>PRICE</TableColumn>
+                  <TableColumn>STATUS</TableColumn>
+                  <TableColumn>PURCHASED</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {purchasedRewards.map((pr) => {
+                    const media = pr.reward?.mediaFile;
+                    const withdrawalStatus = getWithdrawalStatus(pr);
+
+                    const statusChip = (() => {
+                      if (!withdrawalStatus) {
+                        return (
+                          <Chip size="sm" variant="flat">
+                            Owned
+                          </Chip>
+                        );
+                      }
+                      if (withdrawalStatus === 'pending') {
+                        return (
+                          <Chip size="sm" variant="flat" color="warning">
+                            Withdrawal: Pending
+                          </Chip>
+                        );
+                      }
+                      if (withdrawalStatus === 'completed') {
+                        return (
+                          <Chip size="sm" variant="flat" color="success">
+                            Withdrawal: Completed
+                          </Chip>
+                        );
+                      }
+                      return (
+                        <Chip size="sm" variant="flat" color="danger">
+                          Withdrawal: Rejected
+                        </Chip>
+                      );
+                    })();
+
+                    const mediaNode = (() => {
+                      if (!media?.url) {
+                        return (
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
+                            <Gift className="w-6 h-6 text-white" />
+                          </div>
+                        );
+                      }
+                      if (media.mimeType === 'application/json') {
+                        const anim = rewardAnimations[media.url];
+                        return anim ? (
+                          <div className="w-12 h-12 flex items-center justify-center">
+                            <Lottie
+                              animationData={anim}
+                              loop={false}
+                              autoplay={true}
+                              style={{ width: 48, height: 48 }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 bg-zinc-800 rounded-lg flex items-center justify-center text-xs text-gray-400">
+                            ...
+                          </div>
+                        );
+                      }
+                      if (media.mimeType.startsWith('image/')) {
+                        return (
+                          <Image
+                            src={media.url}
+                            alt={pr.reward?.name || 'Reward'}
+                            className="w-12 h-12 object-cover rounded-lg"
+                          />
+                        );
+                      }
+                      return (
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
+                          <Gift className="w-6 h-6 text-white" />
+                        </div>
+                      );
+                    })();
+
+                    return (
+                      <TableRow key={pr.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            {mediaNode}
+                            <div>
+                              <p className="font-medium">{pr.reward?.name || `Reward #${pr.rewardId}`}</p>
+                              <p className="text-sm text-gray-500 line-clamp-2">
+                                {pr.reward?.description || ''}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-semibold">{pr.purchasePrice}</div>
+                        </TableCell>
+                        <TableCell>{statusChip}</TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-600">{formatDate(pr.purchaseDate)}</span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-gray-400">No purchased rewards found.</div>
+            )
           ) : null}
         </CardBody>
       </Card>

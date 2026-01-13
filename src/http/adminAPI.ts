@@ -185,3 +185,46 @@ export const getUserChatHistory = async (userId: number, historyName: string): P
     });
     return data;
 };
+
+export type WithdrawalStatus = 'pending' | 'completed' | 'rejected';
+
+export interface WithdrawalRequestAdmin {
+    id: number;
+    status: WithdrawalStatus;
+    createdAt: string;
+    completedAt: string | null;
+    completedBy: number | null;
+}
+
+export interface PurchasedRewardAdmin {
+    id: number;
+    userId: number;
+    rewardId: number;
+    purchasePrice: number;
+    purchaseDate: string;
+    reward: {
+        id: number;
+        name: string;
+        price: number;
+        tonPrice?: number | null;
+        description?: string | null;
+        isActive: boolean;
+        onlyCase?: boolean;
+        mediaFile?: {
+            id: number;
+            url: string;
+            mimeType: string;
+        } | null;
+    };
+    withdrawalRequests?: WithdrawalRequestAdmin[];
+}
+
+export interface UserPurchasedRewardsResponse {
+    userId: number;
+    purchases: PurchasedRewardAdmin[];
+}
+
+export const getUserPurchasedRewards = async (userId: number | string): Promise<UserPurchasedRewardsResponse> => {
+    const { data } = await $authHost.get(`api/admin/user/${userId}/purchased-rewards`);
+    return data;
+};
