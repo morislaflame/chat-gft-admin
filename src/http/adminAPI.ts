@@ -228,3 +228,13 @@ export const getUserPurchasedRewards = async (userId: number | string): Promise<
     const { data } = await $authHost.get(`api/admin/user/${userId}/purchased-rewards`);
     return data;
 };
+
+export interface DeleteUserPurchasedRewardResponse {
+    success: boolean;
+    message: string;
+}
+
+export const deleteUserPurchasedReward = async (userId: number | string, userRewardId: number): Promise<DeleteUserPurchasedRewardResponse> => {
+    const { data } = await $authHost.delete(`api/admin/user/${userId}/purchased-reward/${userRewardId}`);
+    return data;
+};

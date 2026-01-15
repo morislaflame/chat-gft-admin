@@ -9,6 +9,7 @@ import {
   setUserBalance,
   setUserEnergy,
   getUserPurchasedRewards,
+  deleteUserPurchasedReward,
   deleteUser,
   type UserDetailsResponse,
   type UserChatHistoryResponse,
@@ -69,6 +70,7 @@ const UserDetailsPage = observer(() => {
   const [purchasedRewardsError, setPurchasedRewardsError] = useState<string | null>(null);
   const [rewardAnimations, setRewardAnimations] = useState<{ [url: string]: Record<string, unknown> }>({});
   const loadedRewardAnimationUrls = useRef<Set<string>>(new Set());
+  const [deletingRewardId, setDeletingRewardId] = useState<number | null>(null);
   
   // Модалки для действий
   const { isOpen: isBalanceModalOpen, onOpen: onBalanceModalOpen, onClose: onBalanceModalClose } = useDisclosure();
@@ -268,6 +270,29 @@ const UserDetailsPage = observer(() => {
       setError(error.response?.data?.message || 'Failed to update energy');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteReward = async (userRewardId: number, rewardName: string) => {
+    if (!userId) return;
+
+    if (!window.confirm(`Are you sure you want to delete reward "${rewardName}" from this user's purchases? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingRewardId(userRewardId);
+    setPurchasedRewardsError(null);
+    try {
+      await deleteUserPurchasedReward(userId, userRewardId);
+      // Reload purchased rewards list
+      const data = await getUserPurchasedRewards(userId);
+      setPurchasedRewards(data.purchases || []);
+    } catch (err: unknown) {
+      console.error('Failed to delete reward:', err);
+      const error = err as { response?: { data?: { message?: string } } };
+      setPurchasedRewardsError(error.response?.data?.message || 'Failed to delete reward');
+    } finally {
+      setDeletingRewardId(null);
     }
   };
 
@@ -541,6 +566,7 @@ const UserDetailsPage = observer(() => {
                   <TableColumn>PRICE</TableColumn>
                   <TableColumn>STATUS</TableColumn>
                   <TableColumn>PURCHASED</TableColumn>
+                  <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody>
                   {purchasedRewards.map((pr) => {
@@ -636,6 +662,19 @@ const UserDetailsPage = observer(() => {
                         <TableCell>{statusChip}</TableCell>
                         <TableCell>
                           <span className="text-sm text-gray-600">{formatDate(pr.purchaseDate)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            color="danger"
+                            variant="flat"
+                            startContent={<Trash2 size={14} />}
+                            onClick={() => handleDeleteReward(pr.id, pr.reward?.name || `Reward #${pr.rewardId}`)}
+                            isLoading={deletingRewardId === pr.id}
+                            isDisabled={deletingRewardId !== null}
+                          >
+                            Delete
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
