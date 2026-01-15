@@ -15,5 +15,6 @@ export const CASES_ROUTE = '/cases';
 export const AGENTS_ROUTE = '/agents';
 export const DAILY_REWARDS_ROUTE = '/daily-rewards';
 export const WITHDRAWALS_ROUTE = '/withdrawals';
+export const TRAFFIC_SOURCES_ROUTE = '/traffic-sources';
 export const USER_CHAT_HISTORY_ROUTE = '/user-chat-history';
 export const USER_DETAILS_ROUTE = '/users/:userId';

@@ -8,6 +8,7 @@ import {
   Package,
   Gift,
   Box,
+  Link2,
   BarChart3,
   Bot,
   LogOut,
@@ -34,6 +35,7 @@ const Navbar = observer(() => {
     { key: 'withdrawals', label: 'Withdrawals', icon: Download, path: '/withdrawals' },
     { key: 'dailyRewards', label: 'Daily Rewards', icon: Calendar, path: '/daily-rewards' },
     { key: 'agents', label: 'Agents', icon: Bot, path: '/agents' },
+    { key: 'trafficSources', label: 'Трафик', icon: Link2, path: '/traffic-sources' },
   ];
 
   const isActive = (path: string) => {
