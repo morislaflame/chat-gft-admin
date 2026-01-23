@@ -105,7 +105,14 @@ export const RewardsTable = ({
               </div>
             )}
             <div>
-              <p className="font-medium">{reward.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium">{reward.name}</p>
+                {reward.preview?.url ? (
+                  <Chip color="success" variant="flat" size="sm">
+                    Preview
+                  </Chip>
+                ) : null}
+              </div>
               <p className="text-sm text-gray-500">{reward.description}</p>
             </div>
           </div>

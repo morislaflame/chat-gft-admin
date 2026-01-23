@@ -6,6 +6,8 @@ import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
 import { RewardStats, RewardsTable, RewardFormModal } from '@/components/RewardsPageComponents';
 import { type Reward } from '@/types/reward';
+import { createRoot } from 'react-dom/client';
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react';
 
 async function blobToFile(blob: Blob, fileName: string): Promise<File> {
   return new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
@@ -17,9 +19,6 @@ async function createPngPreviewFromLottieData(
 ): Promise<Blob> {
   const size = opts?.size ?? 512;
 
-  // lottie-react already brings lottie-web; we import it dynamically to keep it browser-only.
-  const lottie = (await import('lottie-web')).default as import('lottie-web').LottiePlayer;
-
   const container = document.createElement('div');
   container.style.width = `${size}px`;
   container.style.height = `${size}px`;
@@ -29,44 +28,66 @@ async function createPngPreviewFromLottieData(
   document.body.appendChild(container);
 
   try {
-    const anim = lottie.loadAnimation({
-      container,
-      renderer: 'canvas',
-      loop: false,
-      autoplay: false,
-      animationData,
-      rendererSettings: {
-        clearCanvas: true,
-        preserveAspectRatio: 'xMidYMid meet',
-      },
-    });
+    const lottieRef: { current: LottieRefCurrentProps | null } = { current: null };
+    const root = createRoot(container);
+    root.render(
+      <div style={{ width: size, height: size }}>
+        <Lottie
+          lottieRef={lottieRef}
+          animationData={animationData}
+          loop={false}
+          autoplay={false}
+          style={{ width: size, height: size }}
+        />
+      </div>
+    );
 
-    await new Promise<void>((resolve, reject) => {
-      const onLoaded = () => resolve();
-      const onError = () => reject(new Error('Failed to load lottie animation'));
-      anim.addEventListener('DOMLoaded', onLoaded);
-      anim.addEventListener('data_failed', onError);
-    });
-
-    anim.goToAndStop(0, true);
-
-    // Let lottie render at least one frame
+    // Give React + lottie a tick to mount
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    // Ensure first frame is rendered
+    lottieRef.current?.goToAndStop?.(0, true);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-    const canvas = container.querySelector('canvas') as HTMLCanvasElement | null;
-    if (!canvas) {
-      throw new Error('Canvas renderer not available');
+    const svg = container.querySelector('svg');
+    if (!svg) {
+      root.unmount();
+      throw new Error('SVG renderer not available');
     }
 
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((b) => {
-        if (!b) return reject(new Error('Failed to export PNG'));
-        resolve(b);
-      }, 'image/png');
-    });
+    const serialized = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
 
-    anim.destroy();
-    return blob;
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Failed to load SVG into image'));
+        image.src = url;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Canvas context unavailable');
+      }
+      ctx.clearRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+
+      const pngBlob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (!b) return reject(new Error('Failed to export PNG'));
+          resolve(b);
+        }, 'image/png');
+      });
+
+      root.unmount();
+      return pngBlob;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   } finally {
     container.remove();
   }
