@@ -7,8 +7,14 @@ import {
     getAvailableRewards,
     purchaseReward,
     getMyPurchases,
-    getRewardStats
+    getRewardStats,
+    uploadRewardPreview
 } from "@/http/rewardAPI";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+    const e = error as { response?: { data?: { message?: string } } };
+    return e?.response?.data?.message || fallback;
+}
 
 export interface MediaFile {
     id: number;
@@ -21,6 +27,7 @@ export interface MediaFile {
     entityType: string;
     entityId: number;
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface Reward {
@@ -31,9 +38,11 @@ export interface Reward {
     description?: string;
     isActive: boolean;
     onlyCase?: boolean;
+    previewId?: number | null;
     createdAt: string;
     updatedAt: string;
-    reward?: MediaFile;
+    mediaFile?: MediaFile;
+    preview?: Pick<MediaFile, 'id' | 'url' | 'mimeType'>;
 }
 
 export interface UserReward {
@@ -45,7 +54,7 @@ export interface UserReward {
     createdAt: string;
     updatedAt: string;
     reward?: Reward;
-    user?: any;
+    user?: unknown;
 }
 
 export interface RewardStats {
@@ -121,9 +130,9 @@ export default class RewardStore {
                 this._rewards.unshift(data);
             });
             return data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to create reward');
+                this.setError(getErrorMessage(error, 'Failed to create reward'));
             });
             throw error;
         } finally {
@@ -152,9 +161,33 @@ export default class RewardStore {
                 }
             });
             return data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to update reward');
+                this.setError(getErrorMessage(error, 'Failed to update reward'));
+            });
+            throw error;
+        } finally {
+            runInAction(() => {
+                this.setLoading(false);
+            });
+        }
+    }
+
+    async setRewardPreview(id: number, previewFile: File) {
+        try {
+            this.setLoading(true);
+            this.setError('');
+            const data = await uploadRewardPreview(id, previewFile);
+            runInAction(() => {
+                const index = this._rewards.findIndex(reward => reward.id === id);
+                if (index !== -1) {
+                    this._rewards[index] = data;
+                }
+            });
+            return data;
+        } catch (error: unknown) {
+            runInAction(() => {
+                this.setError(getErrorMessage(error, 'Failed to upload reward preview'));
             });
             throw error;
         } finally {
@@ -172,9 +205,9 @@ export default class RewardStore {
             runInAction(() => {
                 this._rewards = this._rewards.filter(reward => reward.id !== id);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to delete reward');
+                this.setError(getErrorMessage(error, 'Failed to delete reward'));
             });
             throw error;
         } finally {
@@ -192,9 +225,9 @@ export default class RewardStore {
             runInAction(() => {
                 this.setRewards(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch rewards');
+                this.setError(getErrorMessage(error, 'Failed to fetch rewards'));
             });
         } finally {
             runInAction(() => {
@@ -211,9 +244,9 @@ export default class RewardStore {
             runInAction(() => {
                 this.setAvailableRewards(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch available rewards');
+                this.setError(getErrorMessage(error, 'Failed to fetch available rewards'));
             });
         } finally {
             runInAction(() => {
@@ -230,9 +263,9 @@ export default class RewardStore {
             // Обновляем список покупок
             await this.fetchMyPurchases();
             return data;
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to purchase reward');
+                this.setError(getErrorMessage(error, 'Failed to purchase reward'));
             });
             throw error;
         } finally {
@@ -250,9 +283,9 @@ export default class RewardStore {
             runInAction(() => {
                 this.setMyPurchases(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch my purchases');
+                this.setError(getErrorMessage(error, 'Failed to fetch my purchases'));
             });
         } finally {
             runInAction(() => {
@@ -269,9 +302,9 @@ export default class RewardStore {
             runInAction(() => {
                 this.setStats(data);
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             runInAction(() => {
-                this.setError(error.response?.data?.message || 'Failed to fetch reward stats');
+                this.setError(getErrorMessage(error, 'Failed to fetch reward stats'));
             });
         } finally {
             runInAction(() => {

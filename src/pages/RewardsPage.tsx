@@ -7,11 +7,77 @@ import { PageHeader } from '@/components/ui';
 import { RewardStats, RewardsTable, RewardFormModal } from '@/components/RewardsPageComponents';
 import { type Reward } from '@/types/reward';
 
+async function blobToFile(blob: Blob, fileName: string): Promise<File> {
+  return new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+}
+
+async function createPngPreviewFromLottieData(
+  animationData: Record<string, unknown>,
+  opts?: { size?: number }
+): Promise<Blob> {
+  const size = opts?.size ?? 512;
+
+  // lottie-react already brings lottie-web; we import it dynamically to keep it browser-only.
+  const lottie = (await import('lottie-web')).default as import('lottie-web').LottiePlayer;
+
+  const container = document.createElement('div');
+  container.style.width = `${size}px`;
+  container.style.height = `${size}px`;
+  container.style.position = 'fixed';
+  container.style.left = '-10000px';
+  container.style.top = '-10000px';
+  document.body.appendChild(container);
+
+  try {
+    const anim = lottie.loadAnimation({
+      container,
+      renderer: 'canvas',
+      loop: false,
+      autoplay: false,
+      animationData,
+      rendererSettings: {
+        clearCanvas: true,
+        preserveAspectRatio: 'xMidYMid meet',
+      },
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const onLoaded = () => resolve();
+      const onError = () => reject(new Error('Failed to load lottie animation'));
+      anim.addEventListener('DOMLoaded', onLoaded);
+      anim.addEventListener('data_failed', onError);
+    });
+
+    anim.goToAndStop(0, true);
+
+    // Let lottie render at least one frame
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    const canvas = container.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) {
+      throw new Error('Canvas renderer not available');
+    }
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => {
+        if (!b) return reject(new Error('Failed to export PNG'));
+        resolve(b);
+      }, 'image/png');
+    });
+
+    anim.destroy();
+    return blob;
+  } finally {
+    container.remove();
+  }
+}
+
 const RewardsPage = observer(() => {
   const { reward } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [previewGeneratingId, setPreviewGeneratingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -68,16 +134,63 @@ const RewardsPage = observer(() => {
         onlyCase: formData.onlyCase,
       };
 
+      let saved: { id: number } | null = null;
       if (isEditing && selectedReward) {
-        await reward.updateReward(selectedReward.id, rewardData, imageFile || undefined);
+        saved = await reward.updateReward(selectedReward.id, rewardData, imageFile || undefined);
       } else {
-        await reward.createReward(rewardData, imageFile || undefined);
+        saved = await reward.createReward(rewardData, imageFile || undefined);
+      }
+
+      // If media was provided, generate & upload preview after reward exists
+      if (saved?.id && imageFile) {
+        try {
+          setPreviewGeneratingId(saved.id);
+          if (imageFile.type === 'application/json' || imageFile.name.toLowerCase().endsWith('.json')) {
+            const raw = await imageFile.text();
+            const animationData = JSON.parse(raw) as Record<string, unknown>;
+            const pngBlob = await createPngPreviewFromLottieData(animationData);
+            const previewFile = await blobToFile(pngBlob, `reward-${saved.id}-preview.png`);
+            await reward.setRewardPreview(saved.id, previewFile);
+          } else if (imageFile.type.startsWith('image/')) {
+            // For image rewards: reuse the image as preview
+            await reward.setRewardPreview(saved.id, imageFile);
+          }
+        } finally {
+          setPreviewGeneratingId(null);
+        }
       }
       
       onClose();
       reward.fetchAllRewards();
     } catch (error) {
       console.error('Failed to save reward:', error);
+    }
+  };
+
+  const handleGeneratePreview = async (rew: Reward) => {
+    if (!rew.mediaFile?.url) return;
+
+    try {
+      setPreviewGeneratingId(rew.id);
+
+      if (rew.mediaFile.mimeType === 'application/json') {
+        const response = await fetch(rew.mediaFile.url);
+        const animationData = (await response.json()) as Record<string, unknown>;
+        const pngBlob = await createPngPreviewFromLottieData(animationData);
+        const previewFile = await blobToFile(pngBlob, `reward-${rew.id}-preview.png`);
+        await reward.setRewardPreview(rew.id, previewFile);
+      } else if (rew.mediaFile.mimeType.startsWith('image/')) {
+        const response = await fetch(rew.mediaFile.url);
+        const blob = await response.blob();
+        const previewFile = await blobToFile(blob, `reward-${rew.id}-preview.${rew.mediaFile.mimeType.split('/')[1] || 'png'}`);
+        await reward.setRewardPreview(rew.id, previewFile);
+      }
+
+      reward.fetchAllRewards();
+    } catch (error) {
+      console.error('Failed to generate preview:', error);
+    } finally {
+      setPreviewGeneratingId(null);
     }
   };
 
@@ -124,6 +237,8 @@ const RewardsPage = observer(() => {
         loading={reward.loading}
         onEditReward={handleEditReward}
         onDeleteReward={handleDeleteReward}
+        onGeneratePreview={handleGeneratePreview}
+        previewGeneratingId={previewGeneratingId}
       />
 
       <RewardFormModal

@@ -15,13 +15,17 @@ interface RewardsTableProps {
   loading: boolean;
   onEditReward: (reward: Reward) => void;
   onDeleteReward: (id: number) => void;
+  onGeneratePreview: (reward: Reward) => void;
+  previewGeneratingId: number | null;
 }
 
 export const RewardsTable = ({ 
   rewards, 
   loading, 
   onEditReward, 
-  onDeleteReward
+  onDeleteReward,
+  onGeneratePreview,
+  previewGeneratingId
 }: RewardsTableProps) => {
   const [animations, setAnimations] = useState<{ [url: string]: Record<string, unknown> }>({});
   const loadedUrls = useRef<Set<string>>(new Set());
@@ -160,6 +164,17 @@ export const RewardsTable = ({
       case 'actions':
         return (
           <div className="flex gap-2">
+            {reward.mediaFile?.mimeType === 'application/json' ? (
+              <Button
+                size="sm"
+                color="secondary"
+                variant="flat"
+                isLoading={previewGeneratingId === reward.id}
+                onClick={() => onGeneratePreview(reward)}
+              >
+                Generate preview
+              </Button>
+            ) : null}
             <Button
               size="sm"
               color="primary"

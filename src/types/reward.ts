@@ -6,6 +6,7 @@ export interface Reward {
   description?: string;
   isActive: boolean;
   onlyCase?: boolean;
+  previewId?: number | null;
   createdAt: string;
   updatedAt: string;
   mediaFile?: {
@@ -20,5 +21,10 @@ export interface Reward {
     entityId: number;
     createdAt: string;
     updatedAt: string;
+  };
+  preview?: {
+    id: number;
+    url: string;
+    mimeType: string;
   };
 }

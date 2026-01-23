@@ -79,6 +79,18 @@ export const updateReward = async (id: number, rewardData: {
     return data;
 };
 
+export const uploadRewardPreview = async (id: number, previewFile: File) => {
+    const formData = new FormData();
+    formData.append('preview', previewFile);
+
+    const { data } = await $authHost.put(`api/reward/preview/${id}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return data;
+};
+
 export const deleteReward = async (id: number) => {
     const { data } = await $authHost.delete(`api/reward/delete/${id}`);
     return data;
