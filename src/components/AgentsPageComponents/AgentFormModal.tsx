@@ -18,8 +18,11 @@ import { PromptStatistics } from './PromptStatistics';
 
 interface AgentFormData {
   historyName: string;
+  displayName: string;
+  displayNameEn: string;
   systemPrompt: string;
   description: string;
+  descriptionEn: string;
   orderIndex: string;
   isActive: boolean;
 }
@@ -218,14 +221,44 @@ export const AgentFormModal = ({
               description="Unique identifier for this agent's conversation history"
             />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Display name (RU / default)"
+                value={formData.displayName || ''}
+                onChange={(e) => handleInputChange('displayName', e.target.value)}
+                placeholder="Например: Звёздные Войны"
+                description="Human-friendly title shown to users (default language)"
+              />
+              <Input
+                label="Display name (EN)"
+                value={formData.displayNameEn || ''}
+                onChange={(e) => handleInputChange('displayNameEn', e.target.value)}
+                placeholder="e.g., Star Wars"
+                description="Optional title translation for English"
+              />
+            </div>
+
             <Textarea
-              label="Description"
+              label="Description (RU / default)"
               value={formData.description || ''}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Enter a brief description of this story/history (shown to users when selecting)"
               minRows={2}
               maxRows={4}
               description="Brief description that will be shown to users when they select this history"
+              classNames={{
+                input: "resize-none",
+              }}
+            />
+
+            <Textarea
+              label="Description (EN)"
+              value={formData.descriptionEn || ''}
+              onChange={(e) => handleInputChange('descriptionEn', e.target.value)}
+              placeholder="Short English description shown to users"
+              minRows={2}
+              maxRows={4}
+              description="Optional description translation for English"
               classNames={{
                 input: "resize-none",
               }}

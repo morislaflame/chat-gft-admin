@@ -8,8 +8,8 @@ interface AgentMissionsSectionProps {
   missions: Mission[];
   loading: boolean;
   agentId: number;
-  onCreateMission: (missionData: { title: string; description?: string | null; orderIndex: number }) => Promise<void>;
-  onUpdateMission: (missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => Promise<void>;
+  onCreateMission: (missionData: { title: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; orderIndex: number }) => Promise<void>;
+  onUpdateMission: (missionId: number, missionData: { title?: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; orderIndex?: number }) => Promise<void>;
   onDeleteMission: (missionId: number) => Promise<void>;
   onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
   onDeleteMissionVideo?: (agentId: number, missionId: number) => Promise<void>;
@@ -29,7 +29,9 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const [showMissionForm, setShowMissionForm] = useState(false);
   const [missionFormData, setMissionFormData] = useState({
     title: '',
+    titleEn: '',
     description: '',
+    descriptionEn: '',
     orderIndex: ''
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
@@ -39,14 +41,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', description: '', orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', orderIndex: '' });
   }, [missions]);
 
   const handleEditMission = (mission: Mission) => {
     setEditingMission(mission);
     setMissionFormData({
       title: mission.title,
+      titleEn: mission.titleEn || '',
       description: mission.description || '',
+      descriptionEn: mission.descriptionEn || '',
       orderIndex: mission.orderIndex.toString()
     });
     setShowMissionForm(true);
@@ -58,7 +62,9 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     try {
       const missionData = {
         title: missionFormData.title,
+        titleEn: missionFormData.titleEn || null,
         description: missionFormData.description || null,
+        descriptionEn: missionFormData.descriptionEn || null,
         orderIndex: parseInt(missionFormData.orderIndex)
       };
 
@@ -70,7 +76,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', description: '', orderIndex: '' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', orderIndex: '' });
     } catch (error) {
       console.error('Failed to save mission:', error);
     }
@@ -89,14 +95,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', description: '', orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', orderIndex: '' });
   };
 
   const handleCreateNewMission = () => {
     setEditingMission(null);
     setMissionFormData({ 
       title: '', 
+      titleEn: '',
       description: '', 
+      descriptionEn: '',
       orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
     });
     setShowMissionForm(true);
@@ -144,11 +152,24 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             onChange={(e) => setMissionFormData({ ...missionFormData, title: e.target.value })}
             isRequired
           />
+          <Input
+            label="Title (EN)"
+            placeholder="Enter mission title in English (optional)"
+            value={missionFormData.titleEn}
+            onChange={(e) => setMissionFormData({ ...missionFormData, titleEn: e.target.value })}
+          />
           <Textarea
             label="Description"
             placeholder="Enter mission description (optional)"
             value={missionFormData.description}
             onChange={(e) => setMissionFormData({ ...missionFormData, description: e.target.value })}
+            minRows={2}
+          />
+          <Textarea
+            label="Description (EN)"
+            placeholder="Enter mission description in English (optional)"
+            value={missionFormData.descriptionEn}
+            onChange={(e) => setMissionFormData({ ...missionFormData, descriptionEn: e.target.value })}
             minRows={2}
           />
           <Input
@@ -195,9 +216,19 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                       <span className="text-sm font-medium text-gray-500 dark:text-gray-400">#{mission.orderIndex}</span>
                       <h4 className="font-semibold text-gray-700 dark:text-gray-300">{mission.title}</h4>
                     </div>
+                    {mission.titleEn ? (
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        EN: {mission.titleEn}
+                      </p>
+                    ) : null}
                     {mission.description && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{mission.description}</p>
                     )}
+                    {mission.descriptionEn ? (
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        EN: {mission.descriptionEn}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex gap-2 ml-4">
                     <Button

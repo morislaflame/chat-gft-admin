@@ -90,7 +90,9 @@ export default class CaseStore {
   async createCase(
     payload: {
       name: string;
+      nameEn?: string | null;
       description?: string;
+      descriptionEn?: string | null;
       price: number;
       image?: string;
       isActive?: boolean;
@@ -120,7 +122,9 @@ export default class CaseStore {
     id: number,
     payload: Partial<{
       name: string;
+      nameEn: string | null;
       description: string | null;
+      descriptionEn: string | null;
       price: number;
       image: string | null;
       isActive: boolean;

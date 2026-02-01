@@ -3,7 +3,9 @@ import { type Mission } from '@/http/agentAPI';
 
 interface MissionFormData {
   title: string;
+  titleEn: string;
   description: string;
+  descriptionEn: string;
   orderIndex: string;
 }
 
@@ -40,11 +42,24 @@ export const MissionFormModal = ({
               onChange={(e) => onFormDataChange({ ...formData, title: e.target.value })}
               isRequired
             />
+            <Input
+              label="Title (EN)"
+              placeholder="Enter mission title in English (optional)"
+              value={formData.titleEn}
+              onChange={(e) => onFormDataChange({ ...formData, titleEn: e.target.value })}
+            />
             <Textarea
               label="Description"
               placeholder="Enter mission description (optional)"
               value={formData.description}
               onChange={(e) => onFormDataChange({ ...formData, description: e.target.value })}
+              minRows={3}
+            />
+            <Textarea
+              label="Description (EN)"
+              placeholder="Enter mission description in English (optional)"
+              value={formData.descriptionEn}
+              onChange={(e) => onFormDataChange({ ...formData, descriptionEn: e.target.value })}
               minRows={3}
             />
             <Input

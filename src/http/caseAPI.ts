@@ -14,7 +14,9 @@ export interface CaseItem extends CaseItemPayload {
 export interface Case {
   id: number;
   name: string;
+  nameEn?: string | null;
   description?: string | null;
+  descriptionEn?: string | null;
   price: number;
   image?: string | null;
   isActive: boolean;
@@ -79,14 +81,18 @@ export interface UserOpenedCasesHistoryResponse {
 
 const appendCaseFormData = (formData: FormData, payload: {
   name?: string;
+  nameEn?: string | null;
   description?: string | null;
+  descriptionEn?: string | null;
   price?: number;
   image?: string | null;
   isActive?: boolean;
   items?: CaseItemPayload[];
 }) => {
   if (payload.name !== undefined) formData.append("name", payload.name);
+  if (payload.nameEn !== undefined) formData.append("nameEn", payload.nameEn ?? "");
   if (payload.description !== undefined) formData.append("description", payload.description ?? "");
+  if (payload.descriptionEn !== undefined) formData.append("descriptionEn", payload.descriptionEn ?? "");
   if (payload.price !== undefined) formData.append("price", payload.price.toString());
   // FormData doesn't accept null values
   if (payload.image !== undefined && payload.image !== null) formData.append("image", payload.image);
@@ -97,7 +103,9 @@ const appendCaseFormData = (formData: FormData, payload: {
 export const createCase = async (
   payload: {
     name: string;
+    nameEn?: string | null;
     description?: string;
+    descriptionEn?: string | null;
     price: number;
     image?: string;
     isActive?: boolean;
@@ -120,7 +128,9 @@ export const updateCase = async (
   id: number,
   payload: Partial<{
     name: string;
+    nameEn: string | null;
     description: string | null;
+    descriptionEn: string | null;
     price: number;
     image: string | null;
     isActive: boolean;

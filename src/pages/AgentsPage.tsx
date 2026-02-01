@@ -30,8 +30,11 @@ const AgentsPage = observer(() => {
   const [isEditingReward, setIsEditingReward] = useState(false);
   const [formData, setFormData] = useState({
     historyName: '',
+    displayName: '',
+    displayNameEn: '',
     systemPrompt: '',
     description: '',
+    descriptionEn: '',
     orderIndex: '0',
     isActive: true
   });
@@ -50,8 +53,11 @@ const AgentsPage = observer(() => {
     setIsEditing(false);
     setFormData({
       historyName: '',
+      displayName: '',
+      displayNameEn: '',
       systemPrompt: '',
       description: '',
+      descriptionEn: '',
       orderIndex: '0',
       isActive: true
     });
@@ -63,8 +69,11 @@ const AgentsPage = observer(() => {
     setIsEditing(true);
     setFormData({
       historyName: ag.historyName,
+      displayName: ag.displayName || '',
+      displayNameEn: ag.displayNameEn || '',
       systemPrompt: ag.systemPrompt,
       description: ag.description || '',
+      descriptionEn: ag.descriptionEn || '',
       orderIndex: ag.orderIndex.toString(),
       isActive: ag.isActive ?? true
     });
@@ -77,8 +86,11 @@ const AgentsPage = observer(() => {
     try {
       const agentData = {
         historyName: formData.historyName,
+        displayName: formData.displayName || null,
+        displayNameEn: formData.displayNameEn || null,
         systemPrompt: formData.systemPrompt,
         description: formData.description || null,
+        descriptionEn: formData.descriptionEn || null,
         orderIndex: parseInt(formData.orderIndex) || 0,
         isActive: formData.isActive
       };

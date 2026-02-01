@@ -16,8 +16,11 @@ export interface MediaFile {
 export interface Agent {
     id: number;
     historyName: string;
+    displayName?: string | null;
+    displayNameEn?: string | null;
     systemPrompt: string;
     description?: string | null;
+    descriptionEn?: string | null;
     orderIndex: number;
     videoId?: number | null;
     avatarId?: number | null;
@@ -34,16 +37,22 @@ export interface Agent {
 
 export interface CreateAgentData {
     historyName: string;
+    displayName?: string | null;
+    displayNameEn?: string | null;
     systemPrompt: string;
     description?: string | null;
+    descriptionEn?: string | null;
     orderIndex?: number;
     isActive?: boolean;
 }
 
 export interface UpdateAgentData {
     historyName?: string;
+    displayName?: string | null;
+    displayNameEn?: string | null;
     systemPrompt?: string;
     description?: string | null;
+    descriptionEn?: string | null;
     orderIndex?: number;
     videoId?: number | null;
     avatarId?: number | null;
@@ -153,7 +162,9 @@ export interface Mission {
     id: number;
     agentId: number;
     title: string;
+    titleEn?: string | null;
     description?: string | null;
+    descriptionEn?: string | null;
     orderIndex: number;
     videoId?: number | null;
     createdAt: string;
@@ -163,13 +174,17 @@ export interface Mission {
 
 export interface CreateMissionData {
     title: string;
+    titleEn?: string | null;
     description?: string | null;
+    descriptionEn?: string | null;
     orderIndex: number;
 }
 
 export interface UpdateMissionData {
     title?: string;
+    titleEn?: string | null;
     description?: string | null;
+    descriptionEn?: string | null;
     orderIndex?: number;
 }
 

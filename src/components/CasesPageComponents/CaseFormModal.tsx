@@ -26,7 +26,9 @@ export interface CaseItemForm {
 
 export interface CaseFormData {
   name: string;
+  nameEn: string;
   description: string;
+  descriptionEn: string;
   price: string;
   image: string;
   isActive: boolean;
@@ -134,11 +136,18 @@ export const CaseFormModal = ({
         <ModalBody>
           <div className="space-y-4">
             <Input
-              label="Название кейса"
+              label="Название кейса (RU / default)"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Введите название"
               isRequired
+            />
+
+            <Input
+              label="Название кейса (EN)"
+              value={formData.nameEn}
+              onChange={(e) => handleInputChange("nameEn", e.target.value)}
+              placeholder="Enter English name (optional)"
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -191,10 +200,18 @@ export const CaseFormModal = ({
             </div>
 
             <Textarea
-              label="Описание"
+              label="Описание (RU / default)"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Краткое описание кейса"
+              minRows={2}
+            />
+
+            <Textarea
+              label="Описание (EN)"
+              value={formData.descriptionEn}
+              onChange={(e) => handleInputChange("descriptionEn", e.target.value)}
+              placeholder="Short English description (optional)"
               minRows={2}
             />
 

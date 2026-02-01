@@ -28,7 +28,9 @@ const CasesPage = observer(() => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CaseFormData>({
     name: "",
+    nameEn: "",
     description: "",
+    descriptionEn: "",
     price: "",
     image: "",
     isActive: true,
@@ -45,7 +47,9 @@ const CasesPage = observer(() => {
     setIsEditing(false);
     setFormData({
       name: "",
+      nameEn: "",
       description: "",
+      descriptionEn: "",
       price: "",
       image: "",
       isActive: true,
@@ -60,7 +64,9 @@ const CasesPage = observer(() => {
     setIsEditing(true);
     setFormData({
       name: item.name,
+      nameEn: item.nameEn || "",
       description: item.description || "",
+      descriptionEn: item.descriptionEn || "",
       price: item.price.toString(),
       image: item.mediaFile?.url || item.image || "",
       isActive: item.isActive,
@@ -98,7 +104,9 @@ const CasesPage = observer(() => {
     try {
       const payload = {
         name: formData.name,
+        nameEn: formData.nameEn || null,
         description: formData.description || undefined,
+        descriptionEn: formData.descriptionEn || null,
         price: parseInt(formData.price),
         image: formData.image || undefined,
         isActive: formData.isActive,
