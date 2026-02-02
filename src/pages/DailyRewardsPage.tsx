@@ -7,8 +7,27 @@ import { PageHeader } from '@/components/ui';
 import { DailyRewardStats, DailyRewardsTable, DailyRewardFormModal } from '@/components/DailyRewardsPageComponents';
 import { type DailyReward } from '@/http/dailyRewardAPI';
 
+type DailyRewardUpdatePayload = {
+  reward?: number;
+  rewardType?: 'energy' | 'tokens';
+  rewardCaseId?: number | null;
+  secondReward?: number;
+  secondRewardType?: 'energy' | 'tokens' | null;
+  description?: string;
+};
+
+type DailyRewardCreatePayload = {
+  day: number;
+  reward: number;
+  rewardType: 'energy' | 'tokens';
+  rewardCaseId?: number | null;
+  secondReward?: number;
+  secondRewardType?: 'energy' | 'tokens' | null;
+  description: string;
+};
+
 const DailyRewardsPage = observer(() => {
-  const { dailyReward } = useContext(Context) as IStoreContext;
+  const { dailyReward, caseStore } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedReward, setSelectedReward] = useState<DailyReward | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -16,12 +35,14 @@ const DailyRewardsPage = observer(() => {
     day: '',
     reward: '',
     secondReward: '',
+    rewardCaseId: '',
     description: ''
   });
 
   useEffect(() => {
     dailyReward.fetchAllDailyRewards();
-  }, [dailyReward]);
+    caseStore.fetchAllCasesAdmin();
+  }, [dailyReward, caseStore]);
 
   const handleCreateReward = () => {
     setSelectedReward(null);
@@ -30,6 +51,7 @@ const DailyRewardsPage = observer(() => {
       day: '',
       reward: '',
       secondReward: '',
+      rewardCaseId: '',
       description: ''
     });
     onOpen();
@@ -42,6 +64,7 @@ const DailyRewardsPage = observer(() => {
       day: reward.day.toString(),
       reward: reward.reward.toString(),
       secondReward: (reward.secondReward ?? 0).toString(),
+      rewardCaseId: reward.rewardCaseId ? String(reward.rewardCaseId) : '',
       description: reward.description
     });
     onOpen();
@@ -55,20 +78,22 @@ const DailyRewardsPage = observer(() => {
           {
             reward: parseInt(formData.reward || '0'),
             rewardType: 'energy',
+            rewardCaseId: formData.rewardCaseId ? Number(formData.rewardCaseId) : null,
             secondReward: parseInt(formData.secondReward || '0'),
             secondRewardType: 'tokens',
             description: formData.description
-          }
+          } as DailyRewardUpdatePayload
         );
       } else {
         await dailyReward.createDailyReward({
           day: parseInt(formData.day),
           reward: parseInt(formData.reward || '0'),
           rewardType: 'energy',
+          rewardCaseId: formData.rewardCaseId ? Number(formData.rewardCaseId) : null,
           secondReward: parseInt(formData.secondReward || '0'),
           secondRewardType: 'tokens',
           description: formData.description
-        });
+        } as DailyRewardCreatePayload);
       }
 
       onClose();
@@ -142,6 +167,7 @@ const DailyRewardsPage = observer(() => {
         formData={formData}
         onFormDataChange={setFormData}
         onSave={handleSaveReward}
+        cases={caseStore.cases}
       />
     </div>
   );

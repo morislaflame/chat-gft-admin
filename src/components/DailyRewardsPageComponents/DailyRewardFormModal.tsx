@@ -16,6 +16,7 @@ interface DailyRewardFormData {
   day: string;
   reward: string;
   secondReward: string;
+  rewardCaseId: string;
   description: string;
 }
 
@@ -26,6 +27,7 @@ interface DailyRewardFormModalProps {
   formData: DailyRewardFormData;
   onFormDataChange: (data: DailyRewardFormData) => void;
   onSave: () => void;
+  cases: Array<{ id: number; name: string }>;
 }
 
 export const DailyRewardFormModal = ({
@@ -34,7 +36,8 @@ export const DailyRewardFormModal = ({
   isEditing,
   formData,
   onFormDataChange,
-  onSave
+  onSave,
+  cases
 }: DailyRewardFormModalProps) => {
   const handleInputChange = (field: keyof DailyRewardFormData, value: string) => {
     onFormDataChange({ ...formData, [field]: value });
@@ -47,8 +50,12 @@ export const DailyRewardFormModal = ({
     return formData.day ? new Set([formData.day]) : new Set<string>();
   }, [formData.day]);
 
+  const selectedCaseKeys = useMemo(() => {
+    return formData.rewardCaseId ? new Set([formData.rewardCaseId]) : new Set<string>();
+  }, [formData.rewardCaseId]);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" className='dark'>
       <ModalContent>
         <ModalHeader>
           <h3 className="text-xl font-semibold">
@@ -94,6 +101,33 @@ export const DailyRewardFormModal = ({
               />
             </div>
 
+            <Select
+              label="Case reward (optional)"
+              selectedKeys={selectedCaseKeys}
+              onSelectionChange={(keys) => {
+                const selectedKey = Array.from(keys)[0] as string | undefined;
+                handleInputChange('rewardCaseId', selectedKey === '__none__' ? '' : (selectedKey || ''));
+              }}
+              placeholder="Select case"
+            >
+              {cases.length === 0 ? (
+                <SelectItem key="__none__">
+                  No cases loaded
+                </SelectItem>
+              ) : (
+                <>
+                  <SelectItem key="__none__" textValue="None">
+                    None
+                  </SelectItem>
+                  {cases.map((c) => (
+                    <SelectItem key={String(c.id)} textValue={`${c.name} (#${c.id})`}>
+                      {c.name} (#{c.id})
+                    </SelectItem>
+                  ))}
+                </>
+              )}
+            </Select>
+
             <Textarea
               label="Description"
               value={formData.description}
@@ -113,8 +147,11 @@ export const DailyRewardFormModal = ({
             onPress={onSave}
             disabled={
               !formData.day ||
-              (!formData.reward && !formData.secondReward) ||
-              (Number(formData.reward || '0') <= 0 && Number(formData.secondReward || '0') <= 0) ||
+              (
+                Number(formData.reward || '0') <= 0 &&
+                Number(formData.secondReward || '0') <= 0 &&
+                !formData.rewardCaseId
+              ) ||
               !formData.description
             }
           >

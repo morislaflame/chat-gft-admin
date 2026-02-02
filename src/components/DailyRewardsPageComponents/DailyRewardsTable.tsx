@@ -2,7 +2,7 @@ import {
   Chip,
   Button,
 } from '@heroui/react';
-import { Edit, Trash2, Zap, Coins } from 'lucide-react';
+import { Edit, Trash2, Zap, Coins, Package } from 'lucide-react';
 import { DataTable } from '@/components/ui/DataTable';
 import { formatDate } from '@/utils/formatters';
 import { type DailyReward } from '@/http/dailyRewardAPI';
@@ -23,6 +23,7 @@ export const DailyRewardsTable = ({
   const columns = [
     { key: 'day', label: 'DAY' },
     { key: 'rewards', label: 'REWARDS' },
+    { key: 'case', label: 'CASE' },
     { key: 'description', label: 'DESCRIPTION' },
     { key: 'created', label: 'CREATED' },
     { key: 'actions', label: 'ACTIONS' },
@@ -50,7 +51,25 @@ export const DailyRewardsTable = ({
               <Coins className="w-4 h-4 text-green-500" />
               <span className="font-semibold">{reward.secondReward}</span>
             </div>
+            {reward.rewardCaseId ? (
+              <div className="flex items-center space-x-1">
+                <Package className="w-4 h-4 text-purple-400" />
+                <span className="text-sm text-gray-600">
+                  {reward.rewardCase?.name || `Case #${reward.rewardCaseId}`}
+                </span>
+              </div>
+            ) : null}
           </div>
+        );
+      case 'case':
+        return reward.rewardCaseId ? (
+          <Chip color="secondary" variant="flat" size="sm">
+            {reward.rewardCase?.name || `Case #${reward.rewardCaseId}`}
+          </Chip>
+        ) : (
+          <Chip color="default" variant="flat" size="sm">
+            —
+          </Chip>
         );
       case 'description':
         return (
