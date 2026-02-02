@@ -25,6 +25,7 @@ export const StageRewardsTable = ({
   const columns = [
     { key: 'stage', label: 'STAGE' },
     { key: 'reward', label: 'REWARD AMOUNT' },
+    { key: 'case', label: 'CASE' },
     { key: 'status', label: 'STATUS' },
     { key: 'created', label: 'CREATED' },
     { key: 'actions', label: 'ACTIONS' },
@@ -49,6 +50,14 @@ export const StageRewardsTable = ({
           <div>
             <p className="font-semibold text-lg">{reward.rewardAmount}</p>
             <p className="text-sm text-gray-500">tokens</p>
+          </div>
+        );
+      case 'case':
+        return (
+          <div className="text-sm">
+            {reward.rewardCaseId
+              ? (reward.rewardCase?.name || `Case #${reward.rewardCaseId}`)
+              : '—'}
           </div>
         );
       case 'status':

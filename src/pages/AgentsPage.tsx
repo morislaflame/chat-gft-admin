@@ -16,7 +16,7 @@ import { type Agent } from '@/http/agentAPI';
 import { type StageReward } from '@/http/stageRewardAPI';
 
 const AgentsPage = observer(() => {
-  const { agent, stageReward } = useContext(Context) as IStoreContext;
+  const { agent, stageReward, caseStore } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { 
     isOpen: isRewardModalOpen, 
@@ -40,13 +40,15 @@ const AgentsPage = observer(() => {
   });
   const [rewardFormData, setRewardFormData] = useState({
     stageNumber: 1,
-    rewardAmount: 100
+    rewardAmount: 100,
+    rewardCaseId: ''
   });
 
   useEffect(() => {
     agent.fetchAllAgents();
     stageReward.fetchAllRewards();
-  }, [agent, stageReward]);
+    caseStore.fetchAllCasesAdmin();
+  }, [agent, stageReward, caseStore]);
 
   const handleCreateAgent = () => {
     setSelectedAgent(null);
@@ -124,7 +126,8 @@ const AgentsPage = observer(() => {
     setIsEditingReward(false);
     setRewardFormData({
       stageNumber: 1,
-      rewardAmount: 100
+      rewardAmount: 100,
+      rewardCaseId: ''
     });
     onRewardModalOpen();
   };
@@ -134,7 +137,8 @@ const AgentsPage = observer(() => {
     setIsEditingReward(true);
     setRewardFormData({
       stageNumber: reward.stageNumber,
-      rewardAmount: reward.rewardAmount
+      rewardAmount: reward.rewardAmount,
+      rewardCaseId: reward.rewardCaseId ? String(reward.rewardCaseId) : ''
     });
     onRewardModalOpen();
   };
@@ -143,7 +147,8 @@ const AgentsPage = observer(() => {
     try {
       const rewardData = {
         stageNumber: rewardFormData.stageNumber,
-        rewardAmount: rewardFormData.rewardAmount
+        rewardAmount: rewardFormData.rewardAmount,
+        rewardCaseId: rewardFormData.rewardCaseId ? Number(rewardFormData.rewardCaseId) : null
       };
 
       if (isEditingReward && selectedReward) {
@@ -306,6 +311,7 @@ const AgentsPage = observer(() => {
           onFormDataChange={setRewardFormData}
           onSave={handleSaveReward}
           existingReward={selectedReward}
+          cases={caseStore.cases}
         />
       </div>
 

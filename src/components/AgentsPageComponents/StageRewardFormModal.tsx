@@ -6,13 +6,18 @@ import {
   ModalFooter,
   Button,
   Input,
+  Select,
+  SelectItem,
 } from '@heroui/react';
 import { Gift } from 'lucide-react';
 import { type StageReward } from '@/http/stageRewardAPI';
+import type { Case } from '@/http/caseAPI';
+import { useMemo } from 'react';
 
 interface StageRewardFormData {
   stageNumber: number;
   rewardAmount: number;
+  rewardCaseId: string; // string for Select compatibility
 }
 
 interface StageRewardFormModalProps {
@@ -23,6 +28,7 @@ interface StageRewardFormModalProps {
   onFormDataChange: (data: StageRewardFormData) => void;
   onSave: () => void;
   existingReward?: StageReward | null;
+  cases: Case[];
 }
 
 export const StageRewardFormModal = ({
@@ -31,11 +37,16 @@ export const StageRewardFormModal = ({
   isEditing,
   formData,
   onFormDataChange,
-  onSave
+  onSave,
+  cases
 }: StageRewardFormModalProps) => {
   const handleInputChange = (field: keyof StageRewardFormData, value: number) => {
     onFormDataChange({ ...formData, [field]: value });
   };
+
+  const selectedCaseKeys = useMemo(() => {
+    return formData.rewardCaseId ? new Set([formData.rewardCaseId]) : new Set<string>();
+  }, [formData.rewardCaseId]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -70,6 +81,34 @@ export const StageRewardFormModal = ({
               min={0}
               description="Amount of tokens to reward for completing this stage"
             />
+
+            <Select
+              label="Case reward (optional)"
+              selectedKeys={selectedCaseKeys}
+              onSelectionChange={(keys) => {
+                const selectedKey = Array.from(keys)[0] as string | undefined;
+                onFormDataChange({
+                  ...formData,
+                  rewardCaseId: selectedKey === '__none__' ? '' : (selectedKey || ''),
+                });
+              }}
+              placeholder="Select case"
+            >
+              {cases.length === 0 ? (
+                <SelectItem key="__none__">No cases loaded</SelectItem>
+              ) : (
+                <>
+                  <SelectItem key="__none__" textValue="None">
+                    None
+                  </SelectItem>
+                  {cases.map((c) => (
+                    <SelectItem key={String(c.id)} textValue={`${c.name} (#${c.id})`}>
+                      {c.name} (#{c.id})
+                    </SelectItem>
+                  ))}
+                </>
+              )}
+            </Select>
           </div>
         </ModalBody>
         <ModalFooter>
@@ -79,7 +118,7 @@ export const StageRewardFormModal = ({
           <Button 
             color="primary" 
             onPress={onSave}
-            disabled={!formData.stageNumber || formData.stageNumber < 1 || !formData.rewardAmount || formData.rewardAmount < 0}
+            disabled={!formData.stageNumber || formData.stageNumber < 1 || formData.rewardAmount < 0}
           >
             {isEditing ? 'Update' : 'Create'}
           </Button>

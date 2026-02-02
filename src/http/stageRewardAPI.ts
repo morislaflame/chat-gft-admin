@@ -4,6 +4,15 @@ export interface StageReward {
     id: number;
     stageNumber: number;
     rewardAmount: number;
+    rewardCaseId?: number | null;
+    rewardCase?: {
+        id: number;
+        name: string;
+        nameEn?: string | null;
+        description?: string | null;
+        descriptionEn?: string | null;
+        mediaFile?: { id: number; url: string; mimeType: string } | null;
+    } | null;
     isActive: boolean;
     createdAt: string;
 }
@@ -11,11 +20,13 @@ export interface StageReward {
 export interface CreateStageRewardData {
     stageNumber: number;
     rewardAmount: number;
+    rewardCaseId?: number | null;
 }
 
 export interface UpdateStageRewardData {
     rewardAmount?: number;
     isActive?: boolean;
+    rewardCaseId?: number | null;
 }
 
 export const getAllStageRewards = async () => {
