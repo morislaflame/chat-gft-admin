@@ -11,6 +11,7 @@ import AgentStore from "@/store/AgentStore";
 import DailyRewardStore from "@/store/DailyRewardStore";
 import WithdrawalStore from "@/store/WithdrawalStore";
 import StageRewardStore from "@/store/StageRewardStore";
+import MissionStepRewardStore from "@/store/MissionStepRewardStore";
 import CaseStore from "@/store/CaseStore";
 import TrafficSourceStore from "@/store/TrafficSourceStore";
 
@@ -27,6 +28,7 @@ export interface IStoreContext {
   dailyReward: DailyRewardStore;
   withdrawal: WithdrawalStore;
   stageReward: StageRewardStore;
+  missionStepReward: MissionStepRewardStore;
   caseStore: CaseStore;
   trafficSource: TrafficSourceStore;
 }
@@ -62,6 +64,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
     dailyReward: DailyRewardStore;
     withdrawal: WithdrawalStore;
     stageReward: StageRewardStore;
+    missionStepReward: MissionStepRewardStore;
     caseStore: CaseStore;
     trafficSource: TrafficSourceStore;
   } | null>(null);
@@ -80,6 +83,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         { default: DailyRewardStore },
         { default: WithdrawalStore },
         { default: StageRewardStore },
+        { default: MissionStepRewardStore },
         { default: CaseStore },
         { default: TrafficSourceStore },
       ] = await Promise.all([
@@ -94,6 +98,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         import("@/store/DailyRewardStore"),
         import("@/store/WithdrawalStore"),
         import("@/store/StageRewardStore"),
+        import("@/store/MissionStepRewardStore"),
         import("@/store/CaseStore"),
         import("@/store/TrafficSourceStore"),
       ]);
@@ -110,6 +115,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         dailyReward: new DailyRewardStore(),
         withdrawal: new WithdrawalStore(),
         stageReward: new StageRewardStore(),
+        missionStepReward: new MissionStepRewardStore(),
         caseStore: new CaseStore(),
         trafficSource: new TrafficSourceStore(),
       });

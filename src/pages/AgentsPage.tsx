@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useDisclosure } from '@heroui/react';
-import { Plus, Gift } from 'lucide-react';
+import { Plus, Gift, Footprints } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
@@ -10,24 +10,34 @@ import {
   AgentFormModal,
   StageRewardsTable,
   StageRewardFormModal,
-  StageRewardStats
+  StageRewardStats,
+  MissionStepRewardsTable,
+  MissionStepRewardFormModal
 } from '@/components/AgentsPageComponents';
 import { type Agent } from '@/http/agentAPI';
 import { type StageReward } from '@/http/stageRewardAPI';
+import { type MissionStepReward } from '@/http/missionStepRewardAPI';
 
 const AgentsPage = observer(() => {
-  const { agent, stageReward, caseStore } = useContext(Context) as IStoreContext;
+  const { agent, stageReward, missionStepReward, caseStore } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { 
     isOpen: isRewardModalOpen, 
     onOpen: onRewardModalOpen, 
     onClose: onRewardModalClose 
   } = useDisclosure();
+  const { 
+    isOpen: isStepRewardModalOpen, 
+    onOpen: onStepRewardModalOpen, 
+    onClose: onStepRewardModalClose 
+  } = useDisclosure();
   
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [selectedReward, setSelectedReward] = useState<StageReward | null>(null);
+  const [selectedStepReward, setSelectedStepReward] = useState<MissionStepReward | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingReward, setIsEditingReward] = useState(false);
+  const [isEditingStepReward, setIsEditingStepReward] = useState(false);
   const [formData, setFormData] = useState({
     historyName: '',
     displayName: '',
@@ -43,12 +53,18 @@ const AgentsPage = observer(() => {
     rewardAmount: 100,
     rewardCaseId: ''
   });
+  const [stepRewardFormData, setStepRewardFormData] = useState({
+    missionOrderIndex: 1,
+    stepNumber: 1,
+    rewardGems: 0
+  });
 
   useEffect(() => {
     agent.fetchAllAgents();
     stageReward.fetchAllRewards();
+    missionStepReward.fetchAllRewards();
     caseStore.fetchAllCasesAdmin();
-  }, [agent, stageReward, caseStore]);
+  }, [agent, stageReward, missionStepReward, caseStore]);
 
   const handleCreateAgent = () => {
     setSelectedAgent(null);
@@ -184,6 +200,53 @@ const AgentsPage = observer(() => {
     }
   };
 
+  const handleCreateStepReward = () => {
+    setSelectedStepReward(null);
+    setIsEditingStepReward(false);
+    setStepRewardFormData({ missionOrderIndex: 1, stepNumber: 1, rewardGems: 0 });
+    onStepRewardModalOpen();
+  };
+
+  const handleEditStepReward = (reward: MissionStepReward) => {
+    setSelectedStepReward(reward);
+    setIsEditingStepReward(true);
+    setStepRewardFormData({
+      missionOrderIndex: reward.missionOrderIndex,
+      stepNumber: reward.stepNumber,
+      rewardGems: reward.rewardGems
+    });
+    onStepRewardModalOpen();
+  };
+
+  const handleSaveStepReward = async () => {
+    try {
+      if (isEditingStepReward && selectedStepReward) {
+        await missionStepReward.updateReward(selectedStepReward.id, { rewardGems: stepRewardFormData.rewardGems });
+      } else {
+        await missionStepReward.createReward({
+          missionOrderIndex: stepRewardFormData.missionOrderIndex,
+          stepNumber: stepRewardFormData.stepNumber,
+          rewardGems: stepRewardFormData.rewardGems
+        });
+      }
+      onStepRewardModalClose();
+      missionStepReward.fetchAllRewards();
+    } catch (error) {
+      console.error('Failed to save step reward:', error);
+    }
+  };
+
+  const handleDeleteStepReward = async (id: number) => {
+    if (window.confirm('Delete this step reward? This action cannot be undone.')) {
+      try {
+        await missionStepReward.deleteReward(id);
+        missionStepReward.fetchAllRewards();
+      } catch (error) {
+        console.error('Failed to delete step reward:', error);
+      }
+    }
+  };
+
   const totalAgents = agent.agents.length;
   const avgPromptLength = agent.agents.length > 0
     ? agent.agents.reduce((sum, ag) => sum + ag.systemPrompt.length, 0) / agent.agents.length
@@ -312,6 +375,35 @@ const AgentsPage = observer(() => {
           onSave={handleSaveReward}
           existingReward={selectedReward}
           cases={caseStore.cases}
+        />
+      </div>
+
+      {/* Step Rewards (Missions 1 & 2) */}
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <PageHeader
+          title="Step Rewards (Missions 1 & 2)"
+          description="Gems for each correct step in mission 1 and 2 (progress increases)"
+          actionButton={{
+            label: "Create Step Reward",
+            icon: Footprints,
+            onClick: handleCreateStepReward
+          }}
+        />
+        <div className="mt-6">
+          <MissionStepRewardsTable
+            rewards={missionStepReward.rewards}
+            loading={missionStepReward.loading}
+            onEdit={handleEditStepReward}
+            onDelete={handleDeleteStepReward}
+          />
+        </div>
+        <MissionStepRewardFormModal
+          isOpen={isStepRewardModalOpen}
+          onClose={onStepRewardModalClose}
+          isEditing={isEditingStepReward}
+          formData={stepRewardFormData}
+          onFormDataChange={setStepRewardFormData}
+          onSave={handleSaveStepReward}
         />
       </div>
 

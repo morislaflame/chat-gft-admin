@@ -53,7 +53,7 @@ export const DailyRewardsTable = ({
             </div>
             {reward.rewardCaseId ? (
               <div className="flex items-center space-x-1">
-                <Package className="w-4 h-4 text-purple-400" />
+                <Package className="w-4 h-4 text-user-message-gradient" />
                 <span className="text-sm text-gray-600">
                   {reward.rewardCase?.name || `Case #${reward.rewardCaseId}`}
                 </span>
