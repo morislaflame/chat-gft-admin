@@ -6,6 +6,7 @@ interface MissionFormData {
   titleEn: string;
   description: string;
   descriptionEn: string;
+  missionPrompt: string;
   orderIndex: string;
 }
 
@@ -61,6 +62,13 @@ export const MissionFormModal = ({
               value={formData.descriptionEn}
               onChange={(e) => onFormDataChange({ ...formData, descriptionEn: e.target.value })}
               minRows={3}
+            />
+            <Textarea
+              label="Mission Prompt (LLM)"
+              placeholder="Enter detailed mission prompt for the LLM (beats, branching, constraints). This is not shown in UI."
+              value={formData.missionPrompt}
+              onChange={(e) => onFormDataChange({ ...formData, missionPrompt: e.target.value })}
+              minRows={10}
             />
             <Input
               label="Order Index"

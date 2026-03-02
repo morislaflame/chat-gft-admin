@@ -165,6 +165,7 @@ export interface Mission {
     titleEn?: string | null;
     description?: string | null;
     descriptionEn?: string | null;
+    missionPrompt?: string | null;
     orderIndex: number;
     videoId?: number | null;
     createdAt: string;
@@ -177,6 +178,7 @@ export interface CreateMissionData {
     titleEn?: string | null;
     description?: string | null;
     descriptionEn?: string | null;
+    missionPrompt?: string | null;
     orderIndex: number;
 }
 
@@ -185,6 +187,7 @@ export interface UpdateMissionData {
     titleEn?: string | null;
     description?: string | null;
     descriptionEn?: string | null;
+    missionPrompt?: string | null;
     orderIndex?: number;
 }
 

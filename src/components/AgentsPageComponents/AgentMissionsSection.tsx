@@ -8,8 +8,8 @@ interface AgentMissionsSectionProps {
   missions: Mission[];
   loading: boolean;
   agentId: number;
-  onCreateMission: (missionData: { title: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; orderIndex: number }) => Promise<void>;
-  onUpdateMission: (missionId: number, missionData: { title?: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; orderIndex?: number }) => Promise<void>;
+  onCreateMission: (missionData: { title: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; missionPrompt?: string | null; orderIndex: number }) => Promise<void>;
+  onUpdateMission: (missionId: number, missionData: { title?: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; missionPrompt?: string | null; orderIndex?: number }) => Promise<void>;
   onDeleteMission: (missionId: number) => Promise<void>;
   onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
   onDeleteMissionVideo?: (agentId: number, missionId: number) => Promise<void>;
@@ -32,6 +32,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     titleEn: '',
     description: '',
     descriptionEn: '',
+    missionPrompt: '',
     orderIndex: ''
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
@@ -41,7 +42,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', orderIndex: '' });
   }, [missions]);
 
   const handleEditMission = (mission: Mission) => {
@@ -51,6 +52,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       titleEn: mission.titleEn || '',
       description: mission.description || '',
       descriptionEn: mission.descriptionEn || '',
+      missionPrompt: mission.missionPrompt || '',
       orderIndex: mission.orderIndex.toString()
     });
     setShowMissionForm(true);
@@ -65,6 +67,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
         titleEn: missionFormData.titleEn || null,
         description: missionFormData.description || null,
         descriptionEn: missionFormData.descriptionEn || null,
+        missionPrompt: missionFormData.missionPrompt || null,
         orderIndex: parseInt(missionFormData.orderIndex)
       };
 
@@ -76,7 +79,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', orderIndex: '' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', orderIndex: '' });
     } catch (error) {
       console.error('Failed to save mission:', error);
     }
@@ -95,7 +98,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', orderIndex: '' });
   };
 
   const handleCreateNewMission = () => {
@@ -105,6 +108,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       titleEn: '',
       description: '', 
       descriptionEn: '',
+      missionPrompt: '',
       orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
     });
     setShowMissionForm(true);
@@ -171,6 +175,13 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             value={missionFormData.descriptionEn}
             onChange={(e) => setMissionFormData({ ...missionFormData, descriptionEn: e.target.value })}
             minRows={2}
+          />
+          <Textarea
+            label="Mission Prompt (LLM)"
+            placeholder="Enter detailed mission prompt for the LLM (beats, branching, constraints). Not shown in UI."
+            value={missionFormData.missionPrompt}
+            onChange={(e) => setMissionFormData({ ...missionFormData, missionPrompt: e.target.value })}
+            minRows={10}
           />
           <Input
             label="Order Index"
