@@ -14,6 +14,7 @@ import StageRewardStore from "@/store/StageRewardStore";
 import MissionStepRewardStore from "@/store/MissionStepRewardStore";
 import CaseStore from "@/store/CaseStore";
 import TrafficSourceStore from "@/store/TrafficSourceStore";
+import ArtifactStore from "@/store/ArtifactStore";
 
 // Определяем интерфейс для нашего контекста
 export interface IStoreContext {
@@ -31,6 +32,7 @@ export interface IStoreContext {
   missionStepReward: MissionStepRewardStore;
   caseStore: CaseStore;
   trafficSource: TrafficSourceStore;
+  artifact: ArtifactStore;
 }
 
 let storeInstance: IStoreContext | null = null;
@@ -67,6 +69,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
     missionStepReward: MissionStepRewardStore;
     caseStore: CaseStore;
     trafficSource: TrafficSourceStore;
+    artifact: ArtifactStore;
   } | null>(null);
 
   useEffect(() => {
@@ -86,6 +89,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         { default: MissionStepRewardStore },
         { default: CaseStore },
         { default: TrafficSourceStore },
+        { default: ArtifactStore },
       ] = await Promise.all([
         import("@/store/UserStore"),
         import("@/store/AdminStore"),
@@ -101,6 +105,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         import("@/store/MissionStepRewardStore"),
         import("@/store/CaseStore"),
         import("@/store/TrafficSourceStore"),
+        import("@/store/ArtifactStore"),
       ]);
 
       setStores({
@@ -118,6 +123,7 @@ const StoreProvider = ({ children }: StoreProviderProps) => {
         missionStepReward: new MissionStepRewardStore(),
         caseStore: new CaseStore(),
         trafficSource: new TrafficSourceStore(),
+        artifact: new ArtifactStore(),
       });
     };
 

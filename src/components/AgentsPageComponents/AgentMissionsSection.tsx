@@ -3,6 +3,9 @@ import { Target, Edit, Trash2, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Mission } from '@/http/agentAPI';
 import { MediaUploadField } from './MediaUploadField';
+import { Context, type IStoreContext } from '@/store/StoreProvider';
+import { useContext } from 'react';
+import MissionPromptMentions from './MissionPromptMentions';
 
 interface AgentMissionsSectionProps {
   missions: Mission[];
@@ -25,6 +28,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   onUploadMissionVideo,
   onDeleteMissionVideo
 }) => {
+  const { artifact } = useContext(Context) as IStoreContext;
   const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [showMissionForm, setShowMissionForm] = useState(false);
   const [missionFormData, setMissionFormData] = useState({
@@ -33,16 +37,18 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     description: '',
     descriptionEn: '',
     missionPrompt: '',
+    artifactIds: [] as number[],
     orderIndex: ''
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
   const [deletingVideo, setDeletingVideo] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
+    artifact.fetchAllArtifacts();
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', artifactIds: [], orderIndex: '' });
   }, [missions]);
 
   const handleEditMission = (mission: Mission) => {
@@ -53,6 +59,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       description: mission.description || '',
       descriptionEn: mission.descriptionEn || '',
       missionPrompt: mission.missionPrompt || '',
+      artifactIds: (mission.artifacts || []).map((a) => a.id),
       orderIndex: mission.orderIndex.toString()
     });
     setShowMissionForm(true);
@@ -68,6 +75,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
         description: missionFormData.description || null,
         descriptionEn: missionFormData.descriptionEn || null,
         missionPrompt: missionFormData.missionPrompt || null,
+        artifactIds: missionFormData.artifactIds,
         orderIndex: parseInt(missionFormData.orderIndex)
       };
 
@@ -79,7 +87,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', orderIndex: '' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', artifactIds: [], orderIndex: '' });
     } catch (error) {
       console.error('Failed to save mission:', error);
     }
@@ -98,7 +106,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', artifactIds: [], orderIndex: '' });
   };
 
   const handleCreateNewMission = () => {
@@ -109,6 +117,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       description: '', 
       descriptionEn: '',
       missionPrompt: '',
+      artifactIds: [],
       orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
     });
     setShowMissionForm(true);
@@ -176,13 +185,46 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             onChange={(e) => setMissionFormData({ ...missionFormData, descriptionEn: e.target.value })}
             minRows={2}
           />
-          <Textarea
-            label="Mission Prompt (LLM)"
-            placeholder="Enter detailed mission prompt for the LLM (beats, branching, constraints). Not shown in UI."
-            value={missionFormData.missionPrompt}
-            onChange={(e) => setMissionFormData({ ...missionFormData, missionPrompt: e.target.value })}
-            minRows={10}
-          />
+          <div>
+            <div className="text-sm font-medium text-gray-300 dark:text-gray-300 mb-2">
+              Mission Prompt (LLM)
+            </div>
+            <MissionPromptMentions
+              value={missionFormData.missionPrompt}
+              onChange={(next) => setMissionFormData({ ...missionFormData, missionPrompt: next })}
+              artifacts={artifact.artifacts.map((a) => ({ id: a.id, code: a.code, name: a.name }))}
+              minRows={10}
+            />
+          </div>
+          <div className="border border-gray-200 dark:border-zinc-700 rounded-lg p-3">
+            <p className="text-sm font-medium text-white mb-2">Artifacts in this mission</p>
+            {artifact.artifacts.length === 0 ? (
+              <p className="text-xs text-gray-500 dark:text-gray-400">No artifacts found. Create them in the Artifacts page.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-auto pr-1">
+                {artifact.artifacts.map((a) => {
+                  const checked = missionFormData.artifactIds.includes(a.id);
+                  return (
+                    <label key={a.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...missionFormData.artifactIds, a.id]
+                            : missionFormData.artifactIds.filter((id) => id !== a.id);
+                          setMissionFormData({ ...missionFormData, artifactIds: next });
+                        }}
+                      />
+                      <span className="truncate">
+                        {a.name} <span className="text-xs text-gray-500">({a.code})</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           <Input
             label="Order Index"
             placeholder="Enter order index"

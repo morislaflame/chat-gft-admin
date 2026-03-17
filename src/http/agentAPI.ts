@@ -166,6 +166,7 @@ export interface Mission {
     description?: string | null;
     descriptionEn?: string | null;
     missionPrompt?: string | null;
+    artifacts?: { id: number; code: string; name: string; boostType: string }[] | null;
     orderIndex: number;
     videoId?: number | null;
     createdAt: string;
@@ -179,6 +180,7 @@ export interface CreateMissionData {
     description?: string | null;
     descriptionEn?: string | null;
     missionPrompt?: string | null;
+    artifactIds?: number[] | null;
     orderIndex: number;
 }
 
@@ -188,6 +190,7 @@ export interface UpdateMissionData {
     description?: string | null;
     descriptionEn?: string | null;
     missionPrompt?: string | null;
+    artifactIds?: number[] | null;
     orderIndex?: number;
 }
 

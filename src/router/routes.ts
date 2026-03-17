@@ -11,10 +11,12 @@ import ProductsPage from '@/pages/ProductsPage';
 import RewardsPage from '@/pages/RewardsPage';
 import CasesPage from '@/pages/CasesPage';
 import AgentsPage from '@/pages/AgentsPage';
+import ArtifactsPage from '@/pages/ArtifactsPage';
 import DailyRewardsPage from '@/pages/DailyRewardsPage';
 import WithdrawalsPage from '@/pages/WithdrawalsPage';
 import UserDetailsPage from '@/pages/UserDetailsPage';
 import TrafficSourcesPage from '@/pages/TrafficSourcesPage';
+import LLMDebugPage from '@/pages/LLMDebugPage';
 import {
   MAIN_ROUTE,
   AUTH_ROUTE,
@@ -27,9 +29,11 @@ import {
   REWARDS_ROUTE,
   CASES_ROUTE,
   AGENTS_ROUTE,
+  ARTIFACTS_ROUTE,
   DAILY_REWARDS_ROUTE,
   WITHDRAWALS_ROUTE,
   TRAFFIC_SOURCES_ROUTE,
+  LLM_DEBUG_ROUTE,
   USER_DETAILS_ROUTE
 } from '@/utils/consts';
 
@@ -54,7 +58,9 @@ export const privateRoutes: Route[] = [
   { path: REWARDS_ROUTE, Component: RewardsPage },
   { path: CASES_ROUTE, Component: CasesPage },
   { path: AGENTS_ROUTE, Component: AgentsPage },
+  { path: ARTIFACTS_ROUTE, Component: ArtifactsPage },
   { path: DAILY_REWARDS_ROUTE, Component: DailyRewardsPage },
   { path: WITHDRAWALS_ROUTE, Component: WithdrawalsPage },
   { path: TRAFFIC_SOURCES_ROUTE, Component: TrafficSourcesPage },
+  { path: LLM_DEBUG_ROUTE, Component: LLMDebugPage },
 ];
