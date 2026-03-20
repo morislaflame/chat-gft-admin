@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, useContext } from "react";
+import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import { observer } from "mobx-react-lite";
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea, useDisclosure } from "@heroui/react";
-import { Plus, Wand2, Trash2, Edit } from "lucide-react";
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Textarea, useDisclosure } from "@heroui/react";
+import { Plus, Wand2, Trash2, Edit, Upload } from "lucide-react";
+import Lottie from "lottie-react";
 import { Context, type IStoreContext } from "@/store/StoreProvider";
 import { PageHeader } from "@/components/ui";
 import { MediaUploadField } from "@/components/AgentsPageComponents/MediaUploadField";
@@ -10,7 +11,7 @@ import type { Artifact, ArtifactBoostType } from "@/http/artifactAPI";
 const BOOST_TYPES: ArtifactBoostType[] = ["COMPANION", "KEY", "WEAPON", "ARMOR", "TRINKET"];
 
 const ArtifactsPage = observer(() => {
-  const { artifact } = useContext(Context) as IStoreContext;
+  const { artifact, agent } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selected, setSelected] = useState<Artifact | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,12 +23,19 @@ const ArtifactsPage = observer(() => {
     descriptionEn: "",
     level: "1",
     boostType: "TRINKET" as ArtifactBoostType,
-    boostJson: "",
+    agentId: "" as string | number,
   });
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [previewAnimation, setPreviewAnimation] = useState<Record<string, unknown> | null>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     artifact.fetchAllArtifacts();
   }, [artifact]);
+
+  useEffect(() => {
+    agent.fetchAllAgents();
+  }, [agent]);
 
   const sorted = useMemo(() => {
     return [...artifact.artifacts].sort((a, b) => b.id - a.id);
@@ -36,6 +44,11 @@ const ArtifactsPage = observer(() => {
   const openCreate = () => {
     setSelected(null);
     setIsEditing(false);
+    setMediaFile(null);
+    setPreviewAnimation(null);
+    if (mediaInputRef.current) {
+      mediaInputRef.current.value = "";
+    }
     setForm({
       code: "",
       name: "",
@@ -44,14 +57,33 @@ const ArtifactsPage = observer(() => {
       descriptionEn: "",
       level: "1",
       boostType: "TRINKET",
-      boostJson: "",
+      agentId: "",
     });
     onOpen();
   };
 
+  useEffect(() => {
+    if (mediaFile?.type === "application/json") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string) as Record<string, unknown>;
+          setPreviewAnimation(data);
+        } catch {
+          setPreviewAnimation(null);
+        }
+      };
+      reader.readAsText(mediaFile);
+    } else {
+      setPreviewAnimation(null);
+    }
+  }, [mediaFile]);
+
   const openEdit = (a: Artifact) => {
     setSelected(a);
     setIsEditing(true);
+    setMediaFile(null);
+    setPreviewAnimation(null);
     setForm({
       code: a.code,
       name: a.name,
@@ -60,19 +92,9 @@ const ArtifactsPage = observer(() => {
       descriptionEn: a.descriptionEn || "",
       level: String(a.level ?? 1),
       boostType: a.boostType,
-      boostJson: a.boost ? JSON.stringify(a.boost, null, 2) : "",
+      agentId: a.agentId ?? "",
     });
     onOpen();
-  };
-
-  const parseBoost = (): any | null => {
-    const raw = (form.boostJson || "").trim();
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw);
-    } catch {
-      throw new Error("Boost must be valid JSON");
-    }
   };
 
   const onSave = async () => {
@@ -85,17 +107,24 @@ const ArtifactsPage = observer(() => {
       descriptionEn: form.descriptionEn.trim() || null,
       level: parseInt(form.level || "1"),
       boostType: form.boostType,
-      boost: parseBoost(),
+      agentId: form.agentId ? Number(form.agentId) : null,
     };
     try {
       if (isEditing && selected) {
         await artifact.updateArtifact(selected.id, payload);
+        if (mediaFile) {
+          await artifact.uploadMedia(selected.id, mediaFile);
+        }
       } else {
-        await artifact.createArtifact(payload);
+        const created = await artifact.createArtifact(payload);
+        if (mediaFile && created?.id) {
+          await artifact.uploadMedia(created.id, mediaFile);
+        }
       }
+      setMediaFile(null);
       onClose();
-    } catch (e: any) {
-      alert(e?.message || "Failed to save artifact");
+    } catch (e: unknown) {
+      alert((e as { message?: string })?.message || "Failed to save artifact");
     }
   };
 
@@ -108,7 +137,7 @@ const ArtifactsPage = observer(() => {
     <div className="space-y-6">
       <PageHeader
         title="Artifacts"
-        description="Create artifacts and manage their boosts & media."
+        description="Create artifacts and manage their descriptions & media."
         actionButton={{
           label: "Create Artifact",
           icon: Plus,
@@ -134,6 +163,7 @@ const ArtifactsPage = observer(() => {
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   Type: {a.boostType} · Level: {a.level}
+                  {a.agent ? ` · Story: ${a.agent.displayName || a.agent.historyName}` : ""}
                 </p>
                 {a.description ? <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">{a.description}</p> : null}
               </div>
@@ -176,6 +206,29 @@ const ArtifactsPage = observer(() => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} isRequired />
               <Input label="Level" type="number" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} />
+              <div className="md:col-span-2">
+                <Select
+                  label="Story (Agent)"
+                  placeholder="Select story for this artifact"
+                  selectedKeys={form.agentId ? new Set([String(form.agentId)]) : new Set(["__all__"])}
+                  onSelectionChange={(keys) => {
+                    const v = Array.from(keys)[0] as string | undefined;
+                    setForm({ ...form, agentId: v && v !== "__all__" ? v : "" });
+                  }}
+                >
+                  <>
+                    <SelectItem key="__all__" textValue="All stories">
+                      All stories (no filter)
+                    </SelectItem>
+                    {agent.agents.map((ag) => (
+                      <SelectItem key={String(ag.id)} textValue={`${ag.displayName || ag.historyName} (${ag.historyName})`}>
+                        {ag.displayName || ag.historyName} ({ag.historyName})
+                      </SelectItem>
+                    ))}
+                  </>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">Artifact will appear only in prompts for the selected story.</p>
+              </div>
               <Input label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} isRequired />
               <Input label="Name (EN)" value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} />
               <div className="md:col-span-2">
@@ -194,14 +247,36 @@ const ArtifactsPage = observer(() => {
               </div>
               <Textarea label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} minRows={2} />
               <Textarea label="Description (EN)" value={form.descriptionEn} onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} minRows={2} />
-              <Textarea
-                className="md:col-span-2"
-                label="Boost (JSON)"
-                placeholder='Example: { "sceneTags": ["RISK"], "effect": "reduce_risk", "value": 1 }'
-                value={form.boostJson}
-                onChange={(e) => setForm({ ...form, boostJson: e.target.value })}
-                minRows={8}
-              />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Media (image or JSON animation)
+                </label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg p-4">
+                  <input
+                    ref={mediaInputRef}
+                    type="file"
+                    accept="image/*,.json"
+                    onChange={(e) => setMediaFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                    id="artifact-media-upload"
+                  />
+                  <label htmlFor="artifact-media-upload" className="flex flex-col items-center justify-center cursor-pointer">
+                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {mediaFile ? mediaFile.name : "Click to upload image or JSON (Lottie)"}
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, or Lottie .json</p>
+                  </label>
+                </div>
+                {previewAnimation && (
+                  <div className="mt-4 p-4 border border-gray-200 dark:border-zinc-700 rounded-lg">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                    <div className="flex justify-center">
+                      <Lottie animationData={previewAnimation} loop={false} autoplay style={{ width: 120, height: 120 }} />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </ModalBody>
           <ModalFooter>

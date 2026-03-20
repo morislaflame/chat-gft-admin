@@ -10,6 +10,67 @@ const JsonBlock = ({ value }: { value: unknown }) => (
   </pre>
 );
 
+/** Renders prompt/system_prompt text with line breaks and basic markdown-style highlighting */
+const PromptBlock = ({ value, className = "" }: { value: string | null | undefined; className?: string }) => {
+  if (value == null || typeof value !== "string") {
+    return (
+      <pre className={`text-xs whitespace-pre-wrap break-words bg-zinc-900/60 border border-white/10 rounded-lg p-3 text-white/50 max-h-[420px] overflow-auto ${className}`}>
+        (empty)
+      </pre>
+    );
+  }
+  // Normalize: handle escaped \n (e.g. from double-encoded JSON) and different line endings
+  const normalized = value.replace(/\\n/g, "\n").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const lines = normalized.split("\n");
+  let inCodeBlock = false;
+  return (
+    <pre className={`text-xs whitespace-pre-wrap break-words bg-zinc-900/60 border border-white/10 rounded-lg p-3 text-white/90 max-h-[420px] overflow-auto font-mono leading-relaxed ${className}`}>
+      {lines.map((line, i) => {
+        const trimmed = line.trimStart();
+        if (trimmed.startsWith("```")) {
+          inCodeBlock = !inCodeBlock;
+          return (
+            <span key={i} className={inCodeBlock ? "block bg-zinc-800/80 -mx-3 px-3 py-1 my-0.5" : ""}>
+              {line}
+              {"\n"}
+            </span>
+          );
+        }
+        if (inCodeBlock) {
+          return (
+            <span key={i} className="block bg-zinc-800/80 -mx-3 px-3 py-0.5 text-amber-200/90">
+              {line}
+              {"\n"}
+            </span>
+          );
+        }
+        if (trimmed.startsWith("## ")) {
+          return (
+            <span key={i} className="block text-amber-300 font-semibold mt-2 first:mt-0">
+              {line}
+              {"\n"}
+            </span>
+          );
+        }
+        if (trimmed.startsWith("- **") || trimmed.startsWith("- ")) {
+          return (
+            <span key={i} className="block text-emerald-200/90 pl-1">
+              {line}
+              {"\n"}
+            </span>
+          );
+        }
+        return (
+          <span key={i}>
+            {line}
+            {"\n"}
+          </span>
+        );
+      })}
+    </pre>
+  );
+};
+
 const LLMDebugPage: React.FC = observer(() => {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<LLMTraceListItem[]>([]);
@@ -194,16 +255,24 @@ const LLMDebugPage: React.FC = observer(() => {
                     <JsonBlock value={details.llmResponse} />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (system_prompt)</div>
-                    <JsonBlock value={details.llmDebugTrace?.system_prompt ?? null} />
-                  </div>
-                  <div>
-                    <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (prompt)</div>
-                    <JsonBlock value={details.llmDebugTrace?.prompt ?? null} />
-                  </div>
-                </div>
+                {(() => {
+                  const trace = details.llmDebugTrace ?? (details.llmResponse as Record<string, unknown>)?.debug_trace;
+                  const traceObj = trace && typeof trace === "object" ? (trace as Record<string, unknown>) : null;
+                  const systemPrompt = typeof traceObj?.system_prompt === "string" ? traceObj.system_prompt : null;
+                  const prompt = typeof traceObj?.prompt === "string" ? traceObj.prompt : null;
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (system_prompt)</div>
+                        <PromptBlock value={systemPrompt} />
+                      </div>
+                      <div>
+                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (prompt)</div>
+                        <PromptBlock value={prompt} className="max-h-[560px]" />
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div>
                   <div className="text-sm text-white/70 mb-1">LLM debug_trace (весь объект)</div>
                   <JsonBlock value={details.llmDebugTrace} />

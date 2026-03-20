@@ -1,5 +1,26 @@
 import { $authHost } from "./index";
 
+/** Step decision snapshot from backend (shape may evolve with API). */
+export interface LLMTraceStepDecision {
+  mainStepBefore?: number | null;
+  mainStepAfter?: number | null;
+  allowIncrement?: boolean;
+}
+
+export interface LLMTraceBackendComputed {
+  stepDecision?: LLMTraceStepDecision;
+}
+
+export interface LLMTraceClientRequest {
+  message?: string;
+}
+
+/** debug_trace object from LLM service when present. */
+export interface LLMTraceLlmDebugTrace {
+  computed?: unknown;
+  [key: string]: unknown;
+}
+
 export interface LLMTraceListItem {
   id: number;
   createdAt: string;
@@ -7,8 +28,8 @@ export interface LLMTraceListItem {
   historyName: string;
   missionId?: number | null;
   durationMs?: number | null;
-  clientRequest?: unknown;
-  backendComputed?: unknown;
+  clientRequest?: LLMTraceClientRequest | null;
+  backendComputed?: LLMTraceBackendComputed | null;
   error?: string | null;
 }
 
@@ -18,11 +39,9 @@ export interface LLMTraceListResponse {
 }
 
 export interface LLMTraceDetails extends LLMTraceListItem {
-  clientRequest?: unknown;
-  backendComputed?: unknown;
   llmRequest?: unknown;
   llmResponse?: unknown;
-  llmDebugTrace?: unknown;
+  llmDebugTrace?: LLMTraceLlmDebugTrace | null;
   backendResponse?: unknown;
 }
 

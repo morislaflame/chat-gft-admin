@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { MentionsInput, Mention } from "react-mentions";
 
 type ArtifactForMention = { id: number; code: string; name: string };
@@ -23,11 +23,7 @@ export default function MissionPromptMentions({
     [artifacts]
   );
 
-  // "Notion-like" inline chips:
-  // - type "@a" then pick artifact -> inserts @artifact(code,ACQUIRE,1)
-  // - type "@u" then pick artifact -> inserts @artifact(code,USE,1)
-  //
-  // Amount can be edited manually at the end: ...,(2)
+  // Type "@" to see artifact suggestions. Insert @artifact(code) for ACQUIRE (1 piece).
   const style = {
     control: {
       fontSize: 14,
@@ -66,6 +62,7 @@ export default function MissionPromptMentions({
       item: {
         padding: "8px 10px",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
+        color: "#fff",
       },
     },
   } as const;
@@ -73,7 +70,7 @@ export default function MissionPromptMentions({
   return (
     <div className="space-y-1">
       <div className="text-sm text-white">
-        Tip: type <code>@a</code> to insert ACQUIRE, <code>@u</code> to insert USE.
+        Tip: type <code>@</code> to insert artifact (e.g. &quot;@artifact(CODE)&quot;).
       </div>
       <MentionsInput
         value={value}
@@ -83,30 +80,15 @@ export default function MissionPromptMentions({
         singleLine={false}
       >
         <Mention
-          trigger="@a"
+          trigger="@"
           data={data}
-          markup="@artifact(__id__,ACQUIRE,1)"
-          displayTransform={(id) => `@artifact(${id},ACQUIRE,1)`}
+          markup="@artifact(__id__)"
+          displayTransform={(id) => `@artifact(${id})`}
           style={{
             backgroundColor: "rgba(250, 204, 21, 0.18)",
             border: "1px solid rgba(250, 204, 21, 0.35)",
             borderRadius: 999,
             padding: "1px 6px",
-            // Prevent double-rendered text (highlighter + input). Text is shown by the input layer.
-            color: "transparent",
-          }}
-        />
-        <Mention
-          trigger="@u"
-          data={data}
-          markup="@artifact(__id__,USE,1)"
-          displayTransform={(id) => `@artifact(${id},USE,1)`}
-          style={{
-            backgroundColor: "rgba(59, 130, 246, 0.18)",
-            border: "1px solid rgba(59, 130, 246, 0.35)",
-            borderRadius: 999,
-            padding: "1px 6px",
-            // Prevent double-rendered text (highlighter + input). Text is shown by the input layer.
             color: "transparent",
           }}
         />

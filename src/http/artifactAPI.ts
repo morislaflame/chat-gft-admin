@@ -3,6 +3,12 @@ import type { MediaFile } from "./agentAPI";
 
 export type ArtifactBoostType = "COMPANION" | "KEY" | "WEAPON" | "ARMOR" | "TRINKET";
 
+export interface ArtifactAgent {
+  id: number;
+  historyName: string;
+  displayName?: string | null;
+}
+
 export interface Artifact {
   id: number;
   code: string;
@@ -12,9 +18,10 @@ export interface Artifact {
   descriptionEn?: string | null;
   level: number;
   boostType: ArtifactBoostType;
-  boost?: any | null;
   mediaId?: number | null;
+  agentId?: number | null;
   media?: MediaFile | null;
+  agent?: ArtifactAgent | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,8 +34,8 @@ export interface CreateArtifactData {
   descriptionEn?: string | null;
   level?: number;
   boostType: ArtifactBoostType;
-  boost?: any | null;
   mediaId?: number | null;
+  agentId?: number | null;
 }
 
 export interface UpdateArtifactData {
@@ -39,8 +46,8 @@ export interface UpdateArtifactData {
   descriptionEn?: string | null;
   level?: number;
   boostType?: ArtifactBoostType;
-  boost?: any | null;
   mediaId?: number | null;
+  agentId?: number | null;
 }
 
 export const getAllArtifacts = async (): Promise<Artifact[]> => {
