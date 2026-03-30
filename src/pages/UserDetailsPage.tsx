@@ -392,6 +392,14 @@ const UserDetailsPage = observer(() => {
                 <span className="text-gray-200">Selected History:</span>
                 <span>{userDetails.user.selectedHistoryName || 'starwars'}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-200">Selected chat mission id:</span>
+                <span>
+                  {userDetails.user.selectedChatMissionId != null
+                    ? String(userDetails.user.selectedChatMissionId)
+                    : '—'}
+                </span>
+              </div>
             </div>
           </CardBody>
         </Card>

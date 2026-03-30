@@ -1,18 +1,19 @@
 import { Button, Input, Textarea } from '@heroui/react';
 import { Target, Edit, Trash2, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import type { Mission } from '@/http/agentAPI';
+import type { CreateMissionData, Mission, UpdateMissionData } from '@/http/agentAPI';
 import { MediaUploadField } from './MediaUploadField';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { useContext } from 'react';
 import MissionPromptMentions from './MissionPromptMentions';
+import { uiStepGoalsToEditableText } from '@/utils/missionUiStepGoalsForm';
 
 interface AgentMissionsSectionProps {
   missions: Mission[];
   loading: boolean;
   agentId: number;
-  onCreateMission: (missionData: { title: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; missionPrompt?: string | null; orderIndex: number }) => Promise<void>;
-  onUpdateMission: (missionId: number, missionData: { title?: string; titleEn?: string | null; description?: string | null; descriptionEn?: string | null; missionPrompt?: string | null; orderIndex?: number }) => Promise<void>;
+  onCreateMission: (missionData: CreateMissionData) => Promise<void>;
+  onUpdateMission: (missionId: number, missionData: UpdateMissionData) => Promise<void>;
   onDeleteMission: (missionId: number) => Promise<void>;
   onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
   onDeleteMissionVideo?: (agentId: number, missionId: number) => Promise<void>;
@@ -37,6 +38,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     description: '',
     descriptionEn: '',
     missionPrompt: '',
+    uiStepGoalsText: '',
     artifactIds: [] as number[],
     orderIndex: ''
   });
@@ -48,7 +50,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', artifactIds: [], orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
   }, [missions]);
 
   const handleEditMission = (mission: Mission) => {
@@ -59,6 +61,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       description: mission.description || '',
       descriptionEn: mission.descriptionEn || '',
       missionPrompt: mission.missionPrompt || '',
+      uiStepGoalsText: uiStepGoalsToEditableText(mission.uiStepGoals ?? null),
       artifactIds: (mission.artifacts || []).map((a) => a.id),
       orderIndex: mission.orderIndex.toString()
     });
@@ -69,25 +72,27 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     if (!missionFormData.title || !missionFormData.orderIndex) return;
     
     try {
-      const missionData = {
+      const missionData: CreateMissionData | UpdateMissionData = {
         title: missionFormData.title,
         titleEn: missionFormData.titleEn || null,
         description: missionFormData.description || null,
         descriptionEn: missionFormData.descriptionEn || null,
         missionPrompt: missionFormData.missionPrompt || null,
+        // Всегда строка, чтобы ключ ушёл в JSON (axios выкидывает undefined).
+        uiStepGoalsText: missionFormData.uiStepGoalsText ?? '',
         artifactIds: missionFormData.artifactIds,
         orderIndex: parseInt(missionFormData.orderIndex)
       };
 
       if (editingMission) {
-        await onUpdateMission(editingMission.id, missionData);
+        await onUpdateMission(editingMission.id, missionData as UpdateMissionData);
       } else {
-        await onCreateMission(missionData);
+        await onCreateMission(missionData as CreateMissionData);
       }
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', artifactIds: [], orderIndex: '' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
     } catch (error) {
       console.error('Failed to save mission:', error);
     }
@@ -106,7 +111,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', artifactIds: [], orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
   };
 
   const handleCreateNewMission = () => {
@@ -117,6 +122,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       description: '', 
       descriptionEn: '',
       missionPrompt: '',
+      uiStepGoalsText: '',
       artifactIds: [],
       orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
     });
@@ -184,6 +190,14 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             value={missionFormData.descriptionEn}
             onChange={(e) => setMissionFormData({ ...missionFormData, descriptionEn: e.target.value })}
             minRows={2}
+          />
+          <Textarea
+            label="UI step goals (chat)"
+            placeholder={'1) Осмотреться и придумать план\n2) Найти вход\n…'}
+            value={missionFormData.uiStepGoalsText}
+            onChange={(e) => setMissionFormData({ ...missionFormData, uiStepGoalsText: e.target.value })}
+            minRows={5}
+            description="Один шаг на строку, нумерация как у main_step в LLM (1, 2, 3…). Сохраняется как JSON в миссии."
           />
           <div>
             <div className="text-sm font-medium text-gray-300 dark:text-gray-300 mb-2">

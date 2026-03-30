@@ -57,6 +57,7 @@ export interface UserDetailsResponse {
         energy: number;
         createdAt: string;
         selectedHistoryName: string;
+        selectedChatMissionId?: number | null;
     };
     registeredAt: string;
     messageCount: number;

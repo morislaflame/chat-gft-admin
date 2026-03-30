@@ -27,6 +27,9 @@ export interface LLMTraceListItem {
   userId: number;
   historyName: string;
   missionId?: number | null;
+  quality?: string | null;
+  qualityReasons?: string[] | null;
+  qualityNote?: string | null;
   durationMs?: number | null;
   clientRequest?: LLMTraceClientRequest | null;
   backendComputed?: LLMTraceBackendComputed | null;
@@ -59,5 +62,46 @@ export const getLLMTraces = async (params?: {
 export const getLLMTraceById = async (id: number): Promise<LLMTraceDetails> => {
   const { data } = await $authHost.get(`api/admin/llm-traces/${id}`);
   return data;
+};
+
+export type LLMTraceQuality = "good" | "bad";
+export type LLMTraceReason =
+  | "continuity_break"
+  | "weak_detour_design"
+  | "pace_too_slow"
+  | "pace_too_fast"
+  | "artifact_misuse"
+  | "step_logic_error"
+  | "npc_voice_inconsistent"
+  | "generic_reply"
+  | "format_error";
+
+export const setLLMTraceQuality = async (
+  id: number,
+  quality: LLMTraceQuality,
+  reasons?: LLMTraceReason[],
+  note?: string
+): Promise<{
+  id: number;
+  quality: LLMTraceQuality;
+  qualityReasons?: LLMTraceReason[] | null;
+  qualityNote?: string | null;
+}> => {
+  const { data } = await $authHost.patch(`api/admin/llm-traces/${id}/quality`, {
+    quality,
+    reasons: reasons ?? [],
+    note: note ?? "",
+  });
+  return data;
+};
+
+export const exportLLMTracesByQuality = async (
+  quality: LLMTraceQuality,
+  format: "json" | "jsonl" = "json"
+): Promise<Blob> => {
+  const { data } = await $authHost.get(`api/admin/llm-traces/export?quality=${quality}&format=${format}`, {
+    responseType: "blob",
+  });
+  return data as Blob;
 };
 
