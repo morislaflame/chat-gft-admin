@@ -1,4 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@heroui/react';
 import { Plus, Gift, Footprints } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
@@ -7,20 +8,18 @@ import { PageHeader } from '@/components/ui';
 import { 
   AgentStats, 
   AgentsTable, 
-  AgentFormModal,
   StageRewardsTable,
   StageRewardFormModal,
   StageRewardStats,
   MissionStepRewardsTable,
   MissionStepRewardFormModal
 } from '@/components/AgentsPageComponents';
-import { type Agent } from '@/http/agentAPI';
 import { type StageReward } from '@/http/stageRewardAPI';
 import { type MissionStepReward } from '@/http/missionStepRewardAPI';
 
 const AgentsPage = observer(() => {
+  const navigate = useNavigate();
   const { agent, stageReward, missionStepReward, caseStore } = useContext(Context) as IStoreContext;
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const { 
     isOpen: isRewardModalOpen, 
     onOpen: onRewardModalOpen, 
@@ -32,22 +31,8 @@ const AgentsPage = observer(() => {
     onClose: onStepRewardModalClose 
   } = useDisclosure();
   
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [selectedReward, setSelectedReward] = useState<StageReward | null>(null);
-  const [selectedStepReward, setSelectedStepReward] = useState<MissionStepReward | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [isEditingReward, setIsEditingReward] = useState(false);
-  const [isEditingStepReward, setIsEditingStepReward] = useState(false);
-  const [formData, setFormData] = useState({
-    historyName: '',
-    displayName: '',
-    displayNameEn: '',
-    systemPrompt: '',
-    description: '',
-    descriptionEn: '',
-    orderIndex: '0',
-    isActive: true
-  });
   const [rewardFormData, setRewardFormData] = useState({
     stageNumber: 1,
     rewardAmount: 100,
@@ -58,6 +43,7 @@ const AgentsPage = observer(() => {
     stepNumber: 1,
     rewardGems: 0
   });
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
 
   useEffect(() => {
     agent.fetchAllAgents();
@@ -67,72 +53,16 @@ const AgentsPage = observer(() => {
   }, [agent, stageReward, missionStepReward, caseStore]);
 
   const handleCreateAgent = () => {
-    setSelectedAgent(null);
-    setIsEditing(false);
-    setFormData({
-      historyName: '',
-      displayName: '',
-      displayNameEn: '',
-      systemPrompt: '',
-      description: '',
-      descriptionEn: '',
-      orderIndex: '0',
-      isActive: true
-    });
-    onOpen();
-  };
-
-  const handleEditAgent = async (ag: Agent) => {
-    setSelectedAgent(ag);
-    setIsEditing(true);
-    setFormData({
-      historyName: ag.historyName,
-      displayName: ag.displayName || '',
-      displayNameEn: ag.displayNameEn || '',
-      systemPrompt: ag.systemPrompt,
-      description: ag.description || '',
-      descriptionEn: ag.descriptionEn || '',
-      orderIndex: ag.orderIndex.toString(),
-      isActive: ag.isActive ?? true
-    });
-    // Загружаем миссии для выбранного агента
-    await agent.fetchAgentMissions(ag.id);
-    onOpen();
-  };
-
-  const handleSaveAgent = async () => {
-    try {
-      const agentData = {
-        historyName: formData.historyName,
-        displayName: formData.displayName || null,
-        displayNameEn: formData.displayNameEn || null,
-        systemPrompt: formData.systemPrompt,
-        description: formData.description || null,
-        descriptionEn: formData.descriptionEn || null,
-        orderIndex: parseInt(formData.orderIndex) || 0,
-        isActive: formData.isActive
-      };
-
-      if (isEditing && selectedAgent) {
-        await agent.updateAgent(selectedAgent.id, agentData);
-      } else {
-        await agent.createAgent(agentData);
-      }
-      
-      onClose();
-      agent.fetchAllAgents();
-    } catch (error) {
-      console.error('Failed to save agent:', error);
-    }
+    navigate('/agents/editor/new');
   };
 
   const handleDeleteAgent = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+    if (window.confirm('Вы уверены, что хотите удалить этого агента? Это действие нельзя отменить.')) {
       try {
         await agent.deleteAgent(id);
         agent.fetchAllAgents();
       } catch (error) {
-        console.error('Failed to delete agent:', error);
+        console.error('Не удалось удалить агента:', error);
       }
     }
   };
@@ -144,17 +74,6 @@ const AgentsPage = observer(() => {
       stageNumber: 1,
       rewardAmount: 100,
       rewardCaseId: ''
-    });
-    onRewardModalOpen();
-  };
-
-  const handleEditReward = (reward: StageReward) => {
-    setSelectedReward(reward);
-    setIsEditingReward(true);
-    setRewardFormData({
-      stageNumber: reward.stageNumber,
-      rewardAmount: reward.rewardAmount,
-      rewardCaseId: reward.rewardCaseId ? String(reward.rewardCaseId) : ''
     });
     onRewardModalOpen();
   };
@@ -176,17 +95,17 @@ const AgentsPage = observer(() => {
       onRewardModalClose();
       stageReward.fetchAllRewards();
     } catch (error) {
-      console.error('Failed to save stage reward:', error);
+      console.error('Не удалось сохранить награду за этап:', error);
     }
   };
 
   const handleDeleteReward = async (stageNumber: number) => {
-    if (window.confirm(`Are you sure you want to delete the reward for stage ${stageNumber}? This action cannot be undone.`)) {
+    if (window.confirm(`Удалить награду для этапа ${stageNumber}? Это действие нельзя отменить.`)) {
       try {
         await stageReward.deleteReward(stageNumber);
         stageReward.fetchAllRewards();
       } catch (error) {
-        console.error('Failed to delete stage reward:', error);
+        console.error('Не удалось удалить награду за этап:', error);
       }
     }
   };
@@ -194,55 +113,63 @@ const AgentsPage = observer(() => {
   const handleToggleActive = async (stageNumber: number, isActive: boolean) => {
     try {
       await stageReward.updateReward(stageNumber, { isActive });
-      stageReward.fetchAllRewards();
     } catch (error) {
-      console.error('Failed to toggle stage reward status:', error);
+      console.error('Не удалось изменить статус награды за этап:', error);
+      setToast({ message: 'Не удалось изменить статус награды за этап', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
     }
   };
 
-  const handleCreateStepReward = () => {
-    setSelectedStepReward(null);
-    setIsEditingStepReward(false);
-    setStepRewardFormData({ missionOrderIndex: 1, stepNumber: 1, rewardGems: 0 });
-    onStepRewardModalOpen();
+  const handleInlineUpdateStageReward = async (
+    reward: StageReward,
+    patch: { rewardAmount?: number; rewardCaseId?: number | null }
+  ) => {
+    await stageReward.updateReward(reward.stageNumber, patch);
   };
 
-  const handleEditStepReward = (reward: MissionStepReward) => {
-    setSelectedStepReward(reward);
-    setIsEditingStepReward(true);
-    setStepRewardFormData({
-      missionOrderIndex: reward.missionOrderIndex,
-      stepNumber: reward.stepNumber,
-      rewardGems: reward.rewardGems
-    });
+  const handleInlineUpdateStageRewardError = (message: string) => {
+    setToast({ message, type: 'error' });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCreateStepReward = () => {
+    setStepRewardFormData({ missionOrderIndex: 1, stepNumber: 1, rewardGems: 0 });
     onStepRewardModalOpen();
   };
 
   const handleSaveStepReward = async () => {
     try {
-      if (isEditingStepReward && selectedStepReward) {
-        await missionStepReward.updateReward(selectedStepReward.id, { rewardGems: stepRewardFormData.rewardGems });
-      } else {
-        await missionStepReward.createReward({
-          missionOrderIndex: stepRewardFormData.missionOrderIndex,
-          stepNumber: stepRewardFormData.stepNumber,
-          rewardGems: stepRewardFormData.rewardGems
-        });
-      }
+      await missionStepReward.createReward({
+        missionOrderIndex: stepRewardFormData.missionOrderIndex,
+        stepNumber: stepRewardFormData.stepNumber,
+        rewardGems: stepRewardFormData.rewardGems
+      });
       onStepRewardModalClose();
       missionStepReward.fetchAllRewards();
     } catch (error) {
-      console.error('Failed to save step reward:', error);
+      console.error('Не удалось сохранить награду за шаг:', error);
     }
   };
 
+  const handleInlineUpdateStepReward = async (
+    reward: MissionStepReward,
+    patch: { rewardGems?: number }
+  ) => {
+    await missionStepReward.updateReward(reward.id, patch);
+  };
+
+  const handleInlineUpdateStepRewardError = (message: string) => {
+    setToast({ message, type: 'error' });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleDeleteStepReward = async (id: number) => {
-    if (window.confirm('Delete this step reward? This action cannot be undone.')) {
+    if (window.confirm('Удалить эту награду за шаг? Это действие нельзя отменить.')) {
       try {
         await missionStepReward.deleteReward(id);
         missionStepReward.fetchAllRewards();
       } catch (error) {
-        console.error('Failed to delete step reward:', error);
+        console.error('Не удалось удалить награду за шаг:', error);
       }
     }
   };
@@ -254,11 +181,19 @@ const AgentsPage = observer(() => {
 
   return (
     <div className="p-6 space-y-6">
+      {toast && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className={`rounded-lg px-4 py-3 text-sm shadow-lg border ${toast.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : 'bg-green-500/90 border-green-400 text-white'}`}>
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       <PageHeader
-        title="Agents"
-        description="Manage AI agents and their system prompts"
+        title="Агенты"
+        description="Управление AI-агентами и их системными промптами"
         actionButton={{
-          label: "Create Agent",
+          label: "Создать агента",
           icon: Plus,
           onClick: handleCreateAgent
         }}
@@ -272,81 +207,17 @@ const AgentsPage = observer(() => {
       <AgentsTable
         agents={agent.agents}
         loading={agent.loading}
-        onEditAgent={handleEditAgent}
+        onEditAgent={(ag) => navigate(`/agents/editor/${ag.id}`)}
         onDeleteAgent={handleDeleteAgent}
-      />
-
-      <AgentFormModal
-        isOpen={isOpen}
-        onClose={onClose}
-        isEditing={isEditing}
-        formData={formData}
-        onFormDataChange={setFormData}
-        onSave={handleSaveAgent}
-        selectedAgent={selectedAgent}
-        missions={selectedAgent ? agent.getMissions(selectedAgent.id) : []}
-        missionsLoading={selectedAgent ? agent.isMissionsLoading(selectedAgent.id) : false}
-        onUploadVideo={async (agentId, videoFile) => {
-          await agent.uploadVideo(agentId, videoFile);
-          agent.fetchAllAgents();
-        }}
-        onUploadAvatar={async (agentId, avatarFile) => {
-          await agent.uploadAvatar(agentId, avatarFile);
-          agent.fetchAllAgents();
-        }}
-        onUploadPreview={async (agentId, previewFile) => {
-          await agent.uploadPreview(agentId, previewFile);
-          agent.fetchAllAgents();
-        }}
-        onUploadBackground={async (agentId, backgroundFile) => {
-          await agent.uploadBackground(agentId, backgroundFile);
-          agent.fetchAllAgents();
-        }}
-        onCreateMission={async (agentId, missionData) => {
-          await agent.createAgentMission(agentId, missionData);
-          agent.fetchAgentMissions(agentId);
-        }}
-        onUpdateMission={async (agentId, missionId, missionData) => {
-          await agent.updateAgentMission(agentId, missionId, missionData);
-          agent.fetchAgentMissions(agentId);
-        }}
-        onDeleteMission={async (agentId, missionId) => {
-          await agent.deleteAgentMission(agentId, missionId);
-          agent.fetchAgentMissions(agentId);
-        }}
-        onUploadMissionVideo={async (agentId, missionId, videoFile) => {
-          await agent.uploadMissionVideo(agentId, missionId, videoFile);
-          agent.fetchAgentMissions(agentId);
-        }}
-        onDeleteVideo={async (agentId) => {
-          await agent.deleteAgentVideo(agentId);
-          agent.fetchAllAgents();
-        }}
-        onDeleteAvatar={async (agentId) => {
-          await agent.deleteAgentAvatar(agentId);
-          agent.fetchAllAgents();
-        }}
-        onDeletePreview={async (agentId) => {
-          await agent.deleteAgentPreview(agentId);
-          agent.fetchAllAgents();
-        }}
-        onDeleteBackground={async (agentId) => {
-          await agent.deleteAgentBackground(agentId);
-          agent.fetchAllAgents();
-        }}
-        onDeleteMissionVideo={async (agentId, missionId) => {
-          await agent.deleteMissionVideo(agentId, missionId);
-          agent.fetchAgentMissions(agentId);
-        }}
       />
 
       {/* Stage Rewards Section */}
       <div className="mt-12 pt-8 border-t border-gray-200">
         <PageHeader
-          title="Stage Rewards"
-          description="Manage rewards for each stage of the story (each story has 3 stages)"
+          title="Награды за миссии"
+          description="Управление наградами за каждый Миссию истории"
           actionButton={{
-            label: "Create Stage Reward",
+            label: "Создать награду за миссию",
             icon: Gift,
             onClick: handleCreateReward
           }}
@@ -360,9 +231,11 @@ const AgentsPage = observer(() => {
           <StageRewardsTable
             rewards={stageReward.rewards}
             loading={stageReward.loading}
-            onEditReward={handleEditReward}
             onDeleteReward={handleDeleteReward}
             onToggleActive={handleToggleActive}
+            onInlineUpdateReward={handleInlineUpdateStageReward}
+            onInlineUpdateError={handleInlineUpdateStageRewardError}
+            cases={caseStore.cases}
           />
         </div>
 
@@ -381,10 +254,10 @@ const AgentsPage = observer(() => {
       {/* Step Rewards (Missions 1 & 2) */}
       <div className="mt-12 pt-8 border-t border-gray-200">
         <PageHeader
-          title="Step Rewards (Missions 1 & 2)"
-          description="Gems for each correct step in mission 1 and 2 (progress increases)"
+          title="Награды за шаги (миссии 1 и 2)"
+          description="Кристаллы за каждый правильный шаг в миссиях 1 и 2 (при росте прогресса)"
           actionButton={{
-            label: "Create Step Reward",
+            label: "Создать награду за шаг",
             icon: Footprints,
             onClick: handleCreateStepReward
           }}
@@ -393,14 +266,15 @@ const AgentsPage = observer(() => {
           <MissionStepRewardsTable
             rewards={missionStepReward.rewards}
             loading={missionStepReward.loading}
-            onEdit={handleEditStepReward}
             onDelete={handleDeleteStepReward}
+            onInlineUpdateReward={handleInlineUpdateStepReward}
+            onInlineUpdateError={handleInlineUpdateStepRewardError}
           />
         </div>
         <MissionStepRewardFormModal
           isOpen={isStepRewardModalOpen}
           onClose={onStepRewardModalClose}
-          isEditing={isEditingStepReward}
+          isEditing={false}
           formData={stepRewardFormData}
           onFormDataChange={setStepRewardFormData}
           onSave={handleSaveStepReward}

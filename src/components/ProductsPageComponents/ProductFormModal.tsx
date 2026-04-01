@@ -47,36 +47,36 @@ export const ProductFormModal = ({
       <ModalContent>
         <ModalHeader>
           <h3 className="text-xl font-semibold">
-            {isEditing ? 'Edit Product' : 'Create New Product'}
+            {isEditing ? 'Редактировать продукт' : 'Создать новый продукт'}
           </h3>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-4">
             <Input
-              label="Product Name"
+              label="Название продукта"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter product name"
+              placeholder="Введите название продукта"
               isRequired
             />
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Energy Amount"
+                label="Количество энергии"
                 type="number"
                 value={formData.energy}
                 onChange={(e) => handleInputChange('energy', e.target.value)}
-                placeholder="Enter energy amount"
+                placeholder="Введите количество энергии"
                 isRequired
                 startContent={<Zap className="w-4 h-4 text-gray-400" />}
               />
 
               <Input
-                label="Stars Price"
+                label="Цена в звездах"
                 type="number"
                 value={formData.starsPrice}
                 onChange={(e) => handleInputChange('starsPrice', e.target.value)}
-                placeholder="Enter stars price"
+                placeholder="Введите цену в звездах"
                 isRequired
                 startContent={<Star className="w-4 h-4 text-gray-400" />}
               />
@@ -84,31 +84,31 @@ export const ProductFormModal = ({
 
             {formData.energy && formData.starsPrice && (
               <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600">Value Ratio:</p>
+                <p className="text-sm text-gray-600">Соотношение ценности:</p>
                 <p className="text-lg font-semibold">
-                  {valueRatio} energy per star
+                  {valueRatio} энергии за звезду
                 </p>
               </div>
             )}
 
             <div className="pt-2 border-t border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Referral Bonus (Optional)</p>
+              <p className="text-sm font-semibold text-gray-700 mb-3">Реферальный бонус (необязательно)</p>
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Bonus Energy"
+                  label="Бонус энергией"
                   type="number"
                   value={formData.referralBonusEnergy}
                   onChange={(e) => handleInputChange('referralBonusEnergy', e.target.value)}
-                  placeholder="Energy for referrer"
-                  description="Energy bonus for the referrer"
+                  placeholder="Энергия для пригласившего"
+                  description="Бонус энергией для пригласившего пользователя"
                 />
                 <Input
-                  label="Bonus Balance"
+                  label="Бонус балансом"
                   type="number"
                   value={formData.referralBonusBalance}
                   onChange={(e) => handleInputChange('referralBonusBalance', e.target.value)}
-                  placeholder="Balance for referrer"
-                  description="Balance bonus for the referrer"
+                  placeholder="Баланс для пригласившего"
+                  description="Бонус балансом для пригласившего пользователя"
                 />
               </div>
             </div>
@@ -116,14 +116,14 @@ export const ProductFormModal = ({
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>
-            Cancel
+            Отмена
           </Button>
           <Button 
             color="primary" 
             onPress={onSave}
             disabled={!formData.name || !formData.energy || !formData.starsPrice}
           >
-            {isEditing ? 'Update' : 'Create'}
+            {isEditing ? 'Сохранить' : 'Создать'}
           </Button>
         </ModalFooter>
       </ModalContent>

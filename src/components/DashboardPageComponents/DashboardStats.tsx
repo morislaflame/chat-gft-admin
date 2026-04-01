@@ -35,42 +35,42 @@ interface DashboardStatsProps {
 export const DashboardStats = ({ dashboardData }: DashboardStatsProps) => {
   const statsCards = [
     {
-      title: 'Total Users',
+      title: 'Всего пользователей',
       value: dashboardData?.userStats?.totalUsers || 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Total Messages',
+      title: 'Всего сообщений',
       value: dashboardData?.messageStats?.messageCount || 0,
       icon: MessageSquare,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Active Quests',
+      title: 'Активные квесты',
       value: dashboardData?.questStats?.activeQuests || 0,
       icon: Target,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
     },
     {
-      title: 'Total Rewards',
+      title: 'Всего наград',
       value: dashboardData?.rewardStats?.totalRewards || 0,
       icon: Gift,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
     },
     {
-      title: 'Total Orders',
+      title: 'Всего заказов',
       value: dashboardData?.orderStats?.totalOrders || 0,
       icon: DollarSign,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
     },
     {
-      title: 'Total Products',
+      title: 'Всего продуктов',
       value: dashboardData?.productStats?.totalProducts || 0,
       icon: TrendingUp,
       color: 'text-cyan-600',

@@ -16,22 +16,22 @@ export const StageRewardStats = ({
 
   const statsCards = [
     {
-      title: 'Total Stages',
+      title: 'Всего этапов',
       value: totalRewards,
       icon: Gift,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
     },
     {
-      title: 'Active Stages',
+      title: 'Активные этапы',
       value: activeRewards,
       icon: Gift,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Avg Reward',
-      value: `${avgAmount} tokens`,
+      title: 'Средняя награда',
+      value: `${avgAmount} токенов`,
       icon: Coins,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',

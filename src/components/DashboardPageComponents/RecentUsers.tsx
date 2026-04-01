@@ -13,20 +13,20 @@ export const RecentUsers = ({ recentUsers }: RecentUsersProps) => {
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-lg font-semibold">Recent Activity (last session)</h3>
+        <h3 className="text-lg font-semibold">Последняя активность (последняя сессия)</h3>
       </CardHeader>
       <CardBody>
         {recentUsers && recentUsers.length > 0 ? (
-          <Table aria-label="Recent user sessions table">
+          <Table aria-label="Таблица последних сессий пользователей">
             <TableHeader>
-              <TableColumn>USER</TableColumn>
-              <TableColumn>HISTORY</TableColumn>
-              <TableColumn>SESSION MESSAGES</TableColumn>
-              <TableColumn>LAST ACTIVE</TableColumn>
+              <TableColumn>ПОЛЬЗОВАТЕЛЬ</TableColumn>
+              <TableColumn>ИСТОРИЯ</TableColumn>
+              <TableColumn>СООБЩЕНИЙ ЗА СЕССИЮ</TableColumn>
+              <TableColumn>ПОСЛЕДНЯЯ АКТИВНОСТЬ</TableColumn>
             </TableHeader>
             <TableBody>
               {recentUsers.map((u) => {
-                const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || (u.username ? `@${u.username}` : `User #${u.userId}`);
+                const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || (u.username ? `@${u.username}` : `Пользователь #${u.userId}`);
                 const initials = getInitials(u.firstName || '', u.lastName || '', u.username || '');
                 return (
                   <TableRow
@@ -42,7 +42,7 @@ export const RecentUsers = ({ recentUsers }: RecentUsersProps) => {
                         <div className="flex flex-col">
                           <span className="font-medium">{fullName}</span>
                           <span className="text-xs text-gray-400">
-                            {u.username ? `@${u.username}` : 'No username'} · {u.telegramId ? `tg:${u.telegramId}` : 'tg:N/A'}
+                            {u.username ? `@${u.username}` : 'Без username'} · {u.telegramId ? `tg:${u.telegramId}` : 'tg:Н/Д'}
                           </span>
                         </div>
                       </div>
@@ -62,7 +62,7 @@ export const RecentUsers = ({ recentUsers }: RecentUsersProps) => {
             </TableBody>
           </Table>
         ) : (
-          <p className="text-gray-500">No recent activity found</p>
+          <p className="text-gray-500">Свежая активность не найдена</p>
         )}
       </CardBody>
     </Card>

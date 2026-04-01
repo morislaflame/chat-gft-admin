@@ -11,7 +11,7 @@ import {
 } from '@heroui/react';
 import { Bot, Video, Image } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import type { Agent, Mission } from '@/http/agentAPI';
+import type { Agent, CreateMissionData, Mission, UpdateMissionData } from '@/http/agentAPI';
 import { MediaUploadField } from './MediaUploadField';
 import { AgentMissionsSection } from './AgentMissionsSection';
 import { PromptStatistics } from './PromptStatistics';
@@ -45,8 +45,8 @@ interface AgentFormModalProps {
   onDeleteBackground?: (agentId: number) => Promise<void>;
   missions?: Mission[];
   missionsLoading?: boolean;
-  onCreateMission?: (agentId: number, missionData: { title: string; description?: string | null; orderIndex: number }) => Promise<void>;
-  onUpdateMission?: (agentId: number, missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => Promise<void>;
+  onCreateMission?: (agentId: number, missionData: CreateMissionData) => Promise<void>;
+  onUpdateMission?: (agentId: number, missionId: number, missionData: UpdateMissionData) => Promise<void>;
   onDeleteMission?: (agentId: number, missionId: number) => Promise<void>;
   onUploadMissionVideo?: (agentId: number, missionId: number, videoFile: File) => Promise<void>;
   onDeleteMissionVideo?: (agentId: number, missionId: number) => Promise<void>;
@@ -183,12 +183,12 @@ export const AgentFormModal = ({
     }
   };
 
-  const handleCreateMission = async (missionData: { title: string; description?: string | null; orderIndex: number }) => {
+  const handleCreateMission = async (missionData: CreateMissionData) => {
     if (!selectedAgent || !onCreateMission) return;
     await onCreateMission(selectedAgent.id, missionData);
   };
 
-  const handleUpdateMission = async (missionId: number, missionData: { title?: string; description?: string | null; orderIndex?: number }) => {
+  const handleUpdateMission = async (missionId: number, missionData: UpdateMissionData) => {
     if (!selectedAgent || !onUpdateMission) return;
     await onUpdateMission(selectedAgent.id, missionId, missionData);
   };

@@ -16,28 +16,28 @@ export const PaymentStats = ({
 }: PaymentStatsProps) => {
   const statsCards = [
     {
-      title: 'Total Orders',
+      title: 'Всего заказов',
       value: totalOrders,
       icon: CreditCard,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Completed',
+      title: 'Завершено',
       value: completedOrders,
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Total Revenue',
+      title: 'Общая выручка',
       value: totalRevenue,
       icon: DollarSign,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
     },
     {
-      title: 'Success Rate',
+      title: 'Процент успеха',
       value: `${successRate}%`,
       icon: DollarSign,
       color: 'text-orange-600',

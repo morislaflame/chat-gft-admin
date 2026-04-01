@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { X, Image as ImageIcon, Video } from 'lucide-react';
+import { X, Image as ImageIcon, Video, Upload } from 'lucide-react';
 import { useState, useRef, useEffect, useId } from 'react';
 import type { MediaFile } from '@/http/agentAPI';
 
@@ -31,20 +31,14 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
   previewClassName = ''
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(currentMedia?.url || null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const uniqueId = useId(); // Генерирует уникальный ID для каждого экземпляра компонента
+  const uniqueId = useId();
   const fileId = `media-upload-${label.toLowerCase().replace(/\s+/g, '-')}-${uniqueId}`;
 
-  // Обновляем превью при изменении currentMedia
   useEffect(() => {
-    // Если нет выбранного файла, показываем текущее медиа
     if (!selectedFile) {
-      if (currentMedia?.url) {
-        setPreview(currentMedia.url);
-      } else {
-        setPreview(null);
-      }
+      setPreview(currentMedia?.url || null);
     }
   }, [currentMedia, selectedFile]);
 
@@ -52,13 +46,12 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Валидация типа файла
     if (mediaType === 'image' && !file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      alert('Пожалуйста, выберите файл изображения');
       return;
     }
     if (mediaType === 'video' && !file.type.startsWith('video/')) {
-      alert('Please select a video file');
+      alert('Пожалуйста, выберите видеофайл');
       return;
     }
     if (mediaType === 'mixed') {
@@ -66,17 +59,18 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
                          file.type.startsWith('video/') || 
                          file.type === 'application/json';
       if (!isValidType) {
-        alert('Please select an image, video, or JSON animation file');
+        alert('Пожалуйста, выберите изображение, видео или JSON-файл анимации');
         return;
       }
     }
 
     setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (file.type === 'application/json') {
+      setPreview(null);
+      return;
+    }
+    const nextPreview = URL.createObjectURL(file);
+    setPreview(nextPreview);
   };
 
   const handleRemove = () => {
@@ -89,12 +83,12 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
 
   const handleDelete = async () => {
     if (!onDelete || !currentMedia) return;
-    if (window.confirm(`Are you sure you want to delete this ${label.toLowerCase()}?`)) {
+    if (window.confirm(`Вы уверены, что хотите удалить "${label.toLowerCase()}"?`)) {
       try {
         await onDelete();
       } catch (error) {
         console.error(`Failed to delete ${label.toLowerCase()}:`, error);
-        alert(`Failed to delete ${label.toLowerCase()}`);
+        alert(`Не удалось удалить: ${label.toLowerCase()}`);
       }
     }
   };
@@ -105,81 +99,60 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
     try {
       await onUpload(selectedFile);
       setSelectedFile(null);
-      // Превью обновится автоматически через useEffect при изменении currentMedia
       if (inputRef.current) {
         inputRef.current.value = '';
       }
     } catch (error) {
       console.error(`Failed to upload ${label.toLowerCase()}:`, error);
-      alert(`Failed to upload ${label.toLowerCase()}`);
+      alert(`Не удалось загрузить: ${label.toLowerCase()}`);
     }
   };
 
-  const renderPreview = () => {
-    if (!preview) return null;
+  const getFormatsHint = () => {
+    if (accept.includes('video') && accept.includes('image') && accept.includes('.json')) {
+      return 'Разрешено: PNG, JPG, MP4, WEBM, JSON';
+    }
+    if (accept.includes('video')) return 'Разрешено: MP4, WEBM, MOV';
+    if (accept.includes('.json')) return 'Разрешено: PNG, JPG, JSON';
+    return 'Разрешено: PNG, JPG, WEBP';
+  };
 
+  const renderPreview = () => {
     const isVideo = selectedFile?.type.startsWith('video/') || currentMedia?.mimeType?.startsWith('video/');
     const isJSON = selectedFile?.type === 'application/json' || currentMedia?.mimeType === 'application/json';
-    const isImage = mediaType === 'image' || (!isVideo && !isJSON);
+    const isImage = !isVideo && !isJSON;
 
     if (isVideo) {
       return (
-        <div className={`mb-3 relative ${previewClassName}`}>
+        <div className={`relative h-full w-full ${previewClassName}`}>
           <video 
-            src={preview} 
-            controls 
-            className="w-full max-h-64 rounded-lg"
+            src={preview || currentMedia?.url || undefined}
+            className="w-full h-full object-cover"
+            muted
+            playsInline
           />
-          {selectedFile && (
-            <button
-              onClick={handleRemove}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
         </div>
       );
     }
 
     if (isJSON) {
       return (
-        <div className={`mb-3 relative ${previewClassName}`}>
-          <div className="w-full max-h-64 rounded-lg bg-gray-100 dark:bg-zinc-800 p-4 flex items-center justify-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">JSON Animation File</p>
+        <div className={`relative h-full w-full ${previewClassName}`}>
+          <div className="w-full h-full rounded-lg bg-zinc-800 p-4 flex items-center justify-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">JSON-файл анимации</p>
           </div>
-          {selectedFile && (
-            <button
-              onClick={handleRemove}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
         </div>
       );
     }
 
     if (isImage) {
-      const imageClassName = mediaType === 'image' 
-        ? 'w-32 h-32 object-cover rounded-lg'
-        : 'w-full max-h-64 object-contain rounded-lg';
-      
       return (
-        <div className={`mb-3 relative ${mediaType === 'image' ? 'inline-block' : ''} ${previewClassName}`}>
+        <div className={`relative h-full w-full ${previewClassName}`}>
           <img 
-            src={preview} 
+            src={preview || currentMedia?.url || undefined}
             alt={label}
-            className={imageClassName}
+            className="w-full h-full object-cover rounded-lg"
           />
-          {selectedFile && (
-            <button
-              onClick={handleRemove}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
         </div>
       );
     }
@@ -190,64 +163,81 @@ export const MediaUploadField: React.FC<MediaUploadFieldProps> = ({
   const defaultIcon = mediaType === 'video' ? <Video className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />;
 
   return (
-    <div>
+    <div className="space-y-3">
       <div className="flex items-center gap-2 mb-3">
         {icon || defaultIcon}
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</p>
       </div>
-      
-      {renderPreview()}
 
-      <div className="flex gap-2">
-        <input
-          ref={inputRef}
-          type="file"
-          accept={accept}
-          onChange={handleFileSelect}
-          className="hidden"
-          id={fileId}
-        />
-        <label
-          htmlFor={fileId}
-          className="flex-1 cursor-pointer"
-        >
-          <Button
-            as="span"
-            variant="bordered"
-            className="w-full"
-            startContent={icon || defaultIcon}
-          >
-            {selectedFile ? `Change ${label}` : `Select ${label}`}
-          </Button>
-        </label>
-        {selectedFile && (
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        onChange={handleFileSelect}
+        className="hidden"
+        id={fileId}
+      />
+
+      <label htmlFor={fileId} className="cursor-pointer block">
+        <div className={`relative w-full h-40 rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700/70 flex items-center justify-center ${previewClassName}`}>
+          {(preview || currentMedia?.url || currentMedia?.mimeType === 'application/json' || selectedFile?.type === 'application/json') ? (
+            renderPreview()
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-zinc-200">
+              <Upload className="w-6 h-6" />
+              <span className="text-sm font-medium">Загрузить медиа</span>
+              <span className="text-xs text-zinc-400">{getFormatsHint()}</span>
+            </div>
+          )}
+
+          {currentMedia && !selectedFile && onDelete ? (
+            <button
+              type="button"
+              className="absolute top-2 right-2 z-10 bg-black/70 hover:bg-red-600 disabled:hover:bg-black/70 text-white rounded-md p-1.5 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void handleDelete();
+              }}
+              disabled={deleting}
+              aria-label="Удалить медиа"
+              title="Удалить медиа"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : null}
+
+          {(uploading || deleting) ? (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <span className="text-sm text-white">{uploading ? 'Загрузка...' : 'Удаление...'}</span>
+            </div>
+          ) : null}
+        </div>
+      </label>
+
+      {selectedFile ? (
+        <div className="flex items-center gap-2">
           <Button
             color="primary"
             onClick={handleUpload}
             isLoading={uploading}
             disabled={uploading}
+            size="sm"
           >
-            Upload
+            Сохранить медиа
           </Button>
-        )}
-        {!selectedFile && currentMedia && onDelete && (
           <Button
-            color="danger"
-            variant="bordered"
-            onClick={handleDelete}
-            isLoading={deleting}
-            disabled={deleting}
-            startContent={<X className="w-4 h-4" />}
+            variant="flat"
+            onClick={handleRemove}
+            size="sm"
           >
-            Delete
+            Отмена
           </Button>
-        )}
-      </div>
-      {selectedFile && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-        </p>
-      )}
+          <span className="text-xs text-zinc-400 truncate">
+            {selectedFile.name}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 };

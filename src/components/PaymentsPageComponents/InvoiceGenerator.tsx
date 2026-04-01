@@ -35,20 +35,20 @@ export const InvoiceGenerator = ({
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-lg font-semibold">Generate Invoice</h3>
+        <h3 className="text-lg font-semibold">Генерация инвойса</h3>
       </CardHeader>
       <CardBody>
         <div className="flex gap-4 items-end">
           <div className="flex-1">
             <Select
-              label="Select Product"
-              placeholder="Choose a product"
+              label="Выберите продукт"
+              placeholder="Выберите продукт"
               selectedKeys={selectedProduct ? [selectedProduct] : []}
               onSelectionChange={(keys) => onProductChange(Array.from(keys)[0] as string)}
             >
               {products.map((prod) => (
                 <SelectItem key={prod.id.toString()}>
-                  {prod.name} - {prod.starsPrice} stars ({prod.energy} energy)
+                  {prod.name} - {prod.starsPrice} звезд ({prod.energy} энергии)
                 </SelectItem>
               ))}
             </Select>
@@ -59,13 +59,13 @@ export const InvoiceGenerator = ({
             disabled={!selectedProduct || loading}
             isLoading={loading}
           >
-            Generate Invoice
+            Сгенерировать инвойс
           </Button>
         </div>
         
         {invoiceLink && (
           <div className="mt-4 p-4 bg-zinc-800 rounded-lg">
-            <p className="text-sm font-medium text-green-500 mb-2">Invoice Generated Successfully!</p>
+            <p className="text-sm font-medium text-green-500 mb-2">Инвойс успешно сгенерирован!</p>
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -80,7 +80,7 @@ export const InvoiceGenerator = ({
                 startContent={<ExternalLink size={14} />}
                 onClick={() => window.open(invoiceLink, '_blank')}
               >
-                Open
+                Открыть
               </Button>
             </div>
           </div>

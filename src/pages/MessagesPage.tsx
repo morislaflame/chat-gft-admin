@@ -19,7 +19,7 @@ const MessagesPage = observer(() => {
       await message.sendMessage(newMessage);
       setNewMessage('');
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('Не удалось отправить сообщение:', error);
     }
   };
 
@@ -27,8 +27,8 @@ const MessagesPage = observer(() => {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Messages</h1>
-        <p className="text-gray-300">View message history and send messages</p>
+        <h1 className="text-3xl font-bold mb-2">Сообщения</h1>
+        <p className="text-gray-300">Просмотр истории сообщений и отправка сообщений</p>
       </div>
 
       <MessageStats 

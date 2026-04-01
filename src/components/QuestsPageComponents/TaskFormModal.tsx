@@ -330,7 +330,7 @@ export const TaskFormModal = ({
                   errorMessage={errors.shareText}
                   value={getMetadataField('shareText')}
                   onChange={(e) => handleMetadataFieldChange('shareText', e.target.value)}
-                  placeholder="To the gifts!"
+                  placeholder="К подаркам!"
                 />
                 <Input
                   label="Название виджета"
@@ -339,7 +339,7 @@ export const TaskFormModal = ({
                   errorMessage={errors.widgetName}
                   value={getMetadataField('widgetName')}
                   onChange={(e) => handleMetadataFieldChange('widgetName', e.target.value)}
-                  placeholder="Rocket"
+                  placeholder="Ракета"
                 />
                 <Input
                   label="URL виджета"

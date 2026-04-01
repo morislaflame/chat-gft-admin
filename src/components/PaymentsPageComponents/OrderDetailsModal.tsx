@@ -35,18 +35,18 @@ export const OrderDetailsModal = ({ isOpen, onClose, order }: OrderDetailsModalP
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <ModalContent>
         <ModalHeader>
-          <h3 className="text-xl font-semibold">Order Details</h3>
+          <h3 className="text-xl font-semibold">Детали заказа</h3>
         </ModalHeader>
         <ModalBody>
           {order ? (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Order ID</label>
+                  <label className="text-sm font-medium text-gray-600">ID заказа</label>
                   <p className="text-lg font-mono">#{order.id}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
+                  <label className="text-sm font-medium text-gray-600">Статус</label>
                   <div className="mt-1">
                     <Chip color={getStatusColor(order.status)} variant="flat">
                       {order.status.toUpperCase()}
@@ -54,41 +54,41 @@ export const OrderDetailsModal = ({ isOpen, onClose, order }: OrderDetailsModalP
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Product</label>
+                  <label className="text-sm font-medium text-gray-600">Продукт</label>
                   <p className="text-lg">{order.productName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Price</label>
-                  <p className="text-lg font-semibold">{order.price} stars</p>
+                  <label className="text-sm font-medium text-gray-600">Цена</label>
+                  <p className="text-lg font-semibold">{order.price} звезд</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Energy Purchased</label>
+                  <label className="text-sm font-medium text-gray-600">Куплено энергии</label>
                   <p className="text-lg">{order.attemptsPurchased}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">User ID</label>
+                  <label className="text-sm font-medium text-gray-600">ID пользователя</label>
                   <p className="text-lg">{order.userId}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Created At</label>
+                  <label className="text-sm font-medium text-gray-600">Создан</label>
                   <p className="text-lg">{formatTime(order.createdAt)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Updated At</label>
+                  <label className="text-sm font-medium text-gray-600">Обновлен</label>
                   <p className="text-lg">{formatTime(order.updatedAt)}</p>
                 </div>
               </div>
 
               {order.telegramPaymentChargeId && (
                 <div className="border-t pt-4">
-                  <label className="text-sm font-medium text-gray-600">Payment Charge ID</label>
+                  <label className="text-sm font-medium text-gray-600">ID платежа</label>
                   <p className="text-lg font-mono break-all">{order.telegramPaymentChargeId}</p>
                 </div>
               )}
 
               {order.metadata && Object.keys(order.metadata).length > 0 && (
                 <div className="border-t pt-4">
-                  <label className="text-sm font-medium text-gray-600">Metadata</label>
+                  <label className="text-sm font-medium text-gray-600">Метаданные</label>
                   <pre className="text-sm bg-gray-100 p-3 rounded mt-1 overflow-auto">
                     {JSON.stringify(order.metadata, null, 2)}
                   </pre>
@@ -103,7 +103,7 @@ export const OrderDetailsModal = ({ isOpen, onClose, order }: OrderDetailsModalP
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>
-            Close
+            Закрыть
           </Button>
         </ModalFooter>
       </ModalContent>

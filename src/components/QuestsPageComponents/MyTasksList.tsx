@@ -21,7 +21,7 @@ export const MyTasksList = ({ myTasks }: MyTasksListProps) => {
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-lg font-semibold">My Tasks ({myTasks.length})</h3>
+        <h3 className="text-lg font-semibold">Мои задачи ({myTasks.length})</h3>
       </CardHeader>
       <CardBody>
         {myTasks.length > 0 ? (
@@ -41,7 +41,7 @@ export const MyTasksList = ({ myTasks }: MyTasksListProps) => {
                   <div>
                     <p className="font-medium">{userTask.task?.description}</p>
                     <p className="text-sm text-gray-300">
-                      Progress: {userTask.progress}/{userTask.task?.targetCount}
+                      Прогресс: {userTask.progress}/{userTask.task?.targetCount}
                     </p>
                   </div>
                 </div>
@@ -50,7 +50,7 @@ export const MyTasksList = ({ myTasks }: MyTasksListProps) => {
                     color={userTask.completed ? 'success' : 'primary'} 
                     variant="flat"
                   >
-                    {userTask.completed ? 'Completed' : 'In Progress'}
+                    {userTask.completed ? 'Выполнено' : 'В процессе'}
                   </Chip>
                   {userTask.completedAt && (
                     <p className="text-xs text-gray-300 mt-1">
@@ -64,7 +64,7 @@ export const MyTasksList = ({ myTasks }: MyTasksListProps) => {
         ) : (
           <div className="text-center py-8">
             <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No tasks assigned</p>
+            <p className="text-gray-500">Задачи не назначены</p>
           </div>
         )}
       </CardBody>

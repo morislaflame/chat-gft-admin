@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Spinner } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { getLLMTraceById, getLLMTraces, type LLMTraceDetails, type LLMTraceListItem } from "@/http/llmTraceAPI";
+import { exportLLMTracesByQuality, getLLMTraceById, getLLMTraces, setLLMTraceQuality, type LLMTraceDetails, type LLMTraceListItem, type LLMTraceQuality, type LLMTraceReason } from "@/http/llmTraceAPI";
 
 const JsonBlock = ({ value }: { value: unknown }) => (
   <pre className="text-xs whitespace-pre-wrap break-words bg-zinc-900/60 border border-white/10 rounded-lg p-3 text-white/90 max-h-[420px] overflow-auto">
@@ -71,12 +71,25 @@ const PromptBlock = ({ value, className = "" }: { value: string | null | undefin
   );
 };
 
+const REASONS: Array<{ id: LLMTraceReason; label: string }> = [
+  { id: "continuity_break", label: "Нарушение последовательности" },
+  { id: "weak_detour_design", label: "Слабый дизайн ответвлений" },
+  { id: "pace_too_slow", label: "Слишком медленный темп" },
+  { id: "pace_too_fast", label: "Слишком быстрый темп" },
+  { id: "artifact_misuse", label: "Неверное использование артефактов" },
+  { id: "step_logic_error", label: "Ошибка логики шагов" },
+  { id: "npc_voice_inconsistent", label: "Непоследовательный голос NPC" },
+  { id: "generic_reply", label: "Слишком общий ответ" },
+  { id: "format_error", label: "Ошибка формата" },
+];
+
 const LLMDebugPage: React.FC = observer(() => {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<LLMTraceListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [limit] = useState(50);
   const [offset, setOffset] = useState(0);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const [userId, setUserId] = useState("");
   const [historyName, setHistoryName] = useState("starwars");
@@ -85,6 +98,9 @@ const LLMDebugPage: React.FC = observer(() => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [details, setDetails] = useState<LLMTraceDetails | null>(null);
+  const [markLoading, setMarkLoading] = useState(false);
+  const [selectedReasons, setSelectedReasons] = useState<LLMTraceReason[]>([]);
+  const [qualityNote, setQualityNote] = useState("");
 
   const params = useMemo(() => {
     const p: { limit: number; offset: number; userId?: number; historyName?: string; missionId?: number } = { limit, offset };
@@ -116,52 +132,98 @@ const LLMDebugPage: React.FC = observer(() => {
     try {
       const data = await getLLMTraceById(id);
       setDetails(data);
+      setSelectedReasons(Array.isArray(data.qualityReasons) ? (data.qualityReasons as LLMTraceReason[]) : []);
+      setQualityNote(typeof data.qualityNote === "string" ? data.qualityNote : "");
     } finally {
       setDetailsLoading(false);
+    }
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const exportGood = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportLLMTracesByQuality("good", "jsonl");
+      downloadBlob(blob, "llm_traces_good.jsonl");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const mark = async (quality: LLMTraceQuality) => {
+    if (!details) return;
+    setMarkLoading(true);
+    try {
+      await setLLMTraceQuality(details.id, quality, selectedReasons, qualityNote);
+      const fresh = await getLLMTraceById(details.id);
+      setDetails(fresh);
+      setSelectedReasons(Array.isArray(fresh.qualityReasons) ? (fresh.qualityReasons as LLMTraceReason[]) : []);
+      setQualityNote(typeof fresh.qualityNote === "string" ? fresh.qualityNote : "");
+    } finally {
+      setMarkLoading(false);
     }
   };
 
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="LLM Debug Logs"
-        description="Persisted traces of request/response payloads across the full message pipeline."
-        actionButton={{ label: "Refresh", onClick: () => { setOffset(0); void load(); } }}
+        title="Логи отладки LLM"
+        description="Сохраненные трассировки запросов/ответов по всему пайплайну сообщений."
+        actionButton={{ label: "Обновить", onClick: () => { setOffset(0); void load(); } }}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Input label="User ID" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="e.g. 13" />
-        <Input label="History" value={historyName} onChange={(e) => setHistoryName(e.target.value)} placeholder="starwars" />
-        <Input label="Mission ID" value={missionId} onChange={(e) => setMissionId(e.target.value)} placeholder="(optional)" />
+        <Input label="ID пользователя" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="например: 13" />
+        <Input label="История" value={historyName} onChange={(e) => setHistoryName(e.target.value)} placeholder="starwars" />
+        <Input label="ID миссии" value={missionId} onChange={(e) => setMissionId(e.target.value)} placeholder="(необязательно)" />
       </div>
 
       <div className="flex gap-2">
         <Button onClick={() => { setOffset(0); void load(); }} disabled={loading}>
-          Apply filters
+          Применить фильтры
+        </Button>
+        <Button
+          color="primary"
+          variant="solid"
+          disabled={exportLoading || loading}
+          onClick={() => void exportGood()}
+        >
+          {exportLoading ? "Экспорт..." : "Экспорт good"}
         </Button>
         <div className="text-sm text-white/60 self-center">
-          Total: {total}
+          Всего: {total}
         </div>
       </div>
 
       <div className="border border-white/10 rounded-xl overflow-hidden">
         <div className="grid grid-cols-12 gap-2 px-3 py-2 bg-zinc-900 text-xs text-white/70">
-          <div className="col-span-2">Time</div>
-          <div className="col-span-1">User</div>
-          <div className="col-span-2">History</div>
-          <div className="col-span-1">Mission</div>
+          <div className="col-span-2">Время</div>
+          <div className="col-span-1">Польз.</div>
+          <div className="col-span-2">История</div>
+          <div className="col-span-1">Миссия</div>
           <div className="col-span-1">ms</div>
-          <div className="col-span-2">Step</div>
-          <div className="col-span-2">Message</div>
-          <div className="col-span-1">Error</div>
+          <div className="col-span-1">Качество</div>
+          <div className="col-span-1">Шаг</div>
+          <div className="col-span-1">Сообщение</div>
+          <div className="col-span-1">Ошибка</div>
           <div className="col-span-1" />
         </div>
         {loading ? (
           <div className="p-6 flex items-center gap-2 text-white/70">
-            <Spinner size="sm" /> Loading…
+            <Spinner size="sm" /> Загрузка…
           </div>
         ) : items.length === 0 ? (
-          <div className="p-6 text-white/60">No traces found.</div>
+          <div className="p-6 text-white/60">Трассировки не найдены.</div>
         ) : (
           <div className="divide-y divide-white/10">
             {items.map((t) => (
@@ -171,19 +233,28 @@ const LLMDebugPage: React.FC = observer(() => {
                 <div className="col-span-2">{t.historyName}</div>
                 <div className="col-span-1">{t.missionId ?? "-"}</div>
                 <div className="col-span-1">{t.durationMs ?? "-"}</div>
-                <div className="col-span-2 text-white/70">
+                <div className="col-span-1">
+                  {t.quality ? (
+                    <span className={t.quality === "good" ? "text-emerald-300" : "text-red-300"}>
+                      {t.quality}
+                    </span>
+                  ) : (
+                    <span className="text-white/50">-</span>
+                  )}
+                </div>
+                <div className="col-span-1 text-white/70">
                   {t.backendComputed?.stepDecision?.mainStepBefore != null
                     ? `${t.backendComputed.stepDecision.mainStepBefore}→${t.backendComputed.stepDecision.mainStepAfter ?? "?"}`
                     : "-"}
                   {t.backendComputed?.stepDecision?.allowIncrement === true ? " ✓" : ""}
                 </div>
-                <div className="col-span-2 truncate">{t.clientRequest?.message || ""}</div>
+                <div className="col-span-1 truncate">{t.clientRequest?.message || ""}</div>
                 <div className={`col-span-1 truncate ${t.error ? "text-red-300/80" : "text-white/50"}`}>
                   {t.error || "-"}
                 </div>
                 <div className="col-span-1 text-right">
                   <Button size="sm" variant="light" onClick={() => void openDetails(t.id)}>
-                    Open
+                    Открыть
                   </Button>
                 </div>
               </div>
@@ -198,17 +269,17 @@ const LLMDebugPage: React.FC = observer(() => {
           disabled={offset <= 0 || loading}
           onClick={() => setOffset(Math.max(0, offset - limit))}
         >
-          Prev
+          Назад
         </Button>
         <Button
           variant="light"
           disabled={offset + limit >= total || loading}
           onClick={() => setOffset(offset + limit)}
         >
-          Next
+          Вперед
         </Button>
         <div className="text-xs text-white/60 self-center">
-          Offset: {offset}
+          Смещение: {offset}
         </div>
       </div>
 
@@ -218,14 +289,72 @@ const LLMDebugPage: React.FC = observer(() => {
           <ModalBody>
             {detailsLoading ? (
               <div className="p-6 flex items-center gap-2 text-white/70">
-                <Spinner size="sm" /> Loading…
+                <Spinner size="sm" /> Загрузка…
               </div>
             ) : !details ? (
-              <div className="p-6 text-white/60">No details.</div>
+              <div className="p-6 text-white/60">Нет деталей.</div>
             ) : (
               <div className="space-y-4">
                 <div className="text-sm text-white/70">
                   #{details.id} • {details.historyName} • user={details.userId} • missionId={details.missionId ?? "-"} • {details.durationMs ?? "-"}ms
+                  {details.quality ? (
+                    <span className={details.quality === "good" ? "ml-2 text-emerald-300" : "ml-2 text-red-300"}>
+                      ({details.quality})
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    color="success"
+                    variant="solid"
+                    disabled={markLoading}
+                    onClick={() => void mark("good")}
+                  >
+                    Пометить good
+                  </Button>
+                  <Button
+                    color="danger"
+                    variant="solid"
+                    disabled={markLoading}
+                    onClick={() => void mark("bad")}
+                  >
+                    Пометить bad
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-sm text-white/70">Причины оценки</div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    {REASONS.map((r) => {
+                      const checked = selectedReasons.includes(r.id);
+                      return (
+                        <label
+                          key={r.id}
+                          className="text-xs text-white/90 flex items-center gap-2 border border-white/10 rounded-md px-2 py-1"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedReasons((prev) => (prev.includes(r.id) ? prev : [...prev, r.id]));
+                              } else {
+                                setSelectedReasons((prev) => prev.filter((x) => x !== r.id));
+                              }
+                            }}
+                          />
+                          {r.label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <Input
+                    label="Комментарий к оценке (почему good/bad)"
+                    value={qualityNote}
+                    onChange={(e) => setQualityNote(e.target.value)}
+                    placeholder="Краткое пояснение для последующей модерации/обучения"
+                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

@@ -19,7 +19,7 @@ export const MessageHistory = ({ messages, loading }: MessageHistoryProps) => {
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-lg font-semibold">Message History</h3>
+        <h3 className="text-lg font-semibold">История сообщений</h3>
       </CardHeader>
       <CardBody>
         {loading ? (
@@ -42,7 +42,7 @@ export const MessageHistory = ({ messages, loading }: MessageHistoryProps) => {
                     </p>
                     {msg.isCongratulation && (
                       <Chip color="success" size="sm" className="mt-1">
-                        Gift
+                        Подарок
                       </Chip>
                     )}
                   </div>
@@ -50,7 +50,7 @@ export const MessageHistory = ({ messages, loading }: MessageHistoryProps) => {
                 
                 <div className="flex justify-start">
                   <div className="bg-blue-100 px-5 py-3 rounded-3xl max-w-2xl">
-                    <p className="text-sm text-gray-600">Bot:</p>
+                    <p className="text-sm text-gray-600">Бот:</p>
                     <p className="text-gray-900">{msg.responseText}</p>
                   </div>
                 </div>
@@ -60,7 +60,7 @@ export const MessageHistory = ({ messages, loading }: MessageHistoryProps) => {
         ) : (
           <div className="text-center py-8">
             <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No messages yet</p>
+            <p className="text-gray-500">Сообщений пока нет</p>
           </div>
         )}
       </CardBody>

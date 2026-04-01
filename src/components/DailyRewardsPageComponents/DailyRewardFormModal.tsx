@@ -6,7 +6,6 @@ import {
   ModalFooter,
   Button,
   Input,
-  Textarea,
   Select,
   SelectItem,
 } from '@heroui/react';
@@ -17,7 +16,6 @@ interface DailyRewardFormData {
   reward: string;
   secondReward: string;
   rewardCaseId: string;
-  description: string;
 }
 
 interface DailyRewardFormModalProps {
@@ -59,13 +57,13 @@ export const DailyRewardFormModal = ({
       <ModalContent>
         <ModalHeader>
           <h3 className="text-xl font-semibold">
-            {isEditing ? 'Edit Daily Reward' : 'Create New Daily Reward'}
+            {isEditing ? 'Редактировать ежедневную награду' : 'Создать ежедневную награду'}
           </h3>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-4">
             <Select
-              label="Day"
+              label="День"
               selectedKeys={selectedDayKeys}
               onSelectionChange={(keys) => {
                 const selectedDay = Array.from(keys)[0] as string;
@@ -73,51 +71,51 @@ export const DailyRewardFormModal = ({
               }}
               isDisabled={isEditing}
               isRequired
-              placeholder="Select day (1-7)"
+              placeholder="Выберите день (1-7)"
             >
               {days.map((day) => (
                 <SelectItem key={day.toString()}>
-                  Day {day}
+                  День {day}
                 </SelectItem>
               ))}
             </Select>
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Energy Reward"
+                label="Награда энергией"
                 type="number"
                 value={formData.reward}
                 onChange={(e) => handleInputChange('reward', e.target.value)}
-                placeholder="Enter energy amount (>=0)"
+                placeholder="Введите количество энергии (>=0)"
                 min="0"
               />
               <Input
-                label="Token Reward"
+                label="Награда токенами"
                 type="number"
                 value={formData.secondReward}
                 onChange={(e) => handleInputChange('secondReward', e.target.value)}
-                placeholder="Enter token amount (>=0)"
+                placeholder="Введите количество токенов (>=0)"
                 min="0"
               />
             </div>
 
             <Select
-              label="Case reward (optional)"
+              label="Награда кейсом (необязательно)"
               selectedKeys={selectedCaseKeys}
               onSelectionChange={(keys) => {
                 const selectedKey = Array.from(keys)[0] as string | undefined;
                 handleInputChange('rewardCaseId', selectedKey === '__none__' ? '' : (selectedKey || ''));
               }}
-              placeholder="Select case"
+              placeholder="Выберите кейс"
             >
               {cases.length === 0 ? (
                 <SelectItem key="__none__">
-                  No cases loaded
+                  Кейсы не загружены
                 </SelectItem>
               ) : (
                 <>
-                  <SelectItem key="__none__" textValue="None">
-                    None
+                  <SelectItem key="__none__" textValue="Нет">
+                    Нет
                   </SelectItem>
                   {cases.map((c) => (
                     <SelectItem key={String(c.id)} textValue={`${c.name} (#${c.id})`}>
@@ -128,19 +126,11 @@ export const DailyRewardFormModal = ({
               )}
             </Select>
 
-            <Textarea
-              label="Description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Enter reward description"
-              minRows={3}
-              isRequired
-            />
           </div>
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>
-            Cancel
+            Отмена
           </Button>
           <Button
             color="primary"
@@ -151,11 +141,10 @@ export const DailyRewardFormModal = ({
                 Number(formData.reward || '0') <= 0 &&
                 Number(formData.secondReward || '0') <= 0 &&
                 !formData.rewardCaseId
-              ) ||
-              !formData.description
+              )
             }
           >
-            {isEditing ? 'Update' : 'Create'}
+            {isEditing ? 'Сохранить' : 'Создать'}
           </Button>
         </ModalFooter>
       </ModalContent>

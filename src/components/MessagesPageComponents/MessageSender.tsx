@@ -23,12 +23,12 @@ export const MessageSender = ({
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-lg font-semibold">Send Message</h3>
+        <h3 className="text-lg font-semibold">Отправка сообщения</h3>
       </CardHeader>
       <CardBody>
         <div className="space-y-4">
           <Textarea
-            placeholder="Type your message here..."
+            placeholder="Введите сообщение..."
             value={newMessage}
             onChange={(e) => onMessageChange(e.target.value)}
             minRows={3}
@@ -42,7 +42,7 @@ export const MessageSender = ({
               disabled={!newMessage.trim() || loading}
               isLoading={loading}
             >
-              Send Message
+              Отправить сообщение
             </Button>
           </div>
         </div>

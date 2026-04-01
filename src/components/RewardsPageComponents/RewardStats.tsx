@@ -1,47 +1,38 @@
-import { Gift, Star } from 'lucide-react';
+import { Gift, Gem } from 'lucide-react';
 import { StatsCard } from '@/components/ui/StatsCard';
 
 interface RewardStatsProps {
   totalRewards: number;
   activeRewards: number;
   totalPurchases: number;
-  avgPrice: number;
 }
 
 export const RewardStats = ({ 
   totalRewards, 
   activeRewards, 
   totalPurchases, 
-  avgPrice 
 }: RewardStatsProps) => {
   const statsCards = [
     {
-      title: 'Total Rewards',
+      title: 'Всего наград',
       value: totalRewards,
       icon: Gift,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Active Rewards',
+      title: 'Активные награды',
       value: activeRewards,
       icon: Gift,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Total Purchases',
+      title: 'Всего покупок',
       value: totalPurchases,
-      icon: Star,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
-    },
-    {
-      title: 'Avg Price',
-      value: avgPrice,
-      icon: Star,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
+      icon: Gem,
+      color: 'text-amber-500',
+      bgColor: 'bg-amber-100',
     },
   ];
 

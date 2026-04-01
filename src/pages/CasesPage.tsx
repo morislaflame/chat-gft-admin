@@ -122,7 +122,7 @@ const CasesPage = observer(() => {
       await caseStore.fetchAllCasesAdmin();
       onClose();
     } catch (error) {
-      console.error("Failed to save case", error);
+      console.error("Не удалось сохранить кейс", error);
     }
   };
 
@@ -131,7 +131,7 @@ const CasesPage = observer(() => {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Cases"
+        title="Кейсы"
         description="Управление кейсами и их содержимым"
         actionButton={{
           label: "Создать кейс",

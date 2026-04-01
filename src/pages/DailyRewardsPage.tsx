@@ -13,7 +13,6 @@ type DailyRewardUpdatePayload = {
   rewardCaseId?: number | null;
   secondReward?: number;
   secondRewardType?: 'energy' | 'tokens' | null;
-  description?: string;
 };
 
 type DailyRewardCreatePayload = {
@@ -29,15 +28,13 @@ type DailyRewardCreatePayload = {
 const DailyRewardsPage = observer(() => {
   const { dailyReward, caseStore } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selectedReward, setSelectedReward] = useState<DailyReward | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     day: '',
     reward: '',
     secondReward: '',
-    rewardCaseId: '',
-    description: ''
+    rewardCaseId: ''
   });
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
 
   useEffect(() => {
     dailyReward.fetchAllDailyRewards();
@@ -45,84 +42,67 @@ const DailyRewardsPage = observer(() => {
   }, [dailyReward, caseStore]);
 
   const handleCreateReward = () => {
-    setSelectedReward(null);
-    setIsEditing(false);
     setFormData({
       day: '',
       reward: '',
       secondReward: '',
-      rewardCaseId: '',
-      description: ''
-    });
-    onOpen();
-  };
-
-  const handleEditReward = (reward: DailyReward) => {
-    setSelectedReward(reward);
-    setIsEditing(true);
-    setFormData({
-      day: reward.day.toString(),
-      reward: reward.reward.toString(),
-      secondReward: (reward.secondReward ?? 0).toString(),
-      rewardCaseId: reward.rewardCaseId ? String(reward.rewardCaseId) : '',
-      description: reward.description
+      rewardCaseId: ''
     });
     onOpen();
   };
 
   const handleSaveReward = async () => {
     try {
-      if (isEditing && selectedReward) {
-        await dailyReward.updateDailyRewardByDay(
-          selectedReward.day,
-          {
-            reward: parseInt(formData.reward || '0'),
-            rewardType: 'energy',
-            rewardCaseId: formData.rewardCaseId ? Number(formData.rewardCaseId) : null,
-            secondReward: parseInt(formData.secondReward || '0'),
-            secondRewardType: 'tokens',
-            description: formData.description
-          } as DailyRewardUpdatePayload
-        );
-      } else {
-        await dailyReward.createDailyReward({
-          day: parseInt(formData.day),
-          reward: parseInt(formData.reward || '0'),
-          rewardType: 'energy',
-          rewardCaseId: formData.rewardCaseId ? Number(formData.rewardCaseId) : null,
-          secondReward: parseInt(formData.secondReward || '0'),
-          secondRewardType: 'tokens',
-          description: formData.description
-        } as DailyRewardCreatePayload);
-      }
+      await dailyReward.createDailyReward({
+        day: parseInt(formData.day),
+        reward: parseInt(formData.reward || '0'),
+        rewardType: 'energy',
+        rewardCaseId: formData.rewardCaseId ? Number(formData.rewardCaseId) : null,
+        secondReward: parseInt(formData.secondReward || '0'),
+        secondRewardType: 'tokens',
+        description: ''
+      } as DailyRewardCreatePayload);
 
       onClose();
       dailyReward.fetchAllDailyRewards();
     } catch (error) {
-      console.error('Failed to save daily reward:', error);
+      console.error('Не удалось сохранить ежедневную награду:', error);
     }
   };
 
+  const handleInlineUpdateReward = async (reward: DailyReward, patch: DailyRewardUpdatePayload) => {
+    await dailyReward.updateDailyRewardByDay(reward.day, {
+      rewardType: 'energy',
+      secondRewardType: 'tokens',
+      ...patch
+    });
+  };
+
+  const handleInlineUpdateError = (message: string) => {
+    setToast({ message, type: 'error' });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleDeleteReward = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this daily reward?')) {
+    if (window.confirm('Вы уверены, что хотите удалить эту ежедневную награду?')) {
       try {
         await dailyReward.deleteDailyReward(id);
         dailyReward.fetchAllDailyRewards();
       } catch (error) {
-        console.error('Failed to delete daily reward:', error);
+        console.error('Не удалось удалить ежедневную награду:', error);
       }
     }
   };
 
   const handleResetRewards = async () => {
-    if (window.confirm('Are you sure you want to reset all daily rewards for all users? This will make rewards available again for all users.')) {
+    if (window.confirm('Вы уверены, что хотите сбросить ежедневные награды для всех пользователей? Награды снова станут доступными всем.')) {
       try {
         await dailyReward.resetDailyRewards();
-        alert('Daily rewards reset successfully!');
+        alert('Ежедневные награды успешно сброшены!');
         dailyReward.fetchAllDailyRewards();
       } catch (error) {
-        console.error('Failed to reset daily rewards:', error);
-        alert('Failed to reset daily rewards');
+        console.error('Не удалось сбросить ежедневные награды:', error);
+        alert('Не удалось сбросить ежедневные награды');
       }
     }
   };
@@ -132,16 +112,24 @@ const DailyRewardsPage = observer(() => {
 
   return (
     <div className="p-6 space-y-6">
+      {toast && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className={`rounded-lg px-4 py-3 text-sm shadow-lg border ${toast.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : 'bg-green-500/90 border-green-400 text-white'}`}>
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       <PageHeader
-        title="Daily Rewards"
-        description="Manage daily rewards configuration (7-day cycle)"
+        title="Ежедневные награды"
+        description="Управление настройкой ежедневных наград (цикл 7 дней)"
         actionButton={{
-          label: "Create Reward",
+          label: "Создать награду",
           icon: Plus,
           onClick: handleCreateReward
         }}
         secondaryActionButton={{
-          label: "Reset All Rewards",
+          label: "Сбросить все награды",
           icon: RotateCcw,
           onClick: handleResetRewards,
           color: "warning"
@@ -156,14 +144,16 @@ const DailyRewardsPage = observer(() => {
       <DailyRewardsTable
         rewards={dailyReward.dailyRewards}
         loading={dailyReward.loading}
-        onEditReward={handleEditReward}
         onDeleteReward={handleDeleteReward}
+        onInlineUpdateReward={handleInlineUpdateReward}
+        onInlineUpdateError={handleInlineUpdateError}
+        cases={caseStore.cases}
       />
 
       <DailyRewardFormModal
         isOpen={isOpen}
         onClose={onClose}
-        isEditing={isEditing}
+        isEditing={false}
         formData={formData}
         onFormDataChange={setFormData}
         onSave={handleSaveReward}

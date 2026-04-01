@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
-import { TasksTable, MyTasksList, TaskFormModal } from '@/components/QuestsPageComponents';
+import { TasksTable, TaskFormModal } from '@/components/QuestsPageComponents';
 
 interface Task {
   id: number;
@@ -51,7 +51,6 @@ const QuestsPage = observer(() => {
 
   useEffect(() => {
     quest.fetchTasks();
-    quest.fetchMyTasks();
   }, [quest]);
 
   const handleCreateTask = () => {
@@ -163,17 +162,17 @@ const QuestsPage = observer(() => {
       onClose();
       quest.fetchTasks();
     } catch (error) {
-      console.error('Failed to save task:', error);
+      console.error('Не удалось сохранить задачу:', error);
     }
   };
 
   const handleDeleteTask = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
+    if (window.confirm('Вы уверены, что хотите удалить эту задачу?')) {
       try {
         await quest.deleteTask(id);
         quest.fetchTasks();
       } catch (error) {
-        console.error('Failed to delete task:', error);
+        console.error('Не удалось удалить задачу:', error);
       }
     }
   };
@@ -182,10 +181,10 @@ const QuestsPage = observer(() => {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Quests"
-        description="Manage quests and tasks"
+        title="Квесты"
+        description="Управление квестами и задачами"
         actionButton={{
-          label: "Create Task",
+          label: "Создать задачу",
           icon: Plus,
           onClick: handleCreateTask
         }}
@@ -197,8 +196,6 @@ const QuestsPage = observer(() => {
         onEditTask={handleEditTask}
         onDeleteTask={handleDeleteTask}
       />
-
-      <MyTasksList myTasks={quest.myTasks} />
 
       <TaskFormModal
         isOpen={isOpen}

@@ -1,10 +1,9 @@
-import { 
-  Chip,
-  Button
+import {
+  Button,
+  Card,
+  CardBody
 } from '@heroui/react';
-import { Edit, Trash2, Package, Zap, Star } from 'lucide-react';
-import { DataTable } from '@/components/ui/DataTable';
-import { formatDate } from '@/utils/formatters';
+import { Edit, Trash2, Zap, Star } from 'lucide-react';
 import { type Product } from '@/types/product';
 
 interface ProductsTableProps {
@@ -20,94 +19,73 @@ export const ProductsTable = ({
   onEditProduct, 
   onDeleteProduct 
 }: ProductsTableProps) => {
-  const columns = [
-    { key: 'name', label: 'NAME' },
-    { key: 'energy', label: 'ENERGY' },
-    { key: 'price', label: 'PRICE' },
-    { key: 'valueRatio', label: 'VALUE RATIO' },
-    { key: 'created', label: 'CREATED' },
-    { key: 'actions', label: 'ACTIONS' },
-  ];
+  if (loading) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
 
-  const renderCell = (product: Product, columnKey: string) => {
-    switch (columnKey) {
-      case 'name':
-        return (
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Package className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-medium">{product.name}</p>
-              <p className="text-sm text-gray-500">ID: {product.id}</p>
-            </div>
-          </div>
-        );
-      case 'energy':
-        return (
-          <div className="flex items-center space-x-2">
-            <Zap className="w-4 h-4 text-yellow-500" />
-            <span className="font-semibold">{product.energy}</span>
-          </div>
-        );
-      case 'price':
-        return (
-          <div className="flex items-center space-x-2">
-            <Star className="w-4 h-4 text-purple-500" />
-            <span className="font-semibold">{product.starsPrice}</span>
-          </div>
-        );
-      case 'valueRatio':
-        return (
-          <Chip 
-            color={product.energy / product.starsPrice > 1 ? 'success' : 'warning'} 
-            variant="flat"
-          >
-            {(product.energy / product.starsPrice).toFixed(2)} energy/star
-          </Chip>
-        );
-      case 'created':
-        return (
-          <span className="text-sm text-gray-600">
-            {formatDate(product.createdAt)}
-          </span>
-        );
-      case 'actions':
-        return (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              color="primary"
-              variant="flat"
-              startContent={<Edit size={14} />}
-              onClick={() => onEditProduct(product)}
-            >
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              color="danger"
-              variant="flat"
-              startContent={<Trash2 size={14} />}
-              onClick={() => onDeleteProduct(product.id)}
-            >
-              Delete
-            </Button>
-          </div>
-        );
-      default:
-        return '-';
-    }
-  };
+  if (products.length === 0) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="text-center py-8 text-gray-500">Продукты не найдены</div>
+        </CardBody>
+      </Card>
+    );
+  }
 
   return (
-    <DataTable
-      title={`All Products (${products.length})`}
-      columns={columns}
-      data={products}
-      loading={loading}
-      renderCell={renderCell}
-      emptyMessage="No products found"
-    />
+    <div className="space-y-4">
+      <div className="text-sm text-gray-400">Всего продуктов: {products.length}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {products.map((product) => {
+          return (
+            <Card key={product.id} className="border border-zinc-700/70 bg-zinc-900/70">
+              <CardBody className="space-y-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex gap-4">
+                      <div className="flex flex-col gap-1">
+                        <p className="font-semibold text-white text-2xl truncate">{product.name}</p>
+                        {/* <p className="text-xs text-zinc-500">ID: {product.id}</p> */}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4  text-yellow-500" />
+                        <span className="font-semibold text-white">{product.starsPrice}</span>
+                      </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-purple-500" />
+                    <span className="font-semibold text-white text-xl ">{product.energy}</span>
+                  </div>
+                  
+                </div>
+
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <Button size="sm" color="primary" variant="flat" startContent={<Edit size={14} />} onClick={() => onEditProduct(product)}>
+                    Изменить
+                  </Button>
+                  <Button size="sm" color="danger" variant="flat" startContent={<Trash2 size={14} />} onClick={() => onDeleteProduct(product.id)}>
+                    Удалить
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
   );
 };

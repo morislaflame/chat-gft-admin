@@ -12,21 +12,21 @@ export const AgentStats = ({
 }: AgentStatsProps) => {
   const statsCards = [
     {
-      title: 'Total Agents',
+      title: 'Всего агентов',
       value: totalAgents,
       icon: Bot,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Avg Prompt Length',
-      value: `${Math.round(avgPromptLength)} chars`,
+      title: 'Средняя длина промпта',
+      value: `${Math.round(avgPromptLength)} симв.`,
       icon: MessageSquare,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
     },
     {
-      title: 'Active Agents',
+      title: 'Активные агенты',
       value: totalAgents,
       icon: Bot,
       color: 'text-green-600',
