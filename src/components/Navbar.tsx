@@ -4,7 +4,6 @@ import { useContext } from 'react';
 import {
   Users,
   Target,
-  CreditCard,
   Package,
   Gift,
   Box,
@@ -30,7 +29,6 @@ const Navbar = observer(() => {
     { key: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/' },
     { key: 'users', label: 'Users', icon: Users, path: '/users' },
     { key: 'quests', label: 'Quests', icon: Target, path: '/quests' },
-    { key: 'payments', label: 'Payments', icon: CreditCard, path: '/payments' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
     { key: 'rewards', label: 'Rewards', icon: Gift, path: '/rewards' },
     { key: 'cases', label: 'Cases', icon: Box, path: '/cases' },

@@ -6,11 +6,17 @@ import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
 import { ProductStats, ProductsTable, ProductFormModal } from '@/components/ProductsPageComponents';
 import { type Product } from '@/types/product';
+import { type Order } from '@/types/order';
+import { PaymentStats, InvoiceGenerator, OrdersTable, OrderDetailsModal } from '@/components/PaymentsPageComponents';
 
 const ProductsPage = observer(() => {
-  const { product } = useContext(Context) as IStoreContext;
+  const { product, payment } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isOrderOpen, onOpen: onOrderOpen, onClose: onOrderClose } = useDisclosure();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [invoiceProductId, setInvoiceProductId] = useState<string>('');
+  const [invoiceLink, setInvoiceLink] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -22,7 +28,8 @@ const ProductsPage = observer(() => {
 
   useEffect(() => {
     product.fetchAllProducts();
-  }, [product]);
+    payment.fetchAllOrders();
+  }, [product, payment]);
 
   const handleCreateProduct = () => {
     setSelectedProduct(null);
@@ -76,17 +83,17 @@ const ProductsPage = observer(() => {
       onClose();
       product.fetchAllProducts();
     } catch (error) {
-      console.error('Failed to save product:', error);
+      console.error('Не удалось сохранить продукт:', error);
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm('Вы уверены, что хотите удалить этот продукт?')) {
       try {
         await product.deleteProduct(id);
         product.fetchAllProducts();
       } catch (error) {
-        console.error('Failed to delete product:', error);
+        console.error('Не удалось удалить продукт:', error);
       }
     }
   };
@@ -96,14 +103,34 @@ const ProductsPage = observer(() => {
   const totalEnergy = product.products.reduce((sum, prod) => sum + prod.energy, 0);
   const totalStars = product.products.reduce((sum, prod) => sum + prod.starsPrice, 0);
   const avgPrice = totalProducts > 0 ? Math.round(totalStars / totalProducts) : 0;
+  const totalRevenue = payment.orders
+    .filter((order) => order.status === 'paid' || order.status === 'completed')
+    .reduce((sum, order) => sum + order.price, 0);
+  const totalOrders = payment.orders.length;
+  const completedOrders = payment.orders.filter((order) => order.status === 'paid' || order.status === 'completed').length;
+
+  const handleGenerateInvoice = async () => {
+    if (!invoiceProductId) return;
+    try {
+      const result = await payment.generateInvoice(parseInt(invoiceProductId, 10));
+      setInvoiceLink(result.invoiceLink);
+    } catch (error) {
+      console.error('Не удалось сгенерировать инвойс:', error);
+    }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    onOrderOpen();
+  };
 
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Products"
-        description="Manage energy packages and pricing"
+        title="Продукты"
+        description="Управление пакетами энергии и ценами"
         actionButton={{
-          label: "Create Product",
+          label: "Создать продукт",
           icon: Plus,
           onClick: handleCreateProduct
         }}
@@ -131,6 +158,41 @@ const ProductsPage = observer(() => {
         onFormDataChange={setFormData}
         onSave={handleSaveProduct}
       />
+
+      <div className="pt-10 mt-8 border-t border-zinc-800/80 space-y-6">
+        <PageHeader
+          title="Платежи"
+          description="Заказы и инвойсы по продуктам"
+        />
+
+        <PaymentStats
+          totalOrders={totalOrders}
+          completedOrders={completedOrders}
+          totalRevenue={totalRevenue}
+          successRate={totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0}
+        />
+
+        <InvoiceGenerator
+          products={product.products}
+          selectedProduct={invoiceProductId}
+          onProductChange={setInvoiceProductId}
+          onGenerateInvoice={handleGenerateInvoice}
+          invoiceLink={invoiceLink}
+          loading={payment.loading}
+        />
+
+        <OrdersTable
+          orders={payment.orders}
+          loading={payment.loading}
+          onViewOrder={handleViewOrder}
+        />
+
+        <OrderDetailsModal
+          isOpen={isOrderOpen}
+          onClose={onOrderClose}
+          order={selectedOrder}
+        />
+      </div>
     </div>
   );
 });

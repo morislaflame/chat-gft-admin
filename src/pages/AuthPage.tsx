@@ -25,7 +25,7 @@ const AuthPage = observer(() => {
     setError('');
 
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError('Пожалуйста, заполните все поля');
       return;
     }
 
@@ -37,10 +37,10 @@ const AuthPage = observer(() => {
         navigate(DASHBOARD_ROUTE);
         window.location.reload();
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || 'Не удалось войти');
       }
     } catch {
-      setError('An unexpected error occurred');
+      setError('Произошла непредвиденная ошибка');
     }
   };
 
@@ -53,7 +53,7 @@ const AuthPage = observer(() => {
               ChatGFT Admin
             </h1>
             <p className="text-gray-600">
-              Welcome back! Please sign in
+              С возвращением! Войдите в аккаунт
             </p>
           </div>
         </CardHeader>
@@ -65,7 +65,7 @@ const AuthPage = observer(() => {
               <Input
                 type="email"
                 label="Email"
-                placeholder="Enter your email"
+                placeholder="Введите email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 startContent={<Mail className="w-4 h-4 text-gray-400" />}
@@ -78,8 +78,8 @@ const AuthPage = observer(() => {
             <div>
               <Input
                 type={showPassword ? "text" : "password"}
-                label="Password"
-                placeholder="Enter your password"
+                label="Пароль"
+                placeholder="Введите пароль"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 startContent={<Lock className="w-4 h-4 text-gray-400" />}
@@ -118,7 +118,7 @@ const AuthPage = observer(() => {
               isLoading={user.loading}
               startContent={<LogIn className="w-4 h-4" />}
             >
-              Sign In
+              Войти
             </Button>
           </form>
         </CardBody>

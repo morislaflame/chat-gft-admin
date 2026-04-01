@@ -1,94 +1,120 @@
-import { Button } from "@heroui/react";
-import { Edit, Trash2, Footprints } from "lucide-react";
-import { DataTable } from "@/components/ui/DataTable";
-import { formatDate } from "@/utils/formatters";
+import { Button, Card, CardBody, Input } from "@heroui/react";
+import { Trash2, Gem } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { MissionStepReward } from "@/http/missionStepRewardAPI";
 
 interface MissionStepRewardsTableProps {
   rewards: MissionStepReward[];
   loading: boolean;
-  onEdit: (reward: MissionStepReward) => void;
   onDelete: (id: number) => void;
+  onInlineUpdateReward: (reward: MissionStepReward, patch: { rewardGems?: number }) => Promise<void>;
+  onInlineUpdateError: (message: string) => void;
 }
 
 export const MissionStepRewardsTable = ({
   rewards,
   loading,
-  onEdit,
   onDelete,
+  onInlineUpdateReward,
+  onInlineUpdateError,
 }: MissionStepRewardsTableProps) => {
-  const columns = [
-    { key: "mission", label: "MISSION" },
-    { key: "step", label: "STEP" },
-    { key: "gems", label: "GEMS" },
-    { key: "created", label: "CREATED" },
-    { key: "actions", label: "ACTIONS" },
-  ];
+  const [drafts, setDrafts] = useState<Record<number, { rewardGems: string }>>({});
+  const [savingField, setSavingField] = useState<Record<string, boolean>>({});
 
-  const renderCell = (reward: MissionStepReward, columnKey: string) => {
-    switch (columnKey) {
-      case "mission":
-        return (
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
-              <Footprints className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-            </div>
-            <span className="font-medium">Mission {reward.missionOrderIndex}</span>
-          </div>
-        );
-      case "step":
-        return <span className="font-semibold">Step {reward.stepNumber}</span>;
-      case "gems":
-        return (
-          <div>
-            <span className="font-semibold text-lg text-amber-600 dark:text-amber-400">
-              +{reward.rewardGems}
-            </span>
-            <span className="text-sm text-gray-500 ml-1">gems</span>
-          </div>
-        );
-      case "created":
-        return (
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            {formatDate(reward.createdAt)}
-          </span>
-        );
-      case "actions":
-        return (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              color="primary"
-              variant="flat"
-              startContent={<Edit size={14} />}
-              onPress={() => onEdit(reward)}
-            >
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              color="danger"
-              variant="flat"
-              startContent={<Trash2 size={14} />}
-              onPress={() => onDelete(reward.id)}
-            >
-              Delete
-            </Button>
-          </div>
-        );
-      default:
-        return "—";
+  useEffect(() => {
+    const next: Record<number, { rewardGems: string }> = {};
+    for (const reward of rewards) {
+      next[reward.id] = { rewardGems: String(reward.rewardGems ?? 0) };
+    }
+    setDrafts(next);
+  }, [rewards]);
+
+  const saveRewardGemsOnBlur = async (reward: MissionStepReward) => {
+    const key = `${reward.id}-rewardGems`;
+    const current = drafts[reward.id];
+    if (!current) return;
+
+    const parsedValue = Number.parseInt(current.rewardGems || "0", 10);
+    if (parsedValue === reward.rewardGems) return;
+
+    try {
+      setSavingField((prev) => ({ ...prev, [key]: true }));
+      await onInlineUpdateReward(reward, { rewardGems: parsedValue });
+    } catch (error: unknown) {
+      setDrafts((prev) => ({ ...prev, [reward.id]: { rewardGems: String(reward.rewardGems ?? 0) } }));
+      const maybeResponse = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      onInlineUpdateError(maybeResponse || "Не удалось сохранить кристаллы");
+    } finally {
+      setSavingField((prev) => ({ ...prev, [key]: false }));
     }
   };
 
+  if (loading && rewards.length === 0) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  if (rewards.length === 0) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="text-center py-8 text-gray-500">
+            Наград за шаги пока нет. Добавьте правила выдачи кристаллов за правильные шаги в миссиях 1 и 2.
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
   return (
-    <DataTable
-      title="Step rewards"
-      columns={columns}
-      data={rewards}
-      loading={loading}
-      renderCell={renderCell}
-      emptyMessage="No step rewards. Add rules to give gems for correct steps in missions 1 and 2."
-    />
+    <div className="space-y-4">
+      <div className="text-sm text-gray-400">Награды за шаги ({rewards.length})</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {rewards.map((reward) => (
+          <Card key={reward.id} className="border border-zinc-700/70 bg-zinc-900/70">
+            <CardBody className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold text-white text-xl">Миссия {reward.missionOrderIndex}</p>
+                <p className="text-zinc-300">Шаг {reward.stepNumber}</p>
+              </div>
+
+              <div className="flex flex-row gap-2 items-center">
+                <Gem className="w-5 h-5 text-amber-500" />
+                <Input
+                  type="number"
+                  min={0}
+                  size="md"
+                  value={drafts[reward.id]?.rewardGems ?? String(reward.rewardGems)}
+                  onChange={(e) =>
+                    setDrafts((prev) => ({ ...prev, [reward.id]: { rewardGems: e.target.value } }))
+                  }
+                  onBlur={() => saveRewardGemsOnBlur(reward)}
+                  isDisabled={savingField[`${reward.id}-rewardGems`]}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <Button
+                  size="sm"
+                  color="danger"
+                  variant="flat"
+                  startContent={<Trash2 size={14} />}
+                  onPress={() => onDelete(reward.id)}
+                >
+                  Удалить
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };

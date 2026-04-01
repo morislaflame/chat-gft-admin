@@ -6,11 +6,11 @@ import DashboardPage from '@/pages/DashboardPage';
 import UsersPage from '@/pages/UsersPage';
 import MessagesPage from '@/pages/MessagesPage';
 import QuestsPage from '@/pages/QuestsPage';
-import PaymentsPage from '@/pages/PaymentsPage';
 import ProductsPage from '@/pages/ProductsPage';
 import RewardsPage from '@/pages/RewardsPage';
 import CasesPage from '@/pages/CasesPage';
 import AgentsPage from '@/pages/AgentsPage';
+import AgentEditorPage from '@/pages/AgentEditorPage';
 import ArtifactsPage from '@/pages/ArtifactsPage';
 import DailyRewardsPage from '@/pages/DailyRewardsPage';
 import WithdrawalsPage from '@/pages/WithdrawalsPage';
@@ -24,11 +24,11 @@ import {
   USERS_ROUTE,
   MESSAGES_ROUTE,
   QUESTS_ROUTE,
-  PAYMENTS_ROUTE,
   PRODUCTS_ROUTE,
   REWARDS_ROUTE,
   CASES_ROUTE,
   AGENTS_ROUTE,
+  AGENT_EDITOR_ROUTE,
   ARTIFACTS_ROUTE,
   DAILY_REWARDS_ROUTE,
   WITHDRAWALS_ROUTE,
@@ -53,11 +53,11 @@ export const privateRoutes: Route[] = [
   { path: USER_DETAILS_ROUTE, Component: UserDetailsPage },
   { path: MESSAGES_ROUTE, Component: MessagesPage },
   { path: QUESTS_ROUTE, Component: QuestsPage },
-  { path: PAYMENTS_ROUTE, Component: PaymentsPage },
   { path: PRODUCTS_ROUTE, Component: ProductsPage },
   { path: REWARDS_ROUTE, Component: RewardsPage },
   { path: CASES_ROUTE, Component: CasesPage },
   { path: AGENTS_ROUTE, Component: AgentsPage },
+  { path: AGENT_EDITOR_ROUTE, Component: AgentEditorPage },
   { path: ARTIFACTS_ROUTE, Component: ArtifactsPage },
   { path: DAILY_REWARDS_ROUTE, Component: DailyRewardsPage },
   { path: WITHDRAWALS_ROUTE, Component: WithdrawalsPage },

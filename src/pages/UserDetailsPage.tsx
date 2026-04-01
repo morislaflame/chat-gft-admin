@@ -91,9 +91,9 @@ const UserDetailsPage = observer(() => {
         setSelectedHistoryName(details.user.selectedHistoryName);
       }
     } catch (err: unknown) {
-      console.error('Failed to load user details:', err);
+      console.error('Не удалось загрузить данные пользователя:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to load user details');
+      setError(error.response?.data?.message || 'Не удалось загрузить данные пользователя');
     } finally {
       setLoading(false);
     }
@@ -114,9 +114,9 @@ const UserDetailsPage = observer(() => {
       getUserPurchasedRewards(userId)
         .then((data) => setPurchasedRewards(data.purchases || []))
         .catch((err: unknown) => {
-          console.error('Failed to load purchased rewards:', err);
+          console.error('Не удалось загрузить купленные награды:', err);
           const errorObj = err as { response?: { data?: { message?: string } } };
-          setPurchasedRewardsError(errorObj.response?.data?.message || 'Failed to load purchased rewards');
+          setPurchasedRewardsError(errorObj.response?.data?.message || 'Не удалось загрузить купленные награды');
           setPurchasedRewards([]);
         })
         .finally(() => setPurchasedRewardsLoading(false));
@@ -170,13 +170,13 @@ const UserDetailsPage = observer(() => {
       const agents = await getAllAgents();
       setHistories(agents);
     } catch (err) {
-      console.error('Failed to load histories:', err);
+      console.error('Не удалось загрузить истории:', err);
     }
   };
 
   const handleLoadChatHistory = async () => {
     if (!userId || !selectedHistoryName) {
-      setError('Please select a history');
+      setError('Пожалуйста, выберите историю');
       return;
     }
 
@@ -186,9 +186,9 @@ const UserDetailsPage = observer(() => {
       const history = await getUserChatHistory(parseInt(userId), selectedHistoryName);
       setChatHistory(history);
     } catch (err: unknown) {
-      console.error('Failed to load chat history:', err);
+      console.error('Не удалось загрузить историю чата:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to load chat history');
+      setError(error.response?.data?.message || 'Не удалось загрузить историю чата');
       setChatHistory(null);
     } finally {
       setLoadingHistory(false);
@@ -197,11 +197,11 @@ const UserDetailsPage = observer(() => {
 
   const handleResetHistory = async () => {
     if (!userId || !selectedHistoryName) {
-      setError('Please select a history');
+      setError('Пожалуйста, выберите историю');
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to reset chat history for history "${selectedHistoryName}"? This action cannot be undone.`)) {
+    if (!window.confirm(`Вы уверены, что хотите сбросить историю чата для "${selectedHistoryName}"? Это действие нельзя отменить.`)) {
       return;
     }
 
@@ -209,15 +209,15 @@ const UserDetailsPage = observer(() => {
     setError(null);
     try {
       await resetUserHistory(parseInt(userId), selectedHistoryName);
-      alert('History reset successfully!');
+      alert('История успешно сброшена!');
       if (chatHistory) {
         await handleLoadChatHistory();
       }
       await loadUserDetails();
     } catch (err: unknown) {
-      console.error('Failed to reset history:', err);
+      console.error('Не удалось сбросить историю:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to reset history');
+      setError(error.response?.data?.message || 'Не удалось сбросить историю');
     } finally {
       setLoading(false);
     }
@@ -227,7 +227,7 @@ const UserDetailsPage = observer(() => {
     if (!userId) return;
     const nextBalance = parseInt(balanceAmount);
     if (isNaN(nextBalance) || nextBalance < 0) {
-      setError('Please enter a valid number (>= 0)');
+      setError('Введите корректное число (>= 0)');
       return;
     }
 
@@ -235,14 +235,14 @@ const UserDetailsPage = observer(() => {
     setError(null);
     try {
       await setUserBalance(parseInt(userId), nextBalance);
-      alert(`Balance set successfully!`);
+      alert(`Баланс успешно установлен!`);
       onBalanceModalClose();
       setBalanceAmount('');
       await loadUserDetails();
     } catch (err: unknown) {
-      console.error('Failed to update balance:', err);
+      console.error('Не удалось обновить баланс:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to update balance');
+      setError(error.response?.data?.message || 'Не удалось обновить баланс');
     } finally {
       setLoading(false);
     }
@@ -252,7 +252,7 @@ const UserDetailsPage = observer(() => {
     if (!userId) return;
     const nextEnergy = parseInt(energyAmount);
     if (isNaN(nextEnergy) || nextEnergy < 0) {
-      setError('Please enter a valid number (>= 0)');
+      setError('Введите корректное число (>= 0)');
       return;
     }
 
@@ -260,14 +260,14 @@ const UserDetailsPage = observer(() => {
     setError(null);
     try {
       await setUserEnergy(parseInt(userId), nextEnergy);
-      alert(`Energy set successfully!`);
+      alert(`Энергия успешно установлена!`);
       onEnergyModalClose();
       setEnergyAmount('');
       await loadUserDetails();
     } catch (err: unknown) {
-      console.error('Failed to update energy:', err);
+      console.error('Не удалось обновить энергию:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to update energy');
+      setError(error.response?.data?.message || 'Не удалось обновить энергию');
     } finally {
       setLoading(false);
     }
@@ -276,7 +276,7 @@ const UserDetailsPage = observer(() => {
   const handleDeleteReward = async (userRewardId: number, rewardName: string) => {
     if (!userId) return;
 
-    if (!window.confirm(`Are you sure you want to delete reward "${rewardName}" from this user's purchases? This action cannot be undone.`)) {
+    if (!window.confirm(`Вы уверены, что хотите удалить награду "${rewardName}" из покупок этого пользователя? Это действие нельзя отменить.`)) {
       return;
     }
 
@@ -288,9 +288,9 @@ const UserDetailsPage = observer(() => {
       const data = await getUserPurchasedRewards(userId);
       setPurchasedRewards(data.purchases || []);
     } catch (err: unknown) {
-      console.error('Failed to delete reward:', err);
+      console.error('Не удалось удалить награду:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setPurchasedRewardsError(error.response?.data?.message || 'Failed to delete reward');
+      setPurchasedRewardsError(error.response?.data?.message || 'Не удалось удалить награду');
     } finally {
       setDeletingRewardId(null);
     }
@@ -299,7 +299,7 @@ const UserDetailsPage = observer(() => {
   const handleDeleteUser = async () => {
     if (!userId) return;
 
-    if (!window.confirm(`Are you sure you want to delete this user? This action cannot be undone and will delete all user data.`)) {
+    if (!window.confirm(`Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить, все его данные будут удалены.`)) {
       return;
     }
 
@@ -307,12 +307,12 @@ const UserDetailsPage = observer(() => {
     setError(null);
     try {
       await deleteUser(parseInt(userId));
-      alert('User deleted successfully!');
+      alert('Пользователь успешно удален!');
       navigate(USERS_ROUTE);
     } catch (err: unknown) {
-      console.error('Failed to delete user:', err);
+      console.error('Не удалось удалить пользователя:', err);
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to delete user');
+      setError(error.response?.data?.message || 'Не удалось удалить пользователя');
     } finally {
       setLoading(false);
     }
@@ -330,7 +330,7 @@ const UserDetailsPage = observer(() => {
     return (
       <div className="p-6">
         <div className="text-center py-8 text-red-500">
-          User not found
+          Пользователь не найден
         </div>
       </div>
     );
@@ -345,11 +345,11 @@ const UserDetailsPage = observer(() => {
             startContent={<ArrowLeft size={16} />}
             onPress={() => navigate(USERS_ROUTE)}
           >
-            Back
+            Назад
           </Button>
           <PageHeader
-            title={`User Details: ${userDetails.user.firstName} ${userDetails.user.lastName}`}
-            description={`ID: ${userDetails.user.id} | Telegram ID: ${userDetails.user.telegramId || 'N/A'}`}
+            title={`Профиль пользователя: ${userDetails.user.firstName} ${userDetails.user.lastName}`}
+            description={`ID: ${userDetails.user.id} | Telegram ID: ${userDetails.user.telegramId || 'Н/Д'}`}
           />
         </div>
         <Button
@@ -358,7 +358,7 @@ const UserDetailsPage = observer(() => {
           startContent={<Trash2 size={16} />}
           onPress={onDeleteModalOpen}
         >
-          Delete User
+          Удалить пользователя
         </Button>
       </div>
 
@@ -374,26 +374,26 @@ const UserDetailsPage = observer(() => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardBody>
-            <h3 className="font-semibold mb-4 text-3xl">User Information</h3>
+            <h3 className="font-semibold mb-4 text-3xl">Информация о пользователе</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-200">Username:</span>
-                <span className="font-medium">@{userDetails.user.username || 'No username'}</span>
+                <span className="font-medium">@{userDetails.user.username || 'без username'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Language:</span>
+                <span className="text-gray-200">Язык:</span>
                 <Chip size="sm">{userDetails.user.language?.toUpperCase() || 'EN'}</Chip>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Registered:</span>
+                <span className="text-gray-200">Зарегистрирован:</span>
                 <span>{formatDate(userDetails.user.createdAt)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Selected History:</span>
+                <span className="text-gray-200">Выбранная история:</span>
                 <span>{userDetails.user.selectedHistoryName || 'starwars'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Selected chat mission id:</span>
+                <span className="text-gray-200">ID выбранной миссии в чате:</span>
                 <span>
                   {userDetails.user.selectedChatMissionId != null
                     ? String(userDetails.user.selectedChatMissionId)
@@ -406,31 +406,31 @@ const UserDetailsPage = observer(() => {
 
         <Card>
           <CardBody>
-            <h2 className="font-semibold mb-4 text-3xl">Statistics</h2>
+            <h2 className="font-semibold mb-4 text-3xl">Статистика</h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-200">Balance:</span>
+                <span className="text-gray-200">Баланс:</span>
                 <Chip color="success" variant="flat">{userDetails.user.balance}</Chip>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Energy:</span>
+                <span className="text-gray-200">Энергия:</span>
                 <Chip color="warning" variant="flat">{userDetails.user.energy}</Chip>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Messages Sent:</span>
+                <span className="text-gray-200">Сообщений отправлено:</span>
                 <span>{userDetails.messageCount}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">First Message:</span>
-                <span>{userDetails.firstMessageAt ? formatDate(userDetails.firstMessageAt) : 'Never'}</span>
+                <span className="text-gray-200">Первое сообщение:</span>
+                <span>{userDetails.firstMessageAt ? formatDate(userDetails.firstMessageAt) : 'Никогда'}</span>
               </div>
               <Divider />
               <div className="flex justify-between">
-                <span className="text-gray-200">Referrals:</span>
+                <span className="text-gray-200">Рефералы:</span>
                 <Chip color="primary" variant="flat">{userDetails.referralCount}</Chip>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-200">Purchased Rewards:</span>
+                <span className="text-gray-200">Купленные награды:</span>
                 <Chip color="secondary" variant="flat">{userDetails.purchasedRewardsCount}</Chip>
               </div>
             </div>
@@ -441,7 +441,7 @@ const UserDetailsPage = observer(() => {
       {/* Actions */}
       <Card>
         <CardBody>
-          <h3 className="font-semibold mb-4">Actions</h3>
+          <h3 className="font-semibold mb-4">Действия</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               color="success"
@@ -449,7 +449,7 @@ const UserDetailsPage = observer(() => {
               startContent={<Coins size={16} />}
               onPress={onBalanceModalOpen}
             >
-              Set Balance
+              Установить баланс
             </Button>
             <Button
               color="warning"
@@ -457,7 +457,7 @@ const UserDetailsPage = observer(() => {
               startContent={<Zap size={16} />}
               onPress={onEnergyModalOpen}
             >
-              Set Energy
+              Установить энергию
             </Button>
           </div>
         </CardBody>
@@ -467,7 +467,7 @@ const UserDetailsPage = observer(() => {
       <Card>
         <CardBody className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Case Open History</h3>
+            <h3 className="font-semibold">История открытия кейсов</h3>
           </div>
 
           {caseStore.userOpenedCasesHistoryError ? (
@@ -484,15 +484,15 @@ const UserDetailsPage = observer(() => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">Total Opened</div>
+                  <div className="text-sm text-gray-200">Всего открыто</div>
                   <div className="text-xl font-bold">{caseOpenHistory.totalOpened}</div>
                 </div>
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">Rewards</div>
+                  <div className="text-sm text-gray-200">Награды</div>
                   <div className="text-xl font-bold">{caseOpenHistory.byDropType.reward}</div>
                 </div>
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">Gems / Energy</div>
+                  <div className="text-sm text-gray-200">Гемы / Энергия</div>
                   <div className="text-xl font-bold">
                     {caseOpenHistory.byDropType.gems} / {caseOpenHistory.byDropType.energy}
                   </div>
@@ -504,23 +504,23 @@ const UserDetailsPage = observer(() => {
               ) : null}
 
               {caseOpenHistory.opens?.length ? (
-                <Table aria-label="Case open history table">
+                <Table aria-label="Таблица истории открытия кейсов">
                   <TableHeader>
-                    <TableColumn>OPENED AT</TableColumn>
-                    <TableColumn>CASE</TableColumn>
-                    <TableColumn>DROP</TableColumn>
+                    <TableColumn>ОТКРЫТО</TableColumn>
+                    <TableColumn>КЕЙС</TableColumn>
+                    <TableColumn>ДРОП</TableColumn>
                   </TableHeader>
                   <TableBody>
                     {caseOpenHistory.opens.map((row) => {
                       const type = row.result?.type;
                       const drop =
                         type === 'reward'
-                          ? row.result?.reward?.name || (row.result?.reward?.id ? `Reward #${row.result.reward.id}` : 'Reward')
+                          ? row.result?.reward?.name || (row.result?.reward?.id ? `Награда #${row.result.reward.id}` : 'Награда')
                           : type === 'gems'
-                            ? `+${row.result?.amount ?? '?'} Gems`
+                            ? `+${row.result?.amount ?? '?'} гемов`
                             : type === 'energy'
-                              ? `+${row.result?.amount ?? '?'} Energy`
-                              : 'Unknown';
+                              ? `+${row.result?.amount ?? '?'} энергии`
+                              : 'Неизвестно';
 
                       return (
                         <TableRow key={row.userCaseId}>
@@ -528,7 +528,7 @@ const UserDetailsPage = observer(() => {
                             <div className="text-xs text-gray-500">{formatDate(row.openedAt)}</div>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">{row.case?.name || 'Unknown case'}</div>
+                            <div className="text-sm">{row.case?.name || 'Неизвестный кейс'}</div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">{drop}</div>
@@ -539,7 +539,7 @@ const UserDetailsPage = observer(() => {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8 text-gray-400">No opened cases found.</div>
+                <div className="text-center py-8 text-gray-400">Открытия кейсов не найдены.</div>
               )}
             </>
           ) : null}
@@ -550,7 +550,7 @@ const UserDetailsPage = observer(() => {
       <Card>
         <CardBody className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Purchased Rewards</h3>
+            <h3 className="font-semibold">Купленные награды</h3>
             <Chip size="sm" variant="flat" color="secondary">
               {purchasedRewards.length}
             </Chip>
@@ -568,13 +568,13 @@ const UserDetailsPage = observer(() => {
 
           {!purchasedRewardsLoading ? (
             purchasedRewards.length > 0 ? (
-              <Table aria-label="Purchased rewards table">
+                <Table aria-label="Таблица купленных наград">
                 <TableHeader>
-                  <TableColumn>REWARD</TableColumn>
-                  <TableColumn>PRICE</TableColumn>
-                  <TableColumn>STATUS</TableColumn>
-                  <TableColumn>PURCHASED</TableColumn>
-                  <TableColumn>ACTIONS</TableColumn>
+                  <TableColumn>НАГРАДА</TableColumn>
+                  <TableColumn>ЦЕНА</TableColumn>
+                  <TableColumn>СТАТУС</TableColumn>
+                  <TableColumn>КУПЛЕНО</TableColumn>
+                  <TableColumn>ДЕЙСТВИЯ</TableColumn>
                 </TableHeader>
                 <TableBody>
                   {purchasedRewards.map((pr) => {
@@ -585,27 +585,27 @@ const UserDetailsPage = observer(() => {
                       if (!withdrawalStatus) {
                         return (
                           <Chip size="sm" variant="flat">
-                            Owned
+                            В инвентаре
                           </Chip>
                         );
                       }
                       if (withdrawalStatus === 'pending') {
                         return (
                           <Chip size="sm" variant="flat" color="warning">
-                            Withdrawal: Pending
+                            Вывод: ожидает
                           </Chip>
                         );
                       }
                       if (withdrawalStatus === 'completed') {
                         return (
                           <Chip size="sm" variant="flat" color="success">
-                            Withdrawal: Completed
+                            Вывод: выполнен
                           </Chip>
                         );
                       }
                       return (
                         <Chip size="sm" variant="flat" color="danger">
-                          Withdrawal: Rejected
+                          Вывод: отклонен
                         </Chip>
                       );
                     })();
@@ -639,7 +639,7 @@ const UserDetailsPage = observer(() => {
                         return (
                           <Image
                             src={media.url}
-                            alt={pr.reward?.name || 'Reward'}
+                            alt={pr.reward?.name || 'Награда'}
                             className="w-12 h-12 object-cover rounded-lg"
                           />
                         );
@@ -657,7 +657,7 @@ const UserDetailsPage = observer(() => {
                           <div className="flex items-center space-x-3">
                             {mediaNode}
                             <div>
-                              <p className="font-medium">{pr.reward?.name || `Reward #${pr.rewardId}`}</p>
+                              <p className="font-medium">{pr.reward?.name || `Награда #${pr.rewardId}`}</p>
                               <p className="text-sm text-gray-500 line-clamp-2">
                                 {pr.reward?.description || ''}
                               </p>
@@ -677,11 +677,11 @@ const UserDetailsPage = observer(() => {
                             color="danger"
                             variant="flat"
                             startContent={<Trash2 size={14} />}
-                            onClick={() => handleDeleteReward(pr.id, pr.reward?.name || `Reward #${pr.rewardId}`)}
+                            onClick={() => handleDeleteReward(pr.id, pr.reward?.name || `Награда #${pr.rewardId}`)}
                             isLoading={deletingRewardId === pr.id}
                             isDisabled={deletingRewardId !== null}
                           >
-                            Delete
+                            Удалить
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -690,7 +690,7 @@ const UserDetailsPage = observer(() => {
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center py-8 text-gray-400">No purchased rewards found.</div>
+              <div className="text-center py-8 text-gray-400">Купленные награды не найдены.</div>
             )
           ) : null}
         </CardBody>
@@ -700,11 +700,11 @@ const UserDetailsPage = observer(() => {
       <Card>
         <CardBody className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Chat History</h3>
+            <h3 className="font-semibold">История чата</h3>
             <div className="flex gap-2">
               <Select
-                label="History"
-                placeholder="Select history"
+                label="История"
+                placeholder="Выберите историю"
                 selectedKeys={selectedHistoryName ? [selectedHistoryName] : []}
                 onSelectionChange={(keys) => {
                   const selected = Array.from(keys)[0] as string;
@@ -726,7 +726,7 @@ const UserDetailsPage = observer(() => {
                 isLoading={loadingHistory}
                 isDisabled={!selectedHistoryName}
               >
-                Load History
+                Загрузить историю
               </Button>
               {chatHistory && (
                 <Button
@@ -736,7 +736,7 @@ const UserDetailsPage = observer(() => {
                   onPress={handleResetHistory}
                   isLoading={loading}
                 >
-                  Reset History
+                  Сбросить историю
                 </Button>
               )}
             </div>
@@ -746,25 +746,25 @@ const UserDetailsPage = observer(() => {
             <>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-zinc-800  rounded">
-                  <div className="text-sm text-gray-200">Total Messages</div>
+                  <div className="text-sm text-gray-200">Всего сообщений</div>
                   <div className="text-xl font-bold">{chatHistory.totalMessages}</div>
                 </div>
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">User Messages</div>
+                  <div className="text-sm text-gray-200">Сообщений пользователя</div>
                   <div className="text-xl font-bold">{chatHistory.userMessageCount}</div>
                 </div>
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">AI Messages</div>
+                  <div className="text-sm text-gray-200">Сообщений ассистента</div>
                   <div className="text-xl font-bold">{chatHistory.assistantMessageCount}</div>
                 </div>
               </div>
 
               {chatHistory.history.length > 0 ? (
-                <Table aria-label="Chat history table">
+                <Table aria-label="Таблица истории чата">
                   <TableHeader>
-                    <TableColumn>DATE</TableColumn>
-                    <TableColumn>USER MESSAGE</TableColumn>
-                    <TableColumn>ASSISTANT RESPONSE</TableColumn>
+                    <TableColumn>ДАТА</TableColumn>
+                    <TableColumn>СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ</TableColumn>
+                    <TableColumn>ОТВЕТ АССИСТЕНТА</TableColumn>
                   </TableHeader>
                   <TableBody>
                     {chatHistory.history.map((item) => (
@@ -788,7 +788,7 @@ const UserDetailsPage = observer(() => {
                                 {item.assistantMessage}
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-400 italic">No response</span>
+                              <span className="text-xs text-gray-400 italic">Нет ответа</span>
                             )}
                           </div>
                         </TableCell>
@@ -798,7 +798,7 @@ const UserDetailsPage = observer(() => {
                 </Table>
               ) : (
                 <div className="text-center py-8 text-gray-400">
-                  No chat history found for this history.
+                  История чата для выбранной истории не найдена.
                 </div>
               )}
             </>
@@ -809,20 +809,20 @@ const UserDetailsPage = observer(() => {
       {/* Modals */}
       <Modal isOpen={isBalanceModalOpen} onClose={onBalanceModalClose}>
         <ModalContent>
-          <ModalHeader>Set Balance</ModalHeader>
+          <ModalHeader>Установить баланс</ModalHeader>
           <ModalBody>
             <Input
-              label="New balance"
+              label="Новый баланс"
               type="number"
-              placeholder="Enter value (>= 0)"
+              placeholder="Введите значение (>= 0)"
               value={balanceAmount}
               onChange={(e) => setBalanceAmount(e.target.value)}
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onBalanceModalClose}>Cancel</Button>
+            <Button variant="light" onPress={onBalanceModalClose}>Отмена</Button>
             <Button color="success" onPress={handleSetBalance} isLoading={loading}>
-              Set
+              Установить
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -830,20 +830,20 @@ const UserDetailsPage = observer(() => {
 
       <Modal isOpen={isEnergyModalOpen} onClose={onEnergyModalClose}>
         <ModalContent>
-          <ModalHeader>Set Energy</ModalHeader>
+          <ModalHeader>Установить энергию</ModalHeader>
           <ModalBody>
             <Input
-              label="New energy"
+              label="Новая энергия"
               type="number"
-              placeholder="Enter value (>= 0)"
+              placeholder="Введите значение (>= 0)"
               value={energyAmount}
               onChange={(e) => setEnergyAmount(e.target.value)}
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onEnergyModalClose}>Cancel</Button>
+            <Button variant="light" onPress={onEnergyModalClose}>Отмена</Button>
             <Button color="warning" onPress={handleSetEnergy} isLoading={loading}>
-              Set
+              Установить
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -851,14 +851,14 @@ const UserDetailsPage = observer(() => {
 
       <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose}>
         <ModalContent>
-          <ModalHeader>Delete User</ModalHeader>
+          <ModalHeader>Удалить пользователя</ModalHeader>
           <ModalBody>
-            <p>Are you sure you want to delete this user? This action cannot be undone and will delete all user data including chat history.</p>
+            <p>Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить, включая удаление истории чата.</p>
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onDeleteModalClose}>Cancel</Button>
+            <Button variant="light" onPress={onDeleteModalClose}>Отмена</Button>
             <Button color="danger" onPress={handleDeleteUser} isLoading={loading}>
-              Delete
+              Удалить
             </Button>
           </ModalFooter>
         </ModalContent>

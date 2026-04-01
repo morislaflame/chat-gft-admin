@@ -1,9 +1,10 @@
 import { 
   Button,
-  Chip
+  Chip,
+  Card,
+  CardBody
 } from '@heroui/react';
-import { Edit, Trash2 } from 'lucide-react';
-import { DataTable } from '@/components/ui/DataTable';
+import { Edit, Trash2, Zap, Gem } from 'lucide-react';
 
 interface Task {
   id: number;
@@ -40,8 +41,9 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
     }
   };
 
-  const getRewardTypeColor = (type: string) => {
-    return type === 'energy' ? 'secondary' : 'primary';
+
+  const getRewardTypeIcon = (type: string) => {
+    return type === 'energy' ? <Zap className="w-5 h-5 text-purple-500" /> : <Gem className="w-5 h-5 text-amber-500" />;
   };
 
   const formatMetadata = (task: Task): string => {
@@ -86,93 +88,63 @@ export const TasksTable = ({ tasks, loading, onEditTask, onDeleteTask }: TasksTa
     }
   };
 
-  const columns = [
-    { key: 'type', label: 'ТИП' },
-    { key: 'description', label: 'ОПИСАНИЕ' },
-    { key: 'reward', label: 'НАГРАДА' },
-    { key: 'target', label: 'ЦЕЛЬ' },
-    { key: 'code', label: 'КОД' },
-    { key: 'metadata', label: 'МЕТАДАННЫЕ' },
-    { key: 'actions', label: 'ДЕЙСТВИЯ' },
-  ];
+  if (loading) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
 
-  const renderCell = (task: Task, columnKey: string) => {
-    switch (columnKey) {
-      case 'type':
-        return (
-          <Chip color={getTaskTypeColor(task.type)} variant="flat">
-            {task.type}
-          </Chip>
-        );
-      case 'description':
-        return (
-          <div>
-            <p className="font-medium">{task.description}</p>
-          </div>
-        );
-      case 'reward':
-        return (
-          <div className="flex items-center gap-2">
-            <Chip color={getRewardTypeColor(task.rewardType)} size="sm">
-              {task.rewardType === 'energy' ? 'Энергия' : 'Токены'}
-            </Chip>
-            <span className="font-semibold">{task.reward}</span>
-          </div>
-        );
-      case 'target':
-        return <span className="font-medium">{task.targetCount}</span>;
-      case 'code':
-        return task.code ? (
-          <Chip color="default" variant="flat" size="sm">
-            {TASK_CODES[task.code] || task.code}
-          </Chip>
-        ) : (
-          <span className="text-gray-400">-</span>
-        );
-      case 'metadata':
-        return (
-          <div className="max-w-xs">
-            <p className="text-sm text-gray-300 break-words">
-              {formatMetadata(task)}
-            </p>
-          </div>
-        );
-      case 'actions':
-        return (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              color="primary"
-              variant="flat"
-              startContent={<Edit size={14} />}
-              onClick={() => onEditTask(task)}
-            >
-              Редактировать
-            </Button>
-            <Button
-              size="sm"
-              color="danger"
-              variant="flat"
-              startContent={<Trash2 size={14} />}
-              onClick={() => onDeleteTask(task.id)}
-            >
-              Удалить
-            </Button>
-          </div>
-        );
-      default:
-        return '-';
-    }
-  };
+  if (tasks.length === 0) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="text-center py-8 text-gray-500">Задачи не найдены</div>
+        </CardBody>
+      </Card>
+    );
+  }
 
   return (
-    <DataTable
-      title={`Все задачи (${tasks.length})`}
-      columns={columns}
-      data={tasks}
-      loading={loading}
-      renderCell={renderCell}
-      emptyMessage="Задачи не найдены"
-    />
+    <div className="space-y-4">
+      <div className="text-sm text-gray-400">Все задачи ({tasks.length})</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {tasks.map((task) => (
+          <Card key={task.id} className="border border-zinc-700/70 bg-zinc-900/70">
+            <CardBody className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <Chip color={getTaskTypeColor(task.type)} variant="flat" size="sm">{task.type}</Chip>
+                <Chip color="default" variant="flat" size="sm">{TASK_CODES[task.code || ""] || task.code || "-"}</Chip>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-white text-xl">Награда:</span>
+                {getRewardTypeIcon(task.rewardType)}
+                <span className="font-semibold text-white text-xl">{task.reward}</span>
+                
+              </div>
+
+              <p className="text-xs text-zinc-400">Количество для выполнения: {task.targetCount}</p>
+
+              <p className="text-md line-clamp-2">{formatMetadata(task)}</p>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <Button size="sm" color="primary" variant="flat" startContent={<Edit size={14} />} onClick={() => onEditTask(task)}>
+                  Редактировать
+                </Button>
+                <Button size="sm" color="danger" variant="flat" startContent={<Trash2 size={14} />} onClick={() => onDeleteTask(task.id)}>
+                  Удалить
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };

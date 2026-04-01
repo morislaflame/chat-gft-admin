@@ -72,15 +72,15 @@ const PromptBlock = ({ value, className = "" }: { value: string | null | undefin
 };
 
 const REASONS: Array<{ id: LLMTraceReason; label: string }> = [
-  { id: "continuity_break", label: "Continuity break" },
-  { id: "weak_detour_design", label: "Weak detour design" },
-  { id: "pace_too_slow", label: "Pace too slow" },
-  { id: "pace_too_fast", label: "Pace too fast" },
-  { id: "artifact_misuse", label: "Artifact misuse" },
-  { id: "step_logic_error", label: "Step logic error" },
-  { id: "npc_voice_inconsistent", label: "NPC voice inconsistent" },
-  { id: "generic_reply", label: "Generic reply" },
-  { id: "format_error", label: "Format error" },
+  { id: "continuity_break", label: "Нарушение последовательности" },
+  { id: "weak_detour_design", label: "Слабый дизайн ответвлений" },
+  { id: "pace_too_slow", label: "Слишком медленный темп" },
+  { id: "pace_too_fast", label: "Слишком быстрый темп" },
+  { id: "artifact_misuse", label: "Неверное использование артефактов" },
+  { id: "step_logic_error", label: "Ошибка логики шагов" },
+  { id: "npc_voice_inconsistent", label: "Непоследовательный голос NPC" },
+  { id: "generic_reply", label: "Слишком общий ответ" },
+  { id: "format_error", label: "Ошибка формата" },
 ];
 
 const LLMDebugPage: React.FC = observer(() => {
@@ -177,20 +177,20 @@ const LLMDebugPage: React.FC = observer(() => {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="LLM Debug Logs"
-        description="Persisted traces of request/response payloads across the full message pipeline."
-        actionButton={{ label: "Refresh", onClick: () => { setOffset(0); void load(); } }}
+        title="Логи отладки LLM"
+        description="Сохраненные трассировки запросов/ответов по всему пайплайну сообщений."
+        actionButton={{ label: "Обновить", onClick: () => { setOffset(0); void load(); } }}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Input label="User ID" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="e.g. 13" />
-        <Input label="History" value={historyName} onChange={(e) => setHistoryName(e.target.value)} placeholder="starwars" />
-        <Input label="Mission ID" value={missionId} onChange={(e) => setMissionId(e.target.value)} placeholder="(optional)" />
+        <Input label="ID пользователя" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="например: 13" />
+        <Input label="История" value={historyName} onChange={(e) => setHistoryName(e.target.value)} placeholder="starwars" />
+        <Input label="ID миссии" value={missionId} onChange={(e) => setMissionId(e.target.value)} placeholder="(необязательно)" />
       </div>
 
       <div className="flex gap-2">
         <Button onClick={() => { setOffset(0); void load(); }} disabled={loading}>
-          Apply filters
+          Применить фильтры
         </Button>
         <Button
           color="primary"
@@ -198,32 +198,32 @@ const LLMDebugPage: React.FC = observer(() => {
           disabled={exportLoading || loading}
           onClick={() => void exportGood()}
         >
-          {exportLoading ? "Exporting..." : "Export good"}
+          {exportLoading ? "Экспорт..." : "Экспорт good"}
         </Button>
         <div className="text-sm text-white/60 self-center">
-          Total: {total}
+          Всего: {total}
         </div>
       </div>
 
       <div className="border border-white/10 rounded-xl overflow-hidden">
         <div className="grid grid-cols-12 gap-2 px-3 py-2 bg-zinc-900 text-xs text-white/70">
-          <div className="col-span-2">Time</div>
-          <div className="col-span-1">User</div>
-          <div className="col-span-2">History</div>
-          <div className="col-span-1">Mission</div>
+          <div className="col-span-2">Время</div>
+          <div className="col-span-1">Польз.</div>
+          <div className="col-span-2">История</div>
+          <div className="col-span-1">Миссия</div>
           <div className="col-span-1">ms</div>
-          <div className="col-span-1">Quality</div>
-          <div className="col-span-1">Step</div>
-          <div className="col-span-1">Message</div>
-          <div className="col-span-1">Error</div>
+          <div className="col-span-1">Качество</div>
+          <div className="col-span-1">Шаг</div>
+          <div className="col-span-1">Сообщение</div>
+          <div className="col-span-1">Ошибка</div>
           <div className="col-span-1" />
         </div>
         {loading ? (
           <div className="p-6 flex items-center gap-2 text-white/70">
-            <Spinner size="sm" /> Loading…
+            <Spinner size="sm" /> Загрузка…
           </div>
         ) : items.length === 0 ? (
-          <div className="p-6 text-white/60">No traces found.</div>
+          <div className="p-6 text-white/60">Трассировки не найдены.</div>
         ) : (
           <div className="divide-y divide-white/10">
             {items.map((t) => (
@@ -254,7 +254,7 @@ const LLMDebugPage: React.FC = observer(() => {
                 </div>
                 <div className="col-span-1 text-right">
                   <Button size="sm" variant="light" onClick={() => void openDetails(t.id)}>
-                    Open
+                    Открыть
                   </Button>
                 </div>
               </div>
@@ -269,17 +269,17 @@ const LLMDebugPage: React.FC = observer(() => {
           disabled={offset <= 0 || loading}
           onClick={() => setOffset(Math.max(0, offset - limit))}
         >
-          Prev
+          Назад
         </Button>
         <Button
           variant="light"
           disabled={offset + limit >= total || loading}
           onClick={() => setOffset(offset + limit)}
         >
-          Next
+          Вперед
         </Button>
         <div className="text-xs text-white/60 self-center">
-          Offset: {offset}
+          Смещение: {offset}
         </div>
       </div>
 
@@ -289,10 +289,10 @@ const LLMDebugPage: React.FC = observer(() => {
           <ModalBody>
             {detailsLoading ? (
               <div className="p-6 flex items-center gap-2 text-white/70">
-                <Spinner size="sm" /> Loading…
+                <Spinner size="sm" /> Загрузка…
               </div>
             ) : !details ? (
-              <div className="p-6 text-white/60">No details.</div>
+              <div className="p-6 text-white/60">Нет деталей.</div>
             ) : (
               <div className="space-y-4">
                 <div className="text-sm text-white/70">
@@ -311,7 +311,7 @@ const LLMDebugPage: React.FC = observer(() => {
                     disabled={markLoading}
                     onClick={() => void mark("good")}
                   >
-                    Mark good
+                    Пометить good
                   </Button>
                   <Button
                     color="danger"
@@ -319,12 +319,12 @@ const LLMDebugPage: React.FC = observer(() => {
                     disabled={markLoading}
                     onClick={() => void mark("bad")}
                   >
-                    Mark bad
+                    Пометить bad
                   </Button>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-sm text-white/70">Quality reasons</div>
+                  <div className="text-sm text-white/70">Причины оценки</div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                     {REASONS.map((r) => {
                       const checked = selectedReasons.includes(r.id);
@@ -350,10 +350,10 @@ const LLMDebugPage: React.FC = observer(() => {
                     })}
                   </div>
                   <Input
-                    label="Quality note (why this is good/bad)"
+                    label="Комментарий к оценке (почему good/bad)"
                     value={qualityNote}
                     onChange={(e) => setQualityNote(e.target.value)}
-                    placeholder="Short rationale for future training curation"
+                    placeholder="Краткое пояснение для последующей модерации/обучения"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

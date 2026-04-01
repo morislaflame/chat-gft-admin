@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import { observer } from "mobx-react-lite";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Textarea, useDisclosure } from "@heroui/react";
-import { Plus, Wand2, Trash2, Edit, Upload } from "lucide-react";
+import { Plus, Trash2, Edit, Upload } from "lucide-react";
 import Lottie from "lottie-react";
 import { Context, type IStoreContext } from "@/store/StoreProvider";
 import { PageHeader } from "@/components/ui";
-import { MediaUploadField } from "@/components/AgentsPageComponents/MediaUploadField";
 import type { Artifact, ArtifactBoostType } from "@/http/artifactAPI";
+import { MediaUploadField } from "@/components/AgentsPageComponents/MediaUploadField";
 
 const BOOST_TYPES: ArtifactBoostType[] = ["COMPANION", "KEY", "WEAPON", "ARMOR", "TRINKET"];
 
@@ -40,6 +40,29 @@ const ArtifactsPage = observer(() => {
   const sorted = useMemo(() => {
     return [...artifact.artifacts].sort((a, b) => b.id - a.id);
   }, [artifact.artifacts]);
+
+  const groupedByStory = useMemo(() => {
+    const groups = new Map<string, { title: string; artifacts: Artifact[] }>();
+
+    for (const item of sorted) {
+      const storyKey = item.agentId ? String(item.agentId) : "__no_story__";
+      const storyTitle = item.agent
+        ? (item.agent.displayName || item.agent.historyName)
+        : "Без истории";
+
+      if (!groups.has(storyKey)) {
+        groups.set(storyKey, { title: storyTitle, artifacts: [] });
+      }
+
+      groups.get(storyKey)?.artifacts.push(item);
+    }
+
+    return Array.from(groups.values()).sort((a, b) => {
+      if (a.title === "Без истории") return 1;
+      if (b.title === "Без истории") return -1;
+      return a.title.localeCompare(b.title, "ru");
+    });
+  }, [sorted]);
 
   const openCreate = () => {
     setSelected(null);
@@ -133,8 +156,18 @@ const ArtifactsPage = observer(() => {
     await artifact.deleteArtifact(a.id);
   };
 
+  const onUploadCardMedia = async (artifactId: number, file: File) => {
+    await artifact.uploadMedia(artifactId, file);
+    await artifact.fetchAllArtifacts();
+  };
+
+  const onDeleteCardMedia = async (artifactId: number) => {
+    await artifact.deleteMedia(artifactId);
+    await artifact.fetchAllArtifacts();
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       <PageHeader
         title="Artifacts"
         description="Create artifacts and manage their descriptions & media."
@@ -150,50 +183,60 @@ const ArtifactsPage = observer(() => {
         <div className="text-sm text-red-500">{artifact.error}</div>
       ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {sorted.map((a) => (
-          <div key={a.id} className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-4 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <Wand2 className="w-4 h-4 text-gray-500" />
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">
-                    {a.name} <span className="text-xs text-gray-500">({a.code})</span>
+      <div className="space-y-6">
+        {groupedByStory.map((group) => (
+          <div key={group.title} className="border border-zinc-700/70 bg-zinc-900/60 rounded-2xl p-4 space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-zinc-700 pb-3">
+              <h3 className="text-2xl font-bold text-white">{group.title}</h3>
+              <span className="text-xs text-zinc-400">Артефактов: {group.artifacts.length}</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {group.artifacts.map((a) => (
+                <div key={a.id} className="border border-zinc-700/70 bg-zinc-900/70 rounded-xl p-3 space-y-3">
+            <MediaUploadField
+              label="Медиа артефакта"
+              accept="image/*,.json"
+              mediaType="mixed"
+              currentMedia={a.media || null}
+              onUpload={async (file) => {
+                await onUploadCardMedia(a.id, file);
+              }}
+              onDelete={
+                a.media
+                  ? async () => {
+                      await onDeleteCardMedia(a.id);
+                    }
+                  : undefined
+              }
+              previewClassName="h-40"
+            />
+
+            <div className="flex items-start justify-between gap-2">
+              <div className="w-full">
+                <div className="w-full flex items-center justify-between gap-2">
+                  <p className="font-semibold text-white truncate text-xl">{a.name}</p>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    {a.boostType} · Уровень {a.level}
                   </p>
+                  
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Type: {a.boostType} · Level: {a.level}
-                  {a.agent ? ` · Story: ${a.agent.displayName || a.agent.historyName}` : ""}
-                </p>
-                {a.description ? <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">{a.description}</p> : null}
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="light" startContent={<Edit className="w-3 h-3" />} onPress={() => openEdit(a)}>
-                  Edit
-                </Button>
-                <Button size="sm" color="danger" variant="light" startContent={<Trash2 className="w-3 h-3" />} onPress={() => onDelete(a)}>
-                  Delete
-                </Button>
+                <span className="text-xs text-zinc-400">({a.code})</span>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-zinc-700 pt-3">
-              <MediaUploadField
-                label="Artifact Media"
-                accept="image/*"
-                mediaType="image"
-                currentMedia={a.media || null}
-                onUpload={async (file) => {
-                  await artifact.uploadMedia(a.id, file);
-                }}
-                onDelete={
-                  a.media
-                    ? async () => {
-                        await artifact.deleteMedia(a.id);
-                      }
-                    : undefined
-                }
-              />
+            {a.description ? <p className="text-xs text-zinc-400 line-clamp-2">{a.description}</p> : null}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button size="sm" color="primary" variant="flat" startContent={<Edit className="w-3 h-3" />} onPress={() => openEdit(a)}>
+                Изменить
+              </Button>
+              <Button size="sm" color="danger" variant="flat" startContent={<Trash2 className="w-3 h-3" />} onPress={() => onDelete(a)}>
+                Удалить
+              </Button>
+            </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}

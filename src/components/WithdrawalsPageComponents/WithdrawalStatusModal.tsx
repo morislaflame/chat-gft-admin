@@ -33,13 +33,13 @@ export const WithdrawalStatusModal = ({
             <div>
               <p className="text-sm text-gray-500 mb-1">Пользователь</p>
               <p className="font-medium">
-                {request.user?.firstName || request.user?.username || `User #${request.userId}`}
+                {request.user?.firstName || request.user?.username || `Пользователь #${request.userId}`}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Приз</p>
               <p className="font-medium">
-                {request.userReward?.reward?.name || 'Unknown Reward'}
+                {request.userReward?.reward?.name || 'Неизвестная награда'}
               </p>
             </div>
             <div>

@@ -30,8 +30,8 @@ interface MissionStepRewardFormModalProps {
 }
 
 const MISSION_OPTIONS = [
-  { value: 1, label: "Mission 1" },
-  { value: 2, label: "Mission 2" },
+  { value: 1, label: "Миссия 1" },
+  { value: 2, label: "Миссия 2" },
 ];
 
 export const MissionStepRewardFormModal = ({
@@ -78,17 +78,17 @@ export const MissionStepRewardFormModal = ({
       <ModalContent>
         <ModalHeader>
           <h3 className="text-xl font-semibold">
-            {isEditing ? "Edit step reward" : "Add step reward"}
+            {isEditing ? "Редактировать награду за шаг" : "Добавить награду за шаг"}
           </h3>
         </ModalHeader>
         <ModalBody>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            When the user makes a correct step in mission 1 or 2 (progress increases), they get the
-            reward for that step number. Only missions 1 and 2 are supported.
+            Когда пользователь делает правильный шаг в миссии 1 или 2 (прогресс растет), он получает
+            награду за номер этого шага. Поддерживаются только миссии 1 и 2.
           </p>
           <div className="space-y-4">
             <Select
-              label="Mission"
+              label="Миссия"
               selectedKeys={missionKeys}
               onSelectionChange={(keys) => {
                 const k = Array.from(keys)[0] as string | undefined;
@@ -105,7 +105,7 @@ export const MissionStepRewardFormModal = ({
             </Select>
 
             <Input
-              label="Step number"
+              label="Номер шага"
               type="number"
               value={stepDisplay}
               onChange={(e) => {
@@ -116,11 +116,11 @@ export const MissionStepRewardFormModal = ({
               }}
               min={1}
               isDisabled={isEditing}
-              description="Which correct step (1st, 2nd, 3rd...) gets this reward"
+              description="За какой правильный шаг (1-й, 2-й, 3-й...) выдавать награду"
             />
 
             <Input
-              label="Gems reward"
+              label="Награда в кристаллах"
               type="number"
               value={rewardDisplay}
               onChange={(e) => {
@@ -130,16 +130,16 @@ export const MissionStepRewardFormModal = ({
                 if (!Number.isNaN(n)) handleNum("rewardGems", n);
               }}
               min={0}
-              description="Gems to add to user balance"
+              description="Сколько кристаллов добавить пользователю"
             />
           </div>
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>
-            Cancel
+            Отмена
           </Button>
           <Button color="primary" onPress={onSave} isDisabled={!canSave}>
-            {isEditing ? "Update" : "Create"}
+            {isEditing ? "Сохранить" : "Создать"}
           </Button>
         </ModalFooter>
       </ModalContent>

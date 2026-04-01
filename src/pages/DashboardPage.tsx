@@ -15,8 +15,8 @@ const DashboardPage = observer(() => {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-300">Welcome to ChatGFT Admin Panel</p>
+        <h1 className="text-3xl font-bold mb-2">Дашборд</h1>
+        <p className="text-gray-300">Добро пожаловать в админ-панель ChatGFT</p>
       </div>
 
       <DashboardStats dashboardData={admin.dashboardData || undefined} />

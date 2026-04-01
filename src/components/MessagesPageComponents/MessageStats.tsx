@@ -18,21 +18,21 @@ interface MessageStatsProps {
 export const MessageStats = ({ stats, forceProgress }: MessageStatsProps) => {
   const statsCards = [
     {
-      title: 'Total Messages',
+      title: 'Всего сообщений',
       value: stats?.messageCount || 0,
       icon: MessageSquare,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Until Next Gift',
+      title: 'До следующего подарка',
       value: stats?.messagesUntilCongratulation || 0,
       icon: Gift,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Progress',
+      title: 'Прогресс',
       value: forceProgress ? `${Math.round(forceProgress.currentProgress || 0)}%` : '0%',
       icon: TrendingUp,
       color: 'text-purple-600',

@@ -53,13 +53,13 @@ export const StageRewardFormModal = ({
       <ModalContent>
         <ModalHeader>
           <h3 className="text-xl font-semibold">
-            {isEditing ? 'Edit Stage Reward' : 'Create Stage Reward'}
+            {isEditing ? 'Редактировать награду за этап' : 'Создать награду за этап'}
           </h3>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-4">
             <Input
-              label="Stage Number"
+              label="Номер этапа"
               type="number"
               value={formData.stageNumber.toString()}
               onChange={(e) => handleInputChange('stageNumber', parseInt(e.target.value) || 0)}
@@ -68,22 +68,22 @@ export const StageRewardFormModal = ({
               isDisabled={isEditing}
               min={1}
               startContent={<Gift className="w-4 h-4 text-gray-400" />}
-              description="Stage number must be greater than or equal to 1"
+              description="Номер этапа должен быть больше или равен 1"
             />
 
             <Input
-              label="Reward Amount"
+              label="Размер награды"
               type="number"
               value={formData.rewardAmount.toString()}
               onChange={(e) => handleInputChange('rewardAmount', parseInt(e.target.value) || 0)}
-              placeholder="e.g., 100"
+              placeholder="например: 100"
               isRequired
               min={0}
-              description="Amount of tokens to reward for completing this stage"
+              description="Сколько токенов выдать за прохождение этого этапа"
             />
 
             <Select
-              label="Case reward (optional)"
+              label="Награда кейсом (необязательно)"
               selectedKeys={selectedCaseKeys}
               onSelectionChange={(keys) => {
                 const selectedKey = Array.from(keys)[0] as string | undefined;
@@ -92,14 +92,14 @@ export const StageRewardFormModal = ({
                   rewardCaseId: selectedKey === '__none__' ? '' : (selectedKey || ''),
                 });
               }}
-              placeholder="Select case"
+              placeholder="Выберите кейс"
             >
               {cases.length === 0 ? (
-                <SelectItem key="__none__">No cases loaded</SelectItem>
+                <SelectItem key="__none__">Кейсы не загружены</SelectItem>
               ) : (
                 <>
-                  <SelectItem key="__none__" textValue="None">
-                    None
+                  <SelectItem key="__none__" textValue="Нет">
+                    Нет
                   </SelectItem>
                   {cases.map((c) => (
                     <SelectItem key={String(c.id)} textValue={`${c.name} (#${c.id})`}>
@@ -113,14 +113,14 @@ export const StageRewardFormModal = ({
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>
-            Cancel
+            Отмена
           </Button>
           <Button 
             color="primary" 
             onPress={onSave}
             disabled={!formData.stageNumber || formData.stageNumber < 1 || formData.rewardAmount < 0}
           >
-            {isEditing ? 'Update' : 'Create'}
+            {isEditing ? 'Сохранить' : 'Создать'}
           </Button>
         </ModalFooter>
       </ModalContent>

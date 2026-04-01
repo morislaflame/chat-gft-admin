@@ -184,7 +184,7 @@ const RewardsPage = observer(() => {
       onClose();
       reward.fetchAllRewards();
     } catch (error) {
-      console.error('Failed to save reward:', error);
+      console.error('Не удалось сохранить награду:', error);
     }
   };
 
@@ -209,19 +209,19 @@ const RewardsPage = observer(() => {
 
       reward.fetchAllRewards();
     } catch (error) {
-      console.error('Failed to generate preview:', error);
+      console.error('Не удалось сгенерировать превью:', error);
     } finally {
       setPreviewGeneratingId(null);
     }
   };
 
   const handleDeleteReward = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this reward?')) {
+    if (window.confirm('Вы уверены, что хотите удалить эту награду?')) {
       try {
         await reward.deleteReward(id);
         reward.fetchAllRewards();
       } catch (error) {
-        console.error('Failed to delete reward:', error);
+        console.error('Не удалось удалить награду:', error);
       }
     }
   };
@@ -230,17 +230,14 @@ const RewardsPage = observer(() => {
   const totalRewards = reward.stats?.totalRewards || 0;
   const activeRewards = reward.stats?.activeRewards || 0;
   const totalPurchases = reward.stats?.totalPurchases || 0;
-  const avgPrice = reward.rewards.length > 0 
-    ? Math.round(reward.rewards.reduce((sum, r) => sum + r.price, 0) / reward.rewards.length)
-    : 0;
 
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Rewards"
-        description="Manage rewards and animations"
+        title="Награды"
+        description="Управление наградами и анимациями"
         actionButton={{
-          label: "Create Reward",
+          label: "Создать награду",
           icon: Plus,
           onClick: handleCreateReward
         }}
@@ -250,7 +247,6 @@ const RewardsPage = observer(() => {
         totalRewards={totalRewards}
         activeRewards={activeRewards}
         totalPurchases={totalPurchases}
-        avgPrice={avgPrice}
       />
 
       <RewardsTable

@@ -1,12 +1,12 @@
-import { Button, Input, Textarea } from '@heroui/react';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@heroui/react';
 import { Target, Edit, Trash2, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { CreateMissionData, Mission, UpdateMissionData } from '@/http/agentAPI';
-import { MediaUploadField } from './MediaUploadField';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { useContext } from 'react';
 import MissionPromptMentions from './MissionPromptMentions';
 import { uiStepGoalsToEditableText } from '@/utils/missionUiStepGoalsForm';
+import { MediaUploadField } from './MediaUploadField';
 
 interface AgentMissionsSectionProps {
   missions: Mission[];
@@ -51,7 +51,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     setEditingMission(null);
     setShowMissionForm(false);
     setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
-  }, [missions]);
+  }, [missions, artifact]);
 
   const handleEditMission = (mission: Mission) => {
     setEditingMission(mission);
@@ -94,16 +94,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       setEditingMission(null);
       setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
     } catch (error) {
-      console.error('Failed to save mission:', error);
+      console.error('Не удалось сохранить миссию:', error);
     }
   };
 
   const handleDeleteMission = async (missionId: number) => {
-    if (window.confirm('Are you sure you want to delete this mission?')) {
+    if (window.confirm('Вы уверены, что хотите удалить эту миссию?')) {
       try {
         await onDeleteMission(missionId);
       } catch (error) {
-        console.error('Failed to delete mission:', error);
+        console.error('Не удалось удалить миссию:', error);
       }
     }
   };
@@ -136,7 +136,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">Missions</p>
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">Миссии</p>
         </div>
         {!showMissionForm && (
           <Button
@@ -145,218 +145,202 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             startContent={<Plus className="w-4 h-4" />}
             onClick={handleCreateNewMission}
           >
-            Create Mission
+            Создать миссию
           </Button>
         )}
       </div>
 
-      {showMissionForm ? (
-        <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg space-y-3">
-          <div className="flex items-center justify-between mb-2">
-            <p className="font-medium text-gray-700 dark:text-gray-300">
-              {editingMission ? 'Edit Mission' : 'Create New Mission'}
-            </p>
-            <Button
-              size="sm"
-              variant="light"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-          </div>
-          <Input
-            label="Title"
-            placeholder="Enter mission title"
-            value={missionFormData.title}
-            onChange={(e) => setMissionFormData({ ...missionFormData, title: e.target.value })}
-            isRequired
-          />
-          <Input
-            label="Title (EN)"
-            placeholder="Enter mission title in English (optional)"
-            value={missionFormData.titleEn}
-            onChange={(e) => setMissionFormData({ ...missionFormData, titleEn: e.target.value })}
-          />
-          <Textarea
-            label="Description"
-            placeholder="Enter mission description (optional)"
-            value={missionFormData.description}
-            onChange={(e) => setMissionFormData({ ...missionFormData, description: e.target.value })}
-            minRows={2}
-          />
-          <Textarea
-            label="Description (EN)"
-            placeholder="Enter mission description in English (optional)"
-            value={missionFormData.descriptionEn}
-            onChange={(e) => setMissionFormData({ ...missionFormData, descriptionEn: e.target.value })}
-            minRows={2}
-          />
-          <Textarea
-            label="UI step goals (chat)"
-            placeholder={'1) Осмотреться и придумать план\n2) Найти вход\n…'}
-            value={missionFormData.uiStepGoalsText}
-            onChange={(e) => setMissionFormData({ ...missionFormData, uiStepGoalsText: e.target.value })}
-            minRows={5}
-            description="Один шаг на строку, нумерация как у main_step в LLM (1, 2, 3…). Сохраняется как JSON в миссии."
-          />
-          <div>
-            <div className="text-sm font-medium text-gray-300 dark:text-gray-300 mb-2">
-              Mission Prompt (LLM)
-            </div>
-            <MissionPromptMentions
-              value={missionFormData.missionPrompt}
-              onChange={(next) => setMissionFormData({ ...missionFormData, missionPrompt: next })}
-              artifacts={artifact.artifacts.map((a) => ({ id: a.id, code: a.code, name: a.name }))}
-              minRows={10}
-            />
-          </div>
-          <div className="border border-gray-200 dark:border-zinc-700 rounded-lg p-3">
-            <p className="text-sm font-medium text-white mb-2">Artifacts in this mission</p>
-            {artifact.artifacts.length === 0 ? (
-              <p className="text-xs text-gray-500 dark:text-gray-400">No artifacts found. Create them in the Artifacts page.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-auto pr-1">
-                {artifact.artifacts.map((a) => {
-                  const checked = missionFormData.artifactIds.includes(a.id);
-                  return (
-                    <label key={a.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(e) => {
-                          const next = e.target.checked
-                            ? [...missionFormData.artifactIds, a.id]
-                            : missionFormData.artifactIds.filter((id) => id !== a.id);
-                          setMissionFormData({ ...missionFormData, artifactIds: next });
-                        }}
-                      />
-                      <span className="truncate">
-                        {a.name} <span className="text-xs text-gray-500">({a.code})</span>
-                      </span>
-                    </label>
-                  );
-                })}
+      <Modal isOpen={showMissionForm} onClose={handleCancel} size="full" scrollBehavior="inside" className="dark">
+        <ModalContent>
+          <ModalHeader>
+            <div className="w-full flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-semibold text-white">{editingMission ? 'Редактирование миссии' : 'Создание новой миссии'}</p>
               </div>
-            )}
-          </div>
-          <Input
-            label="Order Index"
-            placeholder="Enter order index"
-            type="number"
-            value={missionFormData.orderIndex}
-            onChange={(e) => setMissionFormData({ ...missionFormData, orderIndex: e.target.value })}
-            isRequired
-            description="The order in which this mission appears (lower numbers appear first)"
-          />
-          <div className="flex gap-2">
+            </div>
+          </ModalHeader>
+          <ModalBody>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <div className="xl:col-span-2 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 space-y-3">
+                <Input
+                  label="Заголовок"
+                  placeholder="Введите заголовок миссии"
+                  value={missionFormData.title}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, title: e.target.value })}
+                  isRequired
+                  classNames={{
+                    input: 'font-semibold',
+                  }}
+                />
+                <Input
+                  label="Заголовок (EN)"
+                  placeholder="Введите заголовок миссии на английском (необязательно)"
+                  value={missionFormData.titleEn}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, titleEn: e.target.value })}
+                />
+                <Textarea
+                  label="Описание"
+                  placeholder="Введите описание миссии (необязательно)"
+                  value={missionFormData.description}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, description: e.target.value })}
+                  minRows={2}
+                />
+                <Textarea
+                  label="Описание (EN)"
+                  placeholder="Введите описание миссии на английском (необязательно)"
+                  value={missionFormData.descriptionEn}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, descriptionEn: e.target.value })}
+                  minRows={2}
+                />
+                <Textarea
+                  label="UI step goals (chat)"
+                  placeholder={'1) Осмотреться и придумать план\n2) Найти вход\n…'}
+                  value={missionFormData.uiStepGoalsText}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, uiStepGoalsText: e.target.value })}
+                  minRows={5}
+                  description="Один шаг на строку, нумерация как у main_step в LLM (1, 2, 3…). Сохраняется как JSON в миссии."
+                />
+              </div>
+
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 space-y-3">
+                <Input
+                  label="Order Index"
+                  placeholder="Enter order index"
+                  type="number"
+                  value={missionFormData.orderIndex}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, orderIndex: e.target.value })}
+                  isRequired
+                  description="Lower number appears first"
+                />
+                
+
+                <div className="border border-zinc-700 rounded-lg p-3">
+                  <p className="text-lg font-extrabold text-white mb-2">Видео миссии</p>
+                  {editingMission && onUploadMissionVideo ? (
+                    <MediaUploadField
+                      label="Видео миссии"
+                      accept="video/*"
+                      mediaType="video"
+                      currentMedia={editingMission.video || null}
+                      onUpload={async (file) => {
+                        setUploadingVideo((prev) => ({ ...prev, [editingMission.id]: true }));
+                        try {
+                          await onUploadMissionVideo(agentId, editingMission.id, file);
+                        } finally {
+                          setUploadingVideo((prev) => ({ ...prev, [editingMission.id]: false }));
+                        }
+                      }}
+                      onDelete={onDeleteMissionVideo ? async () => {
+                        setDeletingVideo((prev) => ({ ...prev, [editingMission.id]: true }));
+                        try {
+                          await onDeleteMissionVideo(agentId, editingMission.id);
+                        } finally {
+                          setDeletingVideo((prev) => ({ ...prev, [editingMission.id]: false }));
+                        }
+                      } : undefined}
+                      uploading={uploadingVideo[editingMission.id] || false}
+                      deleting={deletingVideo[editingMission.id] || false}
+                    />
+                  ) : (
+                    <p className="text-xs text-zinc-500">
+                      Видео можно загрузить после создания миссии.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4">
+              <div className="text-lg font-extrabold text-white mb-2">
+                Промпт миссии (LLM)
+              </div>
+              <MissionPromptMentions
+                value={missionFormData.missionPrompt}
+                onChange={(next) => setMissionFormData({ ...missionFormData, missionPrompt: next })}
+                artifacts={artifact.artifacts.map((a) => ({ id: a.id, code: a.code, name: a.name }))}
+                minRows={14}
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={handleCancel}>
+              Закрыть
+            </Button>
             <Button
               color="primary"
-              onClick={handleSaveMission}
+              onPress={handleSaveMission}
               disabled={!missionFormData.title || !missionFormData.orderIndex}
             >
-              {editingMission ? 'Update' : 'Create'}
+              {editingMission ? 'Сохранить миссию' : 'Создать миссию'}
             </Button>
-            <Button
-              variant="light"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      ) : (
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {!showMissionForm ? (
         <div>
           {loading ? (
             <div className="text-center py-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Loading missions...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Загрузка миссий...</p>
             </div>
           ) : sortedMissions.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {sortedMissions.map((mission) => (
                 <div
                   key={mission.id}
-                  className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg p-4 space-y-4"
+                  className="border border-zinc-700/70 bg-zinc-900/70 rounded-xl p-4 space-y-4"
                 >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">#{mission.orderIndex}</span>
-                      <h4 className="font-semibold text-gray-700 dark:text-gray-300">{mission.title}</h4>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-md font-semibold text-zinc-400">#{mission.orderIndex}</span>
                     </div>
-                    {mission.titleEn ? (
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        EN: {mission.titleEn}
-                      </p>
-                    ) : null}
-                    {mission.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{mission.description}</p>
-                    )}
-                    {mission.descriptionEn ? (
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                        EN: {mission.descriptionEn}
-                      </p>
-                    ) : null}
+                    <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
+                   
                   </div>
-                  <div className="flex gap-2 ml-4">
+                  <div className="flex gap-2 ml-2 shrink-0">
                     <Button
                       size="sm"
-                      variant="light"
+                      color="primary"
+                      variant="flat"
                       startContent={<Edit className="w-3 h-3" />}
                       onClick={() => handleEditMission(mission)}
                     >
-                      Edit
+                      Изменить
                     </Button>
                     <Button
                       size="sm"
                       color="danger"
-                      variant="light"
+                      variant="flat"
                       startContent={<Trash2 className="w-3 h-3" />}
                       onClick={() => handleDeleteMission(mission.id)}
                     >
-                      Delete
+                      Удалить
                     </Button>
                   </div>
                 </div>
-                {onUploadMissionVideo && (
-                  <div className="border-t border-gray-200 dark:border-zinc-700 pt-4">
-                    <MediaUploadField
-                      key={`mission-video-${mission.id}`}
-                      label="Mission Video"
-                      icon={<Target className="w-4 h-4" />}
-                      accept="video/*"
-                      mediaType="video"
-                      currentMedia={mission.video || null}
-                      onUpload={async (file) => {
-                        setUploadingVideo(prev => ({ ...prev, [mission.id]: true }));
-                        try {
-                          await onUploadMissionVideo(agentId, mission.id, file);
-                        } finally {
-                          setUploadingVideo(prev => ({ ...prev, [mission.id]: false }));
-                        }
-                      }}
-                      onDelete={onDeleteMissionVideo ? async () => {
-                        setDeletingVideo(prev => ({ ...prev, [mission.id]: true }));
-                        try {
-                          await onDeleteMissionVideo(agentId, mission.id);
-                        } finally {
-                          setDeletingVideo(prev => ({ ...prev, [mission.id]: false }));
-                        }
-                      } : undefined}
-                      uploading={uploadingVideo[mission.id] || false}
-                      deleting={deletingVideo[mission.id] || false}
-                    />
-                  </div>
-                )}
+
+                <div className="rounded-lg bg-zinc-800/70 p-3 space-y-2">
+                  {mission.description ? (
+                    <p className="text-sm text-zinc-200 line-clamp-3">{mission.description}</p>
+                  ) : (
+                    <p className="text-sm text-zinc-500">Без описания</p>
+                  )}
+                  {mission.descriptionEn ? (
+                    <p className="text-xs text-zinc-500 line-clamp-2">EN: {mission.descriptionEn}</p>
+                  ) : null}
+                </div>
+
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-4 bg-gray-50 dark:bg-zinc-800 rounded-lg">
-              <p className="text-sm text-gray-500 dark:text-gray-400">No missions yet.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Пока нет миссий.</p>
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

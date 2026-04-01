@@ -12,14 +12,14 @@ export const DailyRewardStats = ({
 }: DailyRewardStatsProps) => {
   const statsCards = [
     {
-      title: 'Total Rewards',
+      title: 'Всего наград',
       value: totalRewards,
       icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Configured Days',
+      title: 'Настроено дней',
       value: `${configuredDays}/7`,
       icon: Calendar,
       color: 'text-green-600',

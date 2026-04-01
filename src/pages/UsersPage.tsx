@@ -59,7 +59,7 @@ const UsersPage = observer(() => {
       setTotalPages(response.pagination.totalPages);
       setTotal(response.pagination.total);
     } catch (error) {
-      console.error('Failed to load users:', error);
+      console.error('Не удалось загрузить пользователей:', error);
     } finally {
       setLoading(false);
     }
@@ -93,11 +93,11 @@ const UsersPage = observer(() => {
 
   const columns = [
     { key: 'id', label: 'ID' },
-    { key: 'user', label: 'USER' },
+    { key: 'user', label: 'ПОЛЬЗОВАТЕЛЬ' },
     { key: 'telegramId', label: 'TELEGRAM ID' },
-    { key: 'balance', label: 'BALANCE' },
-    { key: 'energy', label: 'ENERGY' },
-    { key: 'actions', label: 'ACTIONS' },
+    { key: 'balance', label: 'БАЛАНС' },
+    { key: 'energy', label: 'ЭНЕРГИЯ' },
+    { key: 'actions', label: 'ДЕЙСТВИЯ' },
   ];
 
   const renderCell = (user: User, columnKey: string) => {
@@ -112,14 +112,14 @@ const UsersPage = observer(() => {
             </div>
             <div>
               <p className="font-medium">{user.firstName} {user.lastName}</p>
-              <p className="text-sm text-gray-500">@{user.username || 'No username'}</p>
+              <p className="text-sm text-gray-500">@{user.username || 'Без username'}</p>
             </div>
           </div>
         );
       case 'telegramId':
         return (
           <code className="px-2 py-1 rounded text-sm">
-            {user.telegramId || 'N/A'}
+            {user.telegramId || 'Н/Д'}
           </code>
         );
       case 'balance':
@@ -143,7 +143,7 @@ const UsersPage = observer(() => {
             startContent={<Eye size={16} />}
             onClick={() => handleViewUser(user.id)}
           >
-            View
+            Открыть
           </Button>
         );
       default:
@@ -154,16 +154,16 @@ const UsersPage = observer(() => {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Users"
-        description={`Manage and view user information (Total: ${total})`}
+        title="Пользователи"
+        description={`Управление и просмотр пользователей (всего: ${total})`}
       />
 
       <Card>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Input
-              label="User ID"
-              placeholder="Enter user ID"
+              label="ID пользователя"
+              placeholder="Введите ID пользователя"
               type="number"
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
@@ -175,7 +175,7 @@ const UsersPage = observer(() => {
             />
             <Input
               label="Telegram ID"
-              placeholder="Enter Telegram ID"
+              placeholder="Введите Telegram ID"
               type="number"
               value={searchTelegramId}
               onChange={(e) => setSearchTelegramId(e.target.value)}
@@ -187,7 +187,7 @@ const UsersPage = observer(() => {
             />
             <Input
               label="Username"
-              placeholder="Enter username"
+              placeholder="Введите username"
               value={searchUsername}
               onChange={(e) => setSearchUsername(e.target.value)}
               onKeyPress={(e) => {
@@ -203,14 +203,14 @@ const UsersPage = observer(() => {
                 onPress={handleSearch}
                 className="flex-1"
               >
-                Search
+                Поиск
               </Button>
               {(searchId || searchTelegramId || searchUsername) && (
                 <Button
                   variant="light"
                   onPress={handleClearSearch}
                 >
-                  Clear
+                  Сброс
                 </Button>
               )}
             </div>
@@ -219,13 +219,13 @@ const UsersPage = observer(() => {
       </Card>
 
       <div className="rounded-lg shadow">
-        <Table aria-label="Users table">
+        <Table aria-label="Таблица пользователей">
           <TableHeader columns={columns}>
             {(column) => (
               <TableColumn key={column.key}>{column.label}</TableColumn>
             )}
           </TableHeader>
-          <TableBody items={users} isLoading={loading} loadingContent="Loading users...">
+          <TableBody items={users} isLoading={loading} loadingContent="Загрузка пользователей...">
             {(user) => (
               <TableRow key={user.id}>
                 {(columnKey) => (

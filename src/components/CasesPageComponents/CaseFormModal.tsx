@@ -147,7 +147,7 @@ export const CaseFormModal = ({
               label="Название кейса (EN)"
               value={formData.nameEn}
               onChange={(e) => handleInputChange("nameEn", e.target.value)}
-              placeholder="Enter English name (optional)"
+              placeholder="Введите название на английском (необязательно)"
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -254,13 +254,13 @@ export const CaseFormModal = ({
                       }}
                     >
                       <SelectItem key="reward">
-                        Reward
+                        Награда
                       </SelectItem>
                       <SelectItem key="gems">
-                        Gems
+                        Кристаллы
                       </SelectItem>
                       <SelectItem key="energy">
-                        Energy
+                        Энергия
                       </SelectItem>
                     </Select>
                   </div>
@@ -284,7 +284,7 @@ export const CaseFormModal = ({
                             key={reward.id.toString()}
                             textValue={reward.name}
                           >
-                            {reward.name} {reward.onlyCase ? "(case only)" : ""}
+                            {reward.name} {reward.onlyCase ? "(только для кейса)" : ""}
                           </SelectItem>
                         ))}
                       </Select>
