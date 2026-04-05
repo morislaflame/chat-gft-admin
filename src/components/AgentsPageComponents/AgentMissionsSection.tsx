@@ -40,7 +40,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     missionPrompt: '',
     uiStepGoalsText: '',
     artifactIds: [] as number[],
-    orderIndex: ''
+    orderIndex: '',
+    level: '1'
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
   const [deletingVideo, setDeletingVideo] = useState<Record<number, boolean>>({});
@@ -50,7 +51,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
   }, [missions, artifact]);
 
   const handleEditMission = (mission: Mission) => {
@@ -63,7 +64,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       missionPrompt: mission.missionPrompt || '',
       uiStepGoalsText: uiStepGoalsToEditableText(mission.uiStepGoals ?? null),
       artifactIds: (mission.artifacts || []).map((a) => a.id),
-      orderIndex: mission.orderIndex.toString()
+      orderIndex: mission.orderIndex.toString(),
+      level: (mission.level ?? 1).toString()
     });
     setShowMissionForm(true);
   };
@@ -81,7 +83,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
         // Всегда строка, чтобы ключ ушёл в JSON (axios выкидывает undefined).
         uiStepGoalsText: missionFormData.uiStepGoalsText ?? '',
         artifactIds: missionFormData.artifactIds,
-        orderIndex: parseInt(missionFormData.orderIndex)
+        orderIndex: parseInt(missionFormData.orderIndex),
+        level: missionFormData.level ? parseInt(missionFormData.level) : 1
       };
 
       if (editingMission) {
@@ -92,7 +95,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
     } catch (error) {
       console.error('Не удалось сохранить миссию:', error);
     }
@@ -111,7 +114,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
   };
 
   const handleCreateNewMission = () => {
@@ -124,7 +127,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       missionPrompt: '',
       uiStepGoalsText: '',
       artifactIds: [],
-      orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
+      orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1',
+      level: '1'
     });
     setShowMissionForm(true);
   };
@@ -212,6 +216,16 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                   isRequired
                   description="Lower number appears first"
                 />
+                <Input
+                  label="Уровень миссии"
+                  placeholder="1"
+                  type="number"
+                  min={1}
+                  value={missionFormData.level}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, level: e.target.value })}
+                  isRequired
+                  description="Уровень совпадает с уровнем артефактов этой миссии"
+                />
                 
 
                 <div className="border border-zinc-700 rounded-lg p-3">
@@ -294,6 +308,9 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <span className="text-md font-semibold text-zinc-400">#{mission.orderIndex}</span>
+                      <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                        Уровень {mission.level ?? 1}
+                      </span>
                     </div>
                     <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
                    
