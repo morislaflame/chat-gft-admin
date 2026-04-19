@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Spinner } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -84,6 +85,7 @@ const REASONS: Array<{ id: LLMTraceReason; label: string }> = [
 ];
 
 const LLMDebugPage: React.FC = observer(() => {
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<LLMTraceListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -122,9 +124,18 @@ const LLMDebugPage: React.FC = observer(() => {
   };
 
   useEffect(() => {
+    const uid = searchParams.get("userId");
+    const hn = searchParams.get("historyName");
+    const mid = searchParams.get("missionId");
+    if (uid) setUserId(uid);
+    if (hn) setHistoryName(hn);
+    if (mid) setMissionId(mid);
+  }, [searchParams]);
+
+  useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offset]);
+  }, [offset, userId, historyName, missionId]);
 
   const openDetails = async (id: number) => {
     setDetailsOpen(true);
