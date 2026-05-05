@@ -141,12 +141,25 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     setShowMissionForm(true);
   };
 
-  const sortedMissions = [...missions].sort((a, b) => {
-    const aLevel = a.level ?? 1;
-    const bLevel = b.level ?? 1;
-    if (aLevel !== bLevel) return aLevel - bLevel;
-    return a.orderIndex - b.orderIndex;
-  });
+  const groupedMissionsByLevel = [...missions]
+    .sort((a, b) => {
+      const aLevel = a.level ?? 1;
+      const bLevel = b.level ?? 1;
+      if (aLevel !== bLevel) return aLevel - bLevel;
+      return a.orderIndex - b.orderIndex;
+    })
+    .reduce<Record<number, Mission[]>>((acc, mission) => {
+      const level = mission.level ?? 1;
+      if (!acc[level]) {
+        acc[level] = [];
+      }
+      acc[level].push(mission);
+      return acc;
+    }, {});
+
+  const levelEntries = Object.entries(groupedMissionsByLevel)
+    .map(([level, levelMissions]) => [parseInt(level, 10), levelMissions] as const)
+    .sort((a, b) => a[0] - b[0]);
 
   return (
     <div className="border-t pt-4 mt-4 space-y-4">
@@ -334,57 +347,66 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             <div className="text-center py-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">Загрузка миссий...</p>
             </div>
-          ) : sortedMissions.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {sortedMissions.map((mission) => (
-                <div
-                  key={mission.id}
-                  className="border border-zinc-700/70 bg-zinc-900/70 rounded-xl p-4 space-y-4"
-                >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-md font-semibold text-zinc-400">#{mission.orderIndex}</span>
-                      <span className="text-xs font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
-                        Уровень {mission.level ?? 1}
-                      </span>
-                    </div>
-                    <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
-                   
+          ) : levelEntries.length > 0 ? (
+            <div className="space-y-6">
+              {levelEntries.map(([level, levelMissions]) => (
+                <div key={level} className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 border-b border-zinc-800 pb-2">
+                    <h3 className="text-base font-semibold text-zinc-200">
+                      Уровень {level}
+                    </h3>
+                    <span className="text-xs text-zinc-500">
+                      Миссий: {levelMissions.length}
+                    </span>
                   </div>
-                  <div className="flex gap-2 ml-2 shrink-0">
-                    <Button
-                      size="sm"
-                      color="primary"
-                      variant="flat"
-                      startContent={<Edit className="w-3 h-3" />}
-                      onClick={() => handleEditMission(mission)}
-                    >
-                      Изменить
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="danger"
-                      variant="flat"
-                      startContent={<Trash2 className="w-3 h-3" />}
-                      onClick={() => handleDeleteMission(mission.id)}
-                    >
-                      Удалить
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {levelMissions.map((mission) => (
+                      <div
+                        key={mission.id}
+                        className="border border-zinc-700/70 bg-zinc-900/70 rounded-xl p-4 space-y-4"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="text-md font-semibold text-zinc-400">#{mission.orderIndex}</span>
+                            </div>
+                            <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
+                          </div>
+                          <div className="flex gap-2 ml-2 shrink-0">
+                            <Button
+                              size="sm"
+                              color="primary"
+                              variant="flat"
+                              startContent={<Edit className="w-3 h-3" />}
+                              onClick={() => handleEditMission(mission)}
+                            >
+                              Изменить
+                            </Button>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="flat"
+                              startContent={<Trash2 className="w-3 h-3" />}
+                              onClick={() => handleDeleteMission(mission.id)}
+                            >
+                              Удалить
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-lg bg-zinc-800/70 p-3 space-y-2">
+                          {mission.description ? (
+                            <p className="text-sm text-zinc-200 line-clamp-3">{mission.description}</p>
+                          ) : (
+                            <p className="text-sm text-zinc-500">Без описания</p>
+                          )}
+                          {mission.descriptionEn ? (
+                            <p className="text-xs text-zinc-500 line-clamp-2">EN: {mission.descriptionEn}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-
-                <div className="rounded-lg bg-zinc-800/70 p-3 space-y-2">
-                  {mission.description ? (
-                    <p className="text-sm text-zinc-200 line-clamp-3">{mission.description}</p>
-                  ) : (
-                    <p className="text-sm text-zinc-500">Без описания</p>
-                  )}
-                  {mission.descriptionEn ? (
-                    <p className="text-xs text-zinc-500 line-clamp-2">EN: {mission.descriptionEn}</p>
-                  ) : null}
-                </div>
-
                 </div>
               ))}
             </div>
