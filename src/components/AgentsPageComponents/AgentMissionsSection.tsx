@@ -46,6 +46,14 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
   const [deletingVideo, setDeletingVideo] = useState<Record<number, boolean>>({});
 
+  const getNextOrderIndexForLevel = (levelValue: string) => {
+    const numericLevel = parseInt(levelValue, 10);
+    const normalizedLevel = Number.isFinite(numericLevel) && numericLevel > 0 ? numericLevel : 1;
+    const levelMissions = missions.filter((mission) => (mission.level ?? 1) === normalizedLevel);
+    if (levelMissions.length === 0) return '1';
+    return (Math.max(...levelMissions.map((mission) => mission.orderIndex)) + 1).toString();
+  };
+
   useEffect(() => {
     artifact.fetchAllArtifacts();
     // Сбрасываем форму при изменении missions
@@ -127,13 +135,18 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       missionPrompt: '',
       uiStepGoalsText: '',
       artifactIds: [],
-      orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1',
+      orderIndex: getNextOrderIndexForLevel('1'),
       level: '1'
     });
     setShowMissionForm(true);
   };
 
-  const sortedMissions = [...missions].sort((a, b) => a.orderIndex - b.orderIndex);
+  const sortedMissions = [...missions].sort((a, b) => {
+    const aLevel = a.level ?? 1;
+    const bLevel = b.level ?? 1;
+    if (aLevel !== bLevel) return aLevel - bLevel;
+    return a.orderIndex - b.orderIndex;
+  });
 
   return (
     <div className="border-t pt-4 mt-4 space-y-4">
@@ -214,7 +227,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                   value={missionFormData.orderIndex}
                   onChange={(e) => setMissionFormData({ ...missionFormData, orderIndex: e.target.value })}
                   isRequired
-                  description="Lower number appears first"
+                  description="Порядок внутри выбранного уровня (level)"
                 />
                 <Input
                   label="Уровень миссии"
@@ -222,7 +235,20 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                   type="number"
                   min={1}
                   value={missionFormData.level}
-                  onChange={(e) => setMissionFormData({ ...missionFormData, level: e.target.value })}
+                  onChange={(e) => {
+                    const nextLevel = e.target.value;
+                    setMissionFormData((prev) => {
+                      const previousLevel = prev.level || '1';
+                      const previousOrder = parseInt(prev.orderIndex, 10);
+                      const wasAutoSuggested =
+                        !prev.orderIndex || previousOrder === parseInt(getNextOrderIndexForLevel(previousLevel), 10);
+                      return {
+                        ...prev,
+                        level: nextLevel,
+                        orderIndex: wasAutoSuggested ? getNextOrderIndexForLevel(nextLevel) : prev.orderIndex,
+                      };
+                    });
+                  }}
                   isRequired
                   description="Уровень совпадает с уровнем артефактов этой миссии"
                 />
@@ -267,6 +293,17 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4">
               <div className="text-lg font-extrabold text-white mb-2">
                 Промпт миссии (LLM)
+              </div>
+              <div className="mb-3 rounded-lg border border-zinc-700 bg-zinc-900/70 p-3 text-xs text-zinc-300 space-y-1">
+                <div>
+                  Поддерживаемые теги в <code>Required beats</code>:
+                </div>
+                <div>
+                  <code>@progress(flag)</code>, <code>@artifact(CODE)</code>, <code>@artifact_side(K)</code>.
+                </div>
+                <div className="text-zinc-400">
+                  `@artifact_side(K)` означает: RECEIVE артефакта доступен в side-цепочке с K-го side-хода.
+                </div>
               </div>
               <MissionPromptMentions
                 value={missionFormData.missionPrompt}
