@@ -11,6 +11,62 @@ const JsonBlock = ({ value }: { value: unknown }) => (
   </pre>
 );
 
+type SuggestionLike = {
+  id?: string;
+  text?: string;
+  kind?: string;
+  payable?: boolean;
+  artifact_action?: boolean;
+  artifact_action_type?: string;
+  artifact_code?: string;
+};
+
+const extractSuggestions = (details: LLMTraceDetails): SuggestionLike[] => {
+  const sources: unknown[] = [];
+  if (details.llmResponse && typeof details.llmResponse === "object") {
+    const r = details.llmResponse as Record<string, unknown>;
+    sources.push(r.suggestions);
+    if (r.llm_parsed && typeof r.llm_parsed === "object") {
+      sources.push((r.llm_parsed as Record<string, unknown>).suggestions);
+    }
+  }
+  if (details.llmDebugTrace && typeof details.llmDebugTrace === "object") {
+    const t = details.llmDebugTrace as Record<string, unknown>;
+    if (t.llm_parsed && typeof t.llm_parsed === "object") {
+      sources.push((t.llm_parsed as Record<string, unknown>).suggestions);
+    }
+  }
+  for (const src of sources) {
+    if (!Array.isArray(src)) continue;
+    const cleaned = src
+      .filter((x) => x && typeof x === "object")
+      .map((x) => x as SuggestionLike);
+    if (cleaned.length) return cleaned;
+  }
+  return [];
+};
+
+const KindBadge = ({ kind }: { kind?: string }) => {
+  const k = (kind || "").toLowerCase();
+  const color =
+    k === "core"
+      ? "text-emerald-300 border-emerald-500/40"
+      : k === "detour"
+      ? "text-amber-300 border-amber-500/40"
+      : k === "neutral"
+      ? "text-sky-300 border-sky-500/40"
+      : k === "side"
+      ? "text-violet-300 border-violet-500/40"
+      : k === "quit"
+      ? "text-rose-300 border-rose-500/40"
+      : "text-white/70 border-white/20";
+  return (
+    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${color}`}>
+      {kind || "—"}
+    </span>
+  );
+};
+
 /** Renders prompt/system_prompt text with line breaks and basic markdown-style highlighting */
 const PromptBlock = ({ value, className = "" }: { value: string | null | undefined; className?: string }) => {
   if (value == null || typeof value !== "string") {
@@ -396,19 +452,62 @@ const LLMDebugPage: React.FC = observer(() => {
                   </div>
                 </div>
                 {(() => {
+                  const suggestions = extractSuggestions(details);
+                  if (!suggestions.length) return null;
+                  return (
+                    <div>
+                      <div className="text-sm text-white/70 mb-1">Suggestions (kind/actions)</div>
+                      <div className="border border-white/10 rounded-lg overflow-hidden">
+                        <div className="grid grid-cols-12 gap-2 px-3 py-2 bg-zinc-900 text-[11px] text-white/70">
+                          <div className="col-span-1">id</div>
+                          <div className="col-span-4">text</div>
+                          <div className="col-span-2">kind</div>
+                          <div className="col-span-2">payable</div>
+                          <div className="col-span-3">artifact</div>
+                        </div>
+                        <div className="divide-y divide-white/10">
+                          {suggestions.map((m, idx) => (
+                            <div key={`${m.id || idx}`} className="grid grid-cols-12 gap-2 px-3 py-2 text-[11px] text-white/90">
+                              <div className="col-span-1">{m.id || `#${idx + 1}`}</div>
+                              <div className="col-span-4">{m.text || "—"}</div>
+                              <div className="col-span-2"><KindBadge kind={m.kind} /></div>
+                              <div className="col-span-2">{m.payable === true ? "true" : "false"}</div>
+                              <div className="col-span-3">
+                                {m.artifact_action === true
+                                  ? `${m.artifact_action_type || "?"}:${m.artifact_code || "?"}`
+                                  : "—"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {(() => {
                   const trace = details.llmDebugTrace ?? (details.llmResponse as Record<string, unknown>)?.debug_trace;
                   const traceObj = trace && typeof trace === "object" ? (trace as Record<string, unknown>) : null;
                   const systemPrompt = typeof traceObj?.system_prompt === "string" ? traceObj.system_prompt : null;
-                  const prompt = typeof traceObj?.prompt === "string" ? traceObj.prompt : null;
+                  const runtimePrompt = typeof traceObj?.prompt === "string" ? traceObj.prompt : null;
+                  const playerMessage = typeof traceObj?.player_message === "string" ? traceObj.player_message : null;
+                  const messages = Array.isArray(traceObj?.messages) ? traceObj.messages : null;
                   return (
                     <div className="space-y-4">
                       <div>
-                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (system_prompt)</div>
+                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (`system`)</div>
                         <PromptBlock value={systemPrompt} />
                       </div>
                       <div>
-                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (prompt)</div>
-                        <PromptBlock value={prompt} className="max-h-[560px]" />
+                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (`user`: runtime state)</div>
+                        <PromptBlock value={runtimePrompt} className="max-h-[560px]" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (`user`: player message)</div>
+                        <PromptBlock value={playerMessage} />
+                      </div>
+                      <div>
+                        <div className="text-sm text-white/70 mb-1">LLM-сервис → LLM (`messages` payload)</div>
+                        <JsonBlock value={messages} />
                       </div>
                     </div>
                   );
