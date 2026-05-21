@@ -16,6 +16,7 @@ import {
   type PurchasedRewardAdmin,
   type WithdrawalStatus
 } from '@/http/adminAPI';
+import { getUserArtifactTransactions, type ArtifactTransactionRow, type UserArtifactTransactionsResponse } from '@/http/artifactMarketAPI';
 import { getAllAgents, type Agent } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
 import { formatDate } from '@/utils/formatters';
@@ -50,7 +51,8 @@ import {
   MessageSquare,
   Zap,
   Coins,
-  Gift
+  Gift,
+  Gem
 } from 'lucide-react';
 import Lottie from 'lottie-react';
 
@@ -71,6 +73,10 @@ const UserDetailsPage = observer(() => {
   const [rewardAnimations, setRewardAnimations] = useState<{ [url: string]: Record<string, unknown> }>({});
   const loadedRewardAnimationUrls = useRef<Set<string>>(new Set());
   const [deletingRewardId, setDeletingRewardId] = useState<number | null>(null);
+  const [artifactTransactions, setArtifactTransactions] = useState<ArtifactTransactionRow[]>([]);
+  const [artifactTxTotals, setArtifactTxTotals] = useState<UserArtifactTransactionsResponse['totals'] | null>(null);
+  const [artifactTxLoading, setArtifactTxLoading] = useState(false);
+  const [artifactTxError, setArtifactTxError] = useState<string | null>(null);
   
   // Модалки для действий
   const { isOpen: isBalanceModalOpen, onOpen: onBalanceModalOpen, onClose: onBalanceModalClose } = useDisclosure();
@@ -120,6 +126,22 @@ const UserDetailsPage = observer(() => {
           setPurchasedRewards([]);
         })
         .finally(() => setPurchasedRewardsLoading(false));
+
+      setArtifactTxLoading(true);
+      setArtifactTxError(null);
+      getUserArtifactTransactions(userId)
+        .then((data) => {
+          setArtifactTransactions(data.transactions || []);
+          setArtifactTxTotals(data.totals || null);
+        })
+        .catch((err: unknown) => {
+          console.error('Не удалось загрузить операции с артефактами:', err);
+          const errorObj = err as { response?: { data?: { message?: string } } };
+          setArtifactTxError(errorObj.response?.data?.message || 'Не удалось загрузить операции с артефактами');
+          setArtifactTransactions([]);
+          setArtifactTxTotals(null);
+        })
+        .finally(() => setArtifactTxLoading(false));
     }
   }, [userId, loadUserDetails, caseStore]);
 
@@ -542,6 +564,96 @@ const UserDetailsPage = observer(() => {
                 <div className="text-center py-8 text-gray-400">Открытия кейсов не найдены.</div>
               )}
             </>
+          ) : null}
+        </CardBody>
+      </Card>
+
+      {/* Artifact market transactions */}
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Gem className="w-4 h-4 text-amber-400" />
+              Операции с артефактами
+            </h3>
+            <Chip size="sm" variant="flat" color="warning">
+              {artifactTransactions.length}
+            </Chip>
+          </div>
+
+          {artifactTxTotals ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Покупок</p>
+                <p className="text-lg font-semibold">{artifactTxTotals.buyCount}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Продаж</p>
+                <p className="text-lg font-semibold">{artifactTxTotals.sellCount}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Потрачено gems</p>
+                <p className="text-lg font-semibold text-amber-500">{artifactTxTotals.buyTotalPrice}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Получено gems</p>
+                <p className="text-lg font-semibold text-emerald-500">{artifactTxTotals.sellTotalPrice}</p>
+              </div>
+            </div>
+          ) : null}
+
+          {artifactTxError ? <div className="text-sm text-red-500">{artifactTxError}</div> : null}
+
+          {artifactTxLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : null}
+
+          {!artifactTxLoading ? (
+            artifactTransactions.length > 0 ? (
+              <Table aria-label="Таблица операций с артефактами">
+                <TableHeader>
+                  <TableColumn>АРТЕФАКТ</TableColumn>
+                  <TableColumn>ИСТОРИЯ</TableColumn>
+                  <TableColumn>ТИП</TableColumn>
+                  <TableColumn>ЦЕНА</TableColumn>
+                  <TableColumn>БАЛАНС</TableColumn>
+                  <TableColumn>ДАТА</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {artifactTransactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{tx.artifact?.name || `#${tx.artifactId}`}</p>
+                          <p className="text-xs text-gray-500">{tx.artifact?.code}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{tx.historyName}</TableCell>
+                      <TableCell>
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={tx.type === 'BUY' ? 'warning' : 'success'}
+                        >
+                          {tx.type === 'BUY' ? 'Покупка' : 'Продажа'}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>{tx.price}</TableCell>
+                      <TableCell>
+                        <span className="text-xs text-gray-500">{tx.balanceBefore}</span>
+                        <span className="mx-1">→</span>
+                        <span className="text-xs">{tx.balanceAfter}</span>
+                      </TableCell>
+                      <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-gray-400">Операций с артефактами не найдено.</div>
+            )
           ) : null}
         </CardBody>
       </Card>
