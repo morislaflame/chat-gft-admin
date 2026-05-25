@@ -1,7 +1,7 @@
 import { $authHost } from "./index";
 import type { MediaFile } from "./agentAPI";
 
-export type ArtifactBoostType = "COMPANION" | "KEY" | "WEAPON" | "ARMOR" | "TRINKET";
+export type ArtifactBoostType = "HELPER" | "KEY" | "WEAPON" | "ARMOR" | "TRINKET";
 
 export interface ArtifactAgent {
   id: number;

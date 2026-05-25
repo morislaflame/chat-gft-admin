@@ -9,7 +9,7 @@ import type { Artifact, ArtifactBoostType } from "@/http/artifactAPI";
 import { getArtifactMarketStats, type ArtifactMarketStatsResponse } from "@/http/artifactMarketAPI";
 import { MediaUploadField } from "@/components/AgentsPageComponents/MediaUploadField";
 
-const BOOST_TYPES: ArtifactBoostType[] = ["COMPANION", "KEY", "WEAPON", "ARMOR", "TRINKET"];
+const BOOST_TYPES: ArtifactBoostType[] = ["HELPER", "KEY", "WEAPON", "ARMOR", "TRINKET"];
 
 const ArtifactsPage = observer(() => {
   const { artifact, agent } = useContext(Context) as IStoreContext;

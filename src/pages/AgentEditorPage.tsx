@@ -7,6 +7,7 @@ import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { PageHeader } from '@/components/ui';
 import { MediaUploadField } from '@/components/AgentsPageComponents/MediaUploadField';
 import { AgentMissionsSection } from '@/components/AgentsPageComponents/AgentMissionsSection';
+import { AgentCompanionSection } from '@/components/AgentsPageComponents/AgentCompanionSection';
 import { PromptStatistics } from '@/components/AgentsPageComponents/PromptStatistics';
 import { AGENTS_ROUTE } from '@/utils/consts';
 
@@ -297,6 +298,8 @@ const AgentEditorPage = observer(() => {
               />
             </div>
           </div>
+
+          <AgentCompanionSection agentId={selectedAgent.id} historyName={selectedAgent.historyName} />
 
           <AgentMissionsSection
             missions={agent.getMissions(selectedAgent.id)}

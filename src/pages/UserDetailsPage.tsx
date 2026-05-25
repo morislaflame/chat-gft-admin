@@ -58,6 +58,8 @@ import {
 } from 'lucide-react';
 import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
 import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
+import UserCompanionsInventorySection from '@/components/UsersPageComponents/UserCompanionsInventorySection';
+import { getUserCompanionsInventory, type UserCompanionInventoryItem } from '@/http/companionAPI';
 import Lottie from 'lottie-react';
 
 const UserDetailsPage = observer(() => {
@@ -84,6 +86,9 @@ const UserDetailsPage = observer(() => {
   const [artifactsCatalog, setArtifactsCatalog] = useState<AdminArtifactsGrantCatalogResponse | null>(null);
   const [artifactsCatalogLoading, setArtifactsCatalogLoading] = useState(false);
   const [artifactsCatalogError, setArtifactsCatalogError] = useState<string | null>(null);
+  const [companionsInventory, setCompanionsInventory] = useState<UserCompanionInventoryItem[]>([]);
+  const [companionsInventoryLoading, setCompanionsInventoryLoading] = useState(false);
+  const [companionsInventoryError, setCompanionsInventoryError] = useState<string | null>(null);
   
   // Модалки для действий
   const { isOpen: isBalanceModalOpen, onOpen: onBalanceModalOpen, onClose: onBalanceModalClose } = useDisclosure();
@@ -108,6 +113,23 @@ const UserDetailsPage = observer(() => {
       setArtifactsCatalog(null);
     } finally {
       setArtifactsCatalogLoading(false);
+    }
+  }, [userId]);
+
+  const loadCompanionsInventory = useCallback(async () => {
+    if (!userId) return;
+    setCompanionsInventoryLoading(true);
+    setCompanionsInventoryError(null);
+    try {
+      const data = await getUserCompanionsInventory(userId);
+      setCompanionsInventory(data);
+    } catch (err: unknown) {
+      console.error('Не удалось загрузить компаньонов:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setCompanionsInventoryError(errorObj.response?.data?.message || 'Не удалось загрузить компаньонов');
+      setCompanionsInventory([]);
+    } finally {
+      setCompanionsInventoryLoading(false);
     }
   }, [userId]);
 
@@ -169,8 +191,9 @@ const UserDetailsPage = observer(() => {
         .finally(() => setArtifactTxLoading(false));
 
       void loadArtifactsCatalog();
+      void loadCompanionsInventory();
     }
-  }, [userId, loadUserDetails, loadArtifactsCatalog, caseStore]);
+  }, [userId, loadUserDetails, loadArtifactsCatalog, loadCompanionsInventory, caseStore]);
 
   // Load Lottie JSON animations for purchased rewards
   useEffect(() => {
@@ -602,6 +625,14 @@ const UserDetailsPage = observer(() => {
           ) : null}
         </CardBody>
       </Card>
+
+      <UserCompanionsInventorySection
+        userId={userId ?? ''}
+        items={companionsInventory}
+        loading={companionsInventoryLoading}
+        error={companionsInventoryError}
+        onChanged={() => void loadCompanionsInventory()}
+      />
 
       <UserArtifactsInventorySection
         catalog={artifactsCatalog}
