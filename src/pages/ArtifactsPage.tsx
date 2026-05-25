@@ -372,7 +372,7 @@ const ArtifactsPage = observer(() => {
                 min={0}
                 value={form.sellPrice}
                 onChange={(e) => setForm({ ...form, sellPrice: e.target.value })}
-                description="Пусто = нельзя продать. COMPANION всё равно не продаётся."
+                description="Пусто = нельзя продать. Продажа только дубликатов (2+ шт.)."
               />
               <div className="md:col-span-2">
                 <Select
