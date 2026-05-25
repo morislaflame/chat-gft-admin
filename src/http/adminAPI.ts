@@ -117,6 +117,57 @@ export const deleteUser = async (userId: number): Promise<DeleteUserResponse> =>
     return data;
 };
 
+export interface AdminGrantArtifactItem {
+    id: number;
+    code: string;
+    name: string;
+    nameEn?: string | null;
+    level: number;
+    boostType: string;
+    ownedQty: number;
+}
+
+export interface AdminGrantArtifactHistoryGroup {
+    historyName: string;
+    displayName: string | null;
+    levels: Array<{
+        level: number;
+        artifacts: AdminGrantArtifactItem[];
+    }>;
+}
+
+export interface AdminArtifactsGrantCatalogResponse {
+    userId: number;
+    histories: AdminGrantArtifactHistoryGroup[];
+}
+
+export interface GrantUserArtifactsResponse {
+    success: boolean;
+    message: string;
+    granted: Array<{
+        artifactId: number;
+        code: string;
+        name: string;
+        historyName: string;
+        quantity: number;
+    }>;
+}
+
+export const getUserArtifactsGrantCatalog = async (
+    userId: string | number,
+): Promise<AdminArtifactsGrantCatalogResponse> => {
+    const { data } = await $authHost.get(`api/admin/user/${userId}/artifacts-grant-catalog`);
+    return data;
+};
+
+export const grantUserArtifacts = async (
+    userId: string | number,
+    artifactIds: number[],
+): Promise<GrantUserArtifactsResponse> => {
+    const { data } = await $authHost.post(`api/admin/user/${userId}/grant-artifacts`, { artifactIds });
+    return data;
+};
+
 export const getTotalPurchases = async () => {
     const { data } = await $authHost.get('api/admin/purchases');
     return data;

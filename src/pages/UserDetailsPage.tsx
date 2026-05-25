@@ -11,10 +11,12 @@ import {
   getUserPurchasedRewards,
   deleteUserPurchasedReward,
   deleteUser,
+  getUserArtifactsGrantCatalog,
   type UserDetailsResponse,
   type UserChatHistoryResponse,
   type PurchasedRewardAdmin,
-  type WithdrawalStatus
+  type WithdrawalStatus,
+  type AdminArtifactsGrantCatalogResponse,
 } from '@/http/adminAPI';
 import { getUserArtifactTransactions, type ArtifactTransactionRow, type UserArtifactTransactionsResponse } from '@/http/artifactMarketAPI';
 import { getAllAgents, type Agent } from '@/http/agentAPI';
@@ -54,6 +56,8 @@ import {
   Gift,
   Gem
 } from 'lucide-react';
+import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
+import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
 import Lottie from 'lottie-react';
 
 const UserDetailsPage = observer(() => {
@@ -77,14 +81,35 @@ const UserDetailsPage = observer(() => {
   const [artifactTxTotals, setArtifactTxTotals] = useState<UserArtifactTransactionsResponse['totals'] | null>(null);
   const [artifactTxLoading, setArtifactTxLoading] = useState(false);
   const [artifactTxError, setArtifactTxError] = useState<string | null>(null);
+  const [artifactsCatalog, setArtifactsCatalog] = useState<AdminArtifactsGrantCatalogResponse | null>(null);
+  const [artifactsCatalogLoading, setArtifactsCatalogLoading] = useState(false);
+  const [artifactsCatalogError, setArtifactsCatalogError] = useState<string | null>(null);
   
   // Модалки для действий
   const { isOpen: isBalanceModalOpen, onOpen: onBalanceModalOpen, onClose: onBalanceModalClose } = useDisclosure();
   const { isOpen: isEnergyModalOpen, onOpen: onEnergyModalOpen, onClose: onEnergyModalClose } = useDisclosure();
   const { isOpen: isDeleteModalOpen, onOpen: onDeleteModalOpen, onClose: onDeleteModalClose } = useDisclosure();
+  const { isOpen: isGrantArtifactsOpen, onOpen: onGrantArtifactsOpen, onClose: onGrantArtifactsClose } = useDisclosure();
   
   const [balanceAmount, setBalanceAmount] = useState<string>('');
   const [energyAmount, setEnergyAmount] = useState<string>('');
+
+  const loadArtifactsCatalog = useCallback(async () => {
+    if (!userId) return;
+    setArtifactsCatalogLoading(true);
+    setArtifactsCatalogError(null);
+    try {
+      const data = await getUserArtifactsGrantCatalog(userId);
+      setArtifactsCatalog(data);
+    } catch (err: unknown) {
+      console.error('Не удалось загрузить инвентарь артефактов:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setArtifactsCatalogError(errorObj.response?.data?.message || 'Не удалось загрузить инвентарь артефактов');
+      setArtifactsCatalog(null);
+    } finally {
+      setArtifactsCatalogLoading(false);
+    }
+  }, [userId]);
 
   const loadUserDetails = useCallback(async () => {
     if (!userId) return;
@@ -142,8 +167,10 @@ const UserDetailsPage = observer(() => {
           setArtifactTxTotals(null);
         })
         .finally(() => setArtifactTxLoading(false));
+
+      void loadArtifactsCatalog();
     }
-  }, [userId, loadUserDetails, caseStore]);
+  }, [userId, loadUserDetails, loadArtifactsCatalog, caseStore]);
 
   // Load Lottie JSON animations for purchased rewards
   useEffect(() => {
@@ -466,6 +493,14 @@ const UserDetailsPage = observer(() => {
           <h3 className="font-semibold mb-4">Действия</h3>
           <div className="flex flex-wrap gap-3">
             <Button
+              color="warning"
+              variant="flat"
+              startContent={<Gem size={16} />}
+              onPress={onGrantArtifactsOpen}
+            >
+              Начислить артефакты
+            </Button>
+            <Button
               color="success"
               variant="flat"
               startContent={<Coins size={16} />}
@@ -567,6 +602,12 @@ const UserDetailsPage = observer(() => {
           ) : null}
         </CardBody>
       </Card>
+
+      <UserArtifactsInventorySection
+        catalog={artifactsCatalog}
+        loading={artifactsCatalogLoading}
+        error={artifactsCatalogError}
+      />
 
       {/* Artifact market transactions */}
       <Card>
@@ -960,6 +1001,15 @@ const UserDetailsPage = observer(() => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      <GrantUserArtifactsModal
+        isOpen={isGrantArtifactsOpen}
+        onClose={onGrantArtifactsClose}
+        userId={userId ?? null}
+        catalog={artifactsCatalog}
+        catalogLoading={artifactsCatalogLoading}
+        onGranted={() => void loadArtifactsCatalog()}
+      />
 
       <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose}>
         <ModalContent>
