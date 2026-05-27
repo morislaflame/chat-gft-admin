@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import { observer } from "mobx-react-lite";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Textarea, useDisclosure } from "@heroui/react";
-import { Plus, Trash2, Edit, Upload } from "lucide-react";
+import { Plus, Trash2, Edit, Upload, Download } from "lucide-react";
 import Lottie from "lottie-react";
 import { Context, type IStoreContext } from "@/store/StoreProvider";
 import { PageHeader } from "@/components/ui";
 import type { Artifact, ArtifactBoostType } from "@/http/artifactAPI";
+import { exportArtifactsData } from "@/http/artifactAPI";
+import { downloadBlob, exportFilename } from "@/utils/downloadFile";
 import { MediaUploadField } from "@/components/AgentsPageComponents/MediaUploadField";
 
 const BOOST_TYPES: ArtifactBoostType[] = ["COMPANION", "KEY", "WEAPON", "ARMOR", "TRINKET"];
@@ -27,6 +29,7 @@ const ArtifactsPage = observer(() => {
   });
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewAnimation, setPreviewAnimation] = useState<Record<string, unknown> | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
   const mediaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -166,11 +169,30 @@ const ArtifactsPage = observer(() => {
     await artifact.fetchAllArtifacts();
   };
 
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportArtifactsData();
+      downloadBlob(blob, exportFilename("artifacts_export"));
+    } catch (error) {
+      console.error("Не удалось выгрузить артефакты:", error);
+      alert("Не удалось выгрузить данные");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader
         title="Artifacts"
         description="Create artifacts and manage their descriptions & media."
+        secondaryActionButton={{
+          label: exportLoading ? "Exporting..." : "Выгрузить данные",
+          icon: Download,
+          onClick: () => void handleExportData(),
+          variant: "flat",
+        }}
         actionButton={{
           label: "Create Artifact",
           icon: Plus,

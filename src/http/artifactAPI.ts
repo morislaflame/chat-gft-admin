@@ -55,6 +55,11 @@ export const getAllArtifacts = async (): Promise<Artifact[]> => {
   return data;
 };
 
+export const exportArtifactsData = async (): Promise<Blob> => {
+  const { data } = await $authHost.get("api/artifact/export", { responseType: "blob" });
+  return data as Blob;
+};
+
 export const createArtifact = async (payload: CreateArtifactData): Promise<Artifact> => {
   const { data } = await $authHost.post("api/artifact/create", payload);
   return data;

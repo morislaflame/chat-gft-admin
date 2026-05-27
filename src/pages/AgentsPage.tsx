@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@heroui/react';
-import { Plus, Gift, Footprints } from 'lucide-react';
+import { Plus, Gift, Footprints, Download } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
@@ -16,6 +16,8 @@ import {
 } from '@/components/AgentsPageComponents';
 import { type StageReward } from '@/http/stageRewardAPI';
 import { type MissionStepReward } from '@/http/missionStepRewardAPI';
+import { exportAgentsData } from '@/http/agentAPI';
+import { downloadBlob, exportFilename } from '@/utils/downloadFile';
 
 const AgentsPage = observer(() => {
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ const AgentsPage = observer(() => {
     rewardGems: 0
   });
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
     agent.fetchAllAgents();
@@ -54,6 +57,20 @@ const AgentsPage = observer(() => {
 
   const handleCreateAgent = () => {
     navigate('/agents/editor/new');
+  };
+
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportAgentsData();
+      downloadBlob(blob, exportFilename('agents_export'));
+    } catch (error) {
+      console.error('Не удалось выгрузить данные агентов:', error);
+      setToast({ message: 'Не удалось выгрузить данные', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const handleDeleteAgent = async (id: number) => {
@@ -192,6 +209,12 @@ const AgentsPage = observer(() => {
       <PageHeader
         title="Агенты"
         description="Управление AI-агентами и их системными промптами"
+        secondaryActionButton={{
+          label: exportLoading ? 'Выгрузка...' : 'Выгрузить данные',
+          icon: Download,
+          onClick: () => void handleExportData(),
+          variant: 'flat',
+        }}
         actionButton={{
           label: "Создать агента",
           icon: Plus,

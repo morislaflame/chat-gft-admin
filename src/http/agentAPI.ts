@@ -71,6 +71,11 @@ export const getAllAgents = async () => {
     return data;
 };
 
+export const exportAgentsData = async (): Promise<Blob> => {
+    const { data } = await $authHost.get('api/agent/export', { responseType: 'blob' });
+    return data as Blob;
+};
+
 export const getAgentById = async (id: number) => {
     const { data } = await $authHost.get(`api/agent/${id}`);
     return data;
