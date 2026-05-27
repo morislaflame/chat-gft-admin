@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext, useMemo } from "react";
 import { useDisclosure } from "@heroui/react";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { Context, type IStoreContext } from "@/store/StoreProvider";
 import { PageHeader } from "@/components/ui";
@@ -10,7 +10,8 @@ import {
   type CaseFormData,
   type CaseItemForm,
 } from "@/components/CasesPageComponents";
-import { type Case } from "@/http/caseAPI";
+import { exportCasesData, type Case } from "@/http/caseAPI";
+import { downloadBlob, exportFilename } from "@/utils/downloadFile";
 import { type Reward } from "@/types/reward";
 
 const createDefaultItem = (): CaseItemForm => ({
@@ -26,6 +27,7 @@ const CasesPage = observer(() => {
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
   const [formData, setFormData] = useState<CaseFormData>({
     name: "",
     nameEn: "",
@@ -128,11 +130,30 @@ const CasesPage = observer(() => {
 
   const rewardsList: Reward[] = reward.rewards;
 
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportCasesData();
+      downloadBlob(blob, exportFilename("cases_export"));
+    } catch (error) {
+      console.error("Не удалось выгрузить кейсы:", error);
+      alert("Не удалось выгрузить данные");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader
         title="Кейсы"
         description="Управление кейсами и их содержимым"
+        secondaryActionButton={{
+          label: exportLoading ? "Exporting..." : "Выгрузить данные",
+          icon: Download,
+          onClick: () => void handleExportData(),
+          variant: "flat",
+        }}
         actionButton={{
           label: "Создать кейс",
           icon: Plus,

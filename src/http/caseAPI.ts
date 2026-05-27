@@ -159,6 +159,11 @@ export const getAllCasesAdmin = async () => {
   return data;
 };
 
+export const exportCasesData = async (): Promise<Blob> => {
+  const { data } = await $authHost.get("api/case/export", { responseType: "blob" });
+  return data as Blob;
+};
+
 export const getActiveCases = async () => {
   const { data } = await $authHost.get("api/case/active");
   return data;
