@@ -40,17 +40,26 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     missionPrompt: '',
     uiStepGoalsText: '',
     artifactIds: [] as number[],
-    orderIndex: ''
+    orderIndex: '',
+    level: '1'
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
   const [deletingVideo, setDeletingVideo] = useState<Record<number, boolean>>({});
+
+  const getNextOrderIndexForLevel = (levelValue: string) => {
+    const numericLevel = parseInt(levelValue, 10);
+    const normalizedLevel = Number.isFinite(numericLevel) && numericLevel > 0 ? numericLevel : 1;
+    const levelMissions = missions.filter((mission) => (mission.level ?? 1) === normalizedLevel);
+    if (levelMissions.length === 0) return '1';
+    return (Math.max(...levelMissions.map((mission) => mission.orderIndex)) + 1).toString();
+  };
 
   useEffect(() => {
     artifact.fetchAllArtifacts();
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
   }, [missions, artifact]);
 
   const handleEditMission = (mission: Mission) => {
@@ -63,7 +72,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       missionPrompt: mission.missionPrompt || '',
       uiStepGoalsText: uiStepGoalsToEditableText(mission.uiStepGoals ?? null),
       artifactIds: (mission.artifacts || []).map((a) => a.id),
-      orderIndex: mission.orderIndex.toString()
+      orderIndex: mission.orderIndex.toString(),
+      level: (mission.level ?? 1).toString()
     });
     setShowMissionForm(true);
   };
@@ -81,7 +91,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
         // Всегда строка, чтобы ключ ушёл в JSON (axios выкидывает undefined).
         uiStepGoalsText: missionFormData.uiStepGoalsText ?? '',
         artifactIds: missionFormData.artifactIds,
-        orderIndex: parseInt(missionFormData.orderIndex)
+        orderIndex: parseInt(missionFormData.orderIndex),
+        level: missionFormData.level ? parseInt(missionFormData.level) : 1
       };
 
       if (editingMission) {
@@ -92,7 +103,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
     } catch (error) {
       console.error('Не удалось сохранить миссию:', error);
     }
@@ -111,7 +122,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
   };
 
   const handleCreateNewMission = () => {
@@ -124,12 +135,31 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       missionPrompt: '',
       uiStepGoalsText: '',
       artifactIds: [],
-      orderIndex: missions.length > 0 ? (Math.max(...missions.map(m => m.orderIndex)) + 1).toString() : '1'
+      orderIndex: getNextOrderIndexForLevel('1'),
+      level: '1'
     });
     setShowMissionForm(true);
   };
 
-  const sortedMissions = [...missions].sort((a, b) => a.orderIndex - b.orderIndex);
+  const groupedMissionsByLevel = [...missions]
+    .sort((a, b) => {
+      const aLevel = a.level ?? 1;
+      const bLevel = b.level ?? 1;
+      if (aLevel !== bLevel) return aLevel - bLevel;
+      return a.orderIndex - b.orderIndex;
+    })
+    .reduce<Record<number, Mission[]>>((acc, mission) => {
+      const level = mission.level ?? 1;
+      if (!acc[level]) {
+        acc[level] = [];
+      }
+      acc[level].push(mission);
+      return acc;
+    }, {});
+
+  const levelEntries = Object.entries(groupedMissionsByLevel)
+    .map(([level, levelMissions]) => [parseInt(level, 10), levelMissions] as const)
+    .sort((a, b) => a[0] - b[0]);
 
   return (
     <div className="border-t pt-4 mt-4 space-y-4">
@@ -210,7 +240,30 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                   value={missionFormData.orderIndex}
                   onChange={(e) => setMissionFormData({ ...missionFormData, orderIndex: e.target.value })}
                   isRequired
-                  description="Lower number appears first"
+                  description="Порядок внутри выбранного уровня (level)"
+                />
+                <Input
+                  label="Уровень миссии"
+                  placeholder="1"
+                  type="number"
+                  min={1}
+                  value={missionFormData.level}
+                  onChange={(e) => {
+                    const nextLevel = e.target.value;
+                    setMissionFormData((prev) => {
+                      const previousLevel = prev.level || '1';
+                      const previousOrder = parseInt(prev.orderIndex, 10);
+                      const wasAutoSuggested =
+                        !prev.orderIndex || previousOrder === parseInt(getNextOrderIndexForLevel(previousLevel), 10);
+                      return {
+                        ...prev,
+                        level: nextLevel,
+                        orderIndex: wasAutoSuggested ? getNextOrderIndexForLevel(nextLevel) : prev.orderIndex,
+                      };
+                    });
+                  }}
+                  isRequired
+                  description="Уровень совпадает с уровнем артефактов этой миссии"
                 />
                 
 
@@ -254,6 +307,17 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
               <div className="text-lg font-extrabold text-white mb-2">
                 Промпт миссии (LLM)
               </div>
+              <div className="mb-3 rounded-lg border border-zinc-700 bg-zinc-900/70 p-3 text-xs text-zinc-300 space-y-1">
+                <div>
+                  Поддерживаемые теги в <code>Required beats</code>:
+                </div>
+                <div>
+                  <code>@progress(flag)</code>, <code>@artifact(CODE)</code>, <code>@artifact_side(K)</code>.
+                </div>
+                <div className="text-zinc-400">
+                  `@artifact_side(K)` означает: RECEIVE артефакта доступен в side-цепочке с K-го side-хода.
+                </div>
+              </div>
               <MissionPromptMentions
                 value={missionFormData.missionPrompt}
                 onChange={(next) => setMissionFormData({ ...missionFormData, missionPrompt: next })}
@@ -283,54 +347,66 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
             <div className="text-center py-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">Загрузка миссий...</p>
             </div>
-          ) : sortedMissions.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {sortedMissions.map((mission) => (
-                <div
-                  key={mission.id}
-                  className="border border-zinc-700/70 bg-zinc-900/70 rounded-xl p-4 space-y-4"
-                >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-md font-semibold text-zinc-400">#{mission.orderIndex}</span>
-                    </div>
-                    <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
-                   
+          ) : levelEntries.length > 0 ? (
+            <div className="space-y-6">
+              {levelEntries.map(([level, levelMissions]) => (
+                <div key={level} className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 border-b border-zinc-800 pb-2">
+                    <h3 className="text-base font-semibold text-zinc-200">
+                      Уровень {level}
+                    </h3>
+                    <span className="text-xs text-zinc-500">
+                      Миссий: {levelMissions.length}
+                    </span>
                   </div>
-                  <div className="flex gap-2 ml-2 shrink-0">
-                    <Button
-                      size="sm"
-                      color="primary"
-                      variant="flat"
-                      startContent={<Edit className="w-3 h-3" />}
-                      onClick={() => handleEditMission(mission)}
-                    >
-                      Изменить
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="danger"
-                      variant="flat"
-                      startContent={<Trash2 className="w-3 h-3" />}
-                      onClick={() => handleDeleteMission(mission.id)}
-                    >
-                      Удалить
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {levelMissions.map((mission) => (
+                      <div
+                        key={mission.id}
+                        className="border border-zinc-700/70 bg-zinc-900/70 rounded-xl p-4 space-y-4"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="text-md font-semibold text-zinc-400">#{mission.orderIndex}</span>
+                            </div>
+                            <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
+                          </div>
+                          <div className="flex gap-2 ml-2 shrink-0">
+                            <Button
+                              size="sm"
+                              color="primary"
+                              variant="flat"
+                              startContent={<Edit className="w-3 h-3" />}
+                              onClick={() => handleEditMission(mission)}
+                            >
+                              Изменить
+                            </Button>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="flat"
+                              startContent={<Trash2 className="w-3 h-3" />}
+                              onClick={() => handleDeleteMission(mission.id)}
+                            >
+                              Удалить
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-lg bg-zinc-800/70 p-3 space-y-2">
+                          {mission.description ? (
+                            <p className="text-sm text-zinc-200 line-clamp-3">{mission.description}</p>
+                          ) : (
+                            <p className="text-sm text-zinc-500">Без описания</p>
+                          )}
+                          {mission.descriptionEn ? (
+                            <p className="text-xs text-zinc-500 line-clamp-2">EN: {mission.descriptionEn}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-
-                <div className="rounded-lg bg-zinc-800/70 p-3 space-y-2">
-                  {mission.description ? (
-                    <p className="text-sm text-zinc-200 line-clamp-3">{mission.description}</p>
-                  ) : (
-                    <p className="text-sm text-zinc-500">Без описания</p>
-                  )}
-                  {mission.descriptionEn ? (
-                    <p className="text-xs text-zinc-500 line-clamp-2">EN: {mission.descriptionEn}</p>
-                  ) : null}
-                </div>
-
                 </div>
               ))}
             </div>

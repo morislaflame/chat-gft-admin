@@ -18,5 +18,6 @@ export const DAILY_REWARDS_ROUTE = '/daily-rewards';
 export const WITHDRAWALS_ROUTE = '/withdrawals';
 export const TRAFFIC_SOURCES_ROUTE = '/traffic-sources';
 export const LLM_DEBUG_ROUTE = '/llm-debug';
+export const ERROR_REPORTS_ROUTE = '/error-reports';
 export const USER_CHAT_HISTORY_ROUTE = '/user-chat-history';
 export const USER_DETAILS_ROUTE = '/users/:userId';

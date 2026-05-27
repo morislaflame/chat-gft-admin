@@ -11,11 +11,14 @@ import {
   getUserPurchasedRewards,
   deleteUserPurchasedReward,
   deleteUser,
+  getUserArtifactsGrantCatalog,
   type UserDetailsResponse,
   type UserChatHistoryResponse,
   type PurchasedRewardAdmin,
-  type WithdrawalStatus
+  type WithdrawalStatus,
+  type AdminArtifactsGrantCatalogResponse,
 } from '@/http/adminAPI';
+import { getUserArtifactTransactions, type ArtifactTransactionRow, type UserArtifactTransactionsResponse } from '@/http/artifactMarketAPI';
 import { getAllAgents, type Agent } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
 import { formatDate } from '@/utils/formatters';
@@ -50,8 +53,13 @@ import {
   MessageSquare,
   Zap,
   Coins,
-  Gift
+  Gift,
+  Gem
 } from 'lucide-react';
+import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
+import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
+import UserCompanionsInventorySection from '@/components/UsersPageComponents/UserCompanionsInventorySection';
+import { getUserCompanionsInventory, type UserCompanionInventoryItem } from '@/http/companionAPI';
 import Lottie from 'lottie-react';
 
 const UserDetailsPage = observer(() => {
@@ -71,14 +79,59 @@ const UserDetailsPage = observer(() => {
   const [rewardAnimations, setRewardAnimations] = useState<{ [url: string]: Record<string, unknown> }>({});
   const loadedRewardAnimationUrls = useRef<Set<string>>(new Set());
   const [deletingRewardId, setDeletingRewardId] = useState<number | null>(null);
+  const [artifactTransactions, setArtifactTransactions] = useState<ArtifactTransactionRow[]>([]);
+  const [artifactTxTotals, setArtifactTxTotals] = useState<UserArtifactTransactionsResponse['totals'] | null>(null);
+  const [artifactTxLoading, setArtifactTxLoading] = useState(false);
+  const [artifactTxError, setArtifactTxError] = useState<string | null>(null);
+  const [artifactsCatalog, setArtifactsCatalog] = useState<AdminArtifactsGrantCatalogResponse | null>(null);
+  const [artifactsCatalogLoading, setArtifactsCatalogLoading] = useState(false);
+  const [artifactsCatalogError, setArtifactsCatalogError] = useState<string | null>(null);
+  const [companionsInventory, setCompanionsInventory] = useState<UserCompanionInventoryItem[]>([]);
+  const [companionsInventoryLoading, setCompanionsInventoryLoading] = useState(false);
+  const [companionsInventoryError, setCompanionsInventoryError] = useState<string | null>(null);
   
   // Модалки для действий
   const { isOpen: isBalanceModalOpen, onOpen: onBalanceModalOpen, onClose: onBalanceModalClose } = useDisclosure();
   const { isOpen: isEnergyModalOpen, onOpen: onEnergyModalOpen, onClose: onEnergyModalClose } = useDisclosure();
   const { isOpen: isDeleteModalOpen, onOpen: onDeleteModalOpen, onClose: onDeleteModalClose } = useDisclosure();
+  const { isOpen: isGrantArtifactsOpen, onOpen: onGrantArtifactsOpen, onClose: onGrantArtifactsClose } = useDisclosure();
   
   const [balanceAmount, setBalanceAmount] = useState<string>('');
   const [energyAmount, setEnergyAmount] = useState<string>('');
+
+  const loadArtifactsCatalog = useCallback(async () => {
+    if (!userId) return;
+    setArtifactsCatalogLoading(true);
+    setArtifactsCatalogError(null);
+    try {
+      const data = await getUserArtifactsGrantCatalog(userId);
+      setArtifactsCatalog(data);
+    } catch (err: unknown) {
+      console.error('Не удалось загрузить инвентарь артефактов:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setArtifactsCatalogError(errorObj.response?.data?.message || 'Не удалось загрузить инвентарь артефактов');
+      setArtifactsCatalog(null);
+    } finally {
+      setArtifactsCatalogLoading(false);
+    }
+  }, [userId]);
+
+  const loadCompanionsInventory = useCallback(async () => {
+    if (!userId) return;
+    setCompanionsInventoryLoading(true);
+    setCompanionsInventoryError(null);
+    try {
+      const data = await getUserCompanionsInventory(userId);
+      setCompanionsInventory(data);
+    } catch (err: unknown) {
+      console.error('Не удалось загрузить компаньонов:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setCompanionsInventoryError(errorObj.response?.data?.message || 'Не удалось загрузить компаньонов');
+      setCompanionsInventory([]);
+    } finally {
+      setCompanionsInventoryLoading(false);
+    }
+  }, [userId]);
 
   const loadUserDetails = useCallback(async () => {
     if (!userId) return;
@@ -120,8 +173,27 @@ const UserDetailsPage = observer(() => {
           setPurchasedRewards([]);
         })
         .finally(() => setPurchasedRewardsLoading(false));
+
+      setArtifactTxLoading(true);
+      setArtifactTxError(null);
+      getUserArtifactTransactions(userId)
+        .then((data) => {
+          setArtifactTransactions(data.transactions || []);
+          setArtifactTxTotals(data.totals || null);
+        })
+        .catch((err: unknown) => {
+          console.error('Не удалось загрузить операции с артефактами:', err);
+          const errorObj = err as { response?: { data?: { message?: string } } };
+          setArtifactTxError(errorObj.response?.data?.message || 'Не удалось загрузить операции с артефактами');
+          setArtifactTransactions([]);
+          setArtifactTxTotals(null);
+        })
+        .finally(() => setArtifactTxLoading(false));
+
+      void loadArtifactsCatalog();
+      void loadCompanionsInventory();
     }
-  }, [userId, loadUserDetails, caseStore]);
+  }, [userId, loadUserDetails, loadArtifactsCatalog, loadCompanionsInventory, caseStore]);
 
   // Load Lottie JSON animations for purchased rewards
   useEffect(() => {
@@ -444,6 +516,14 @@ const UserDetailsPage = observer(() => {
           <h3 className="font-semibold mb-4">Действия</h3>
           <div className="flex flex-wrap gap-3">
             <Button
+              color="warning"
+              variant="flat"
+              startContent={<Gem size={16} />}
+              onPress={onGrantArtifactsOpen}
+            >
+              Начислить артефакты
+            </Button>
+            <Button
               color="success"
               variant="flat"
               startContent={<Coins size={16} />}
@@ -542,6 +622,110 @@ const UserDetailsPage = observer(() => {
                 <div className="text-center py-8 text-gray-400">Открытия кейсов не найдены.</div>
               )}
             </>
+          ) : null}
+        </CardBody>
+      </Card>
+
+      <UserCompanionsInventorySection
+        userId={userId ?? ''}
+        items={companionsInventory}
+        loading={companionsInventoryLoading}
+        error={companionsInventoryError}
+        onChanged={() => void loadCompanionsInventory()}
+      />
+
+      <UserArtifactsInventorySection
+        catalog={artifactsCatalog}
+        loading={artifactsCatalogLoading}
+        error={artifactsCatalogError}
+      />
+
+      {/* Artifact market transactions */}
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Gem className="w-4 h-4 text-amber-400" />
+              Операции с артефактами
+            </h3>
+            <Chip size="sm" variant="flat" color="warning">
+              {artifactTransactions.length}
+            </Chip>
+          </div>
+
+          {artifactTxTotals ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Покупок</p>
+                <p className="text-lg font-semibold">{artifactTxTotals.buyCount}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Продаж</p>
+                <p className="text-lg font-semibold">{artifactTxTotals.sellCount}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Потрачено gems</p>
+                <p className="text-lg font-semibold text-amber-500">{artifactTxTotals.buyTotalPrice}</p>
+              </div>
+              <div className="rounded-lg border border-zinc-700/60 p-3">
+                <p className="text-xs text-gray-500">Получено gems</p>
+                <p className="text-lg font-semibold text-emerald-500">{artifactTxTotals.sellTotalPrice}</p>
+              </div>
+            </div>
+          ) : null}
+
+          {artifactTxError ? <div className="text-sm text-red-500">{artifactTxError}</div> : null}
+
+          {artifactTxLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : null}
+
+          {!artifactTxLoading ? (
+            artifactTransactions.length > 0 ? (
+              <Table aria-label="Таблица операций с артефактами">
+                <TableHeader>
+                  <TableColumn>АРТЕФАКТ</TableColumn>
+                  <TableColumn>ИСТОРИЯ</TableColumn>
+                  <TableColumn>ТИП</TableColumn>
+                  <TableColumn>ЦЕНА</TableColumn>
+                  <TableColumn>БАЛАНС</TableColumn>
+                  <TableColumn>ДАТА</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {artifactTransactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{tx.artifact?.name || `#${tx.artifactId}`}</p>
+                          <p className="text-xs text-gray-500">{tx.artifact?.code}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{tx.historyName}</TableCell>
+                      <TableCell>
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={tx.type === 'BUY' ? 'warning' : 'success'}
+                        >
+                          {tx.type === 'BUY' ? 'Покупка' : 'Продажа'}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>{tx.price}</TableCell>
+                      <TableCell>
+                        <span className="text-xs text-gray-500">{tx.balanceBefore}</span>
+                        <span className="mx-1">→</span>
+                        <span className="text-xs">{tx.balanceAfter}</span>
+                      </TableCell>
+                      <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-gray-400">Операций с артефактами не найдено.</div>
+            )
           ) : null}
         </CardBody>
       </Card>
@@ -848,6 +1032,15 @@ const UserDetailsPage = observer(() => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      <GrantUserArtifactsModal
+        isOpen={isGrantArtifactsOpen}
+        onClose={onGrantArtifactsClose}
+        userId={userId ?? null}
+        catalog={artifactsCatalog}
+        catalogLoading={artifactsCatalogLoading}
+        onGranted={() => void loadArtifactsCatalog()}
+      />
 
       <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose}>
         <ModalContent>

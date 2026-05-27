@@ -23,7 +23,7 @@ export default function MissionPromptMentions({
     [artifacts]
   );
 
-  // Type "@" to see artifact suggestions. Insert @artifact(code) for ACQUIRE (1 piece).
+  // Type "@" to see artifact suggestions. Insert @artifact(code) for RECEIVE (1 piece).
   const style = {
     control: {
       fontSize: 14,
@@ -69,8 +69,14 @@ export default function MissionPromptMentions({
 
   return (
     <div className="space-y-1">
-      <div className="text-sm text-white">
-        Tip: type <code>@</code> to insert artifact (e.g. &quot;@artifact(CODE)&quot;).
+      <div className="text-sm text-white space-y-1">
+        <div>
+          Tip: type <code>@</code> to insert artifact (e.g. <code>@artifact(CODE)</code>).
+        </div>
+        <div className="text-white/70 text-xs">
+          For side-chain pickup timing use tag in the beat text: <code>@artifact_side(K)</code> (for example <code>@artifact_side(2)</code>).
+          Legacy <code>@artifact_detour(K)</code> is still parsed for backward compatibility.
+        </div>
       </div>
       <MentionsInput
         value={value}

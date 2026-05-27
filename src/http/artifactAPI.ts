@@ -1,7 +1,7 @@
 import { $authHost } from "./index";
 import type { MediaFile } from "./agentAPI";
 
-export type ArtifactBoostType = "COMPANION" | "KEY" | "WEAPON" | "ARMOR" | "TRINKET";
+export type ArtifactBoostType = "HELPER" | "KEY" | "WEAPON" | "ARMOR" | "TRINKET";
 
 export interface ArtifactAgent {
   id: number;
@@ -20,6 +20,8 @@ export interface Artifact {
   boostType: ArtifactBoostType;
   mediaId?: number | null;
   agentId?: number | null;
+  buyPrice?: number | null;
+  sellPrice?: number | null;
   media?: MediaFile | null;
   agent?: ArtifactAgent | null;
   createdAt: string;
@@ -36,6 +38,8 @@ export interface CreateArtifactData {
   boostType: ArtifactBoostType;
   mediaId?: number | null;
   agentId?: number | null;
+  buyPrice?: number | null;
+  sellPrice?: number | null;
 }
 
 export interface UpdateArtifactData {
@@ -48,6 +52,8 @@ export interface UpdateArtifactData {
   boostType?: ArtifactBoostType;
   mediaId?: number | null;
   agentId?: number | null;
+  buyPrice?: number | null;
+  sellPrice?: number | null;
 }
 
 export const getAllArtifacts = async (): Promise<Artifact[]> => {

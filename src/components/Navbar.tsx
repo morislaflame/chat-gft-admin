@@ -12,6 +12,7 @@ import {
   Bot,
   Sparkles,
   Bug,
+  AlertTriangle,
   LogOut,
   Calendar,
   Download,
@@ -37,6 +38,7 @@ const Navbar = observer(() => {
     { key: 'agents', label: 'Agents', icon: Bot, path: '/agents' },
     { key: 'artifacts', label: 'Artifacts', icon: Sparkles, path: '/artifacts' },
     { key: 'llmDebug', label: 'LLM Debug', icon: Bug, path: '/llm-debug' },
+    { key: 'errorReports', label: 'Ошибки чата', icon: AlertTriangle, path: '/error-reports' },
     { key: 'trafficSources', label: 'Трафик', icon: Link2, path: '/traffic-sources' },
   ];
 

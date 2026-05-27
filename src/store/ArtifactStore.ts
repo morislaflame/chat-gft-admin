@@ -81,8 +81,7 @@ export default class ArtifactStore {
       this.setError("");
       const updated = await updateArtifact(id, payload);
       runInAction(() => {
-        const idx = this._artifacts.findIndex((a) => a.id === id);
-        if (idx !== -1) this._artifacts[idx] = updated;
+        this._artifacts = this._artifacts.map((a) => (a.id === id ? updated : a));
       });
       return updated;
     } catch (error) {
@@ -118,8 +117,7 @@ export default class ArtifactStore {
   async uploadMedia(id: number, file: File) {
     const data = await uploadArtifactMedia(id, file);
     runInAction(() => {
-      const idx = this._artifacts.findIndex((a) => a.id === id);
-      if (idx !== -1) this._artifacts[idx] = data.artifact;
+      this._artifacts = this._artifacts.map((a) => (a.id === id ? data.artifact : a));
     });
     return data;
   }
@@ -127,8 +125,7 @@ export default class ArtifactStore {
   async deleteMedia(id: number) {
     const data = await deleteArtifactMedia(id);
     runInAction(() => {
-      const idx = this._artifacts.findIndex((a) => a.id === id);
-      if (idx !== -1) this._artifacts[idx] = data.artifact;
+      this._artifacts = this._artifacts.map((a) => (a.id === id ? data.artifact : a));
     });
     return data;
   }

@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import { observer } from "mobx-react-lite";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem, Textarea, useDisclosure } from "@heroui/react";
-import { Plus, Trash2, Edit, Upload, Download } from "lucide-react";
+import { Plus, Trash2, Edit, Upload, Download, ShoppingCart, TrendingUp } from "lucide-react";
 import Lottie from "lottie-react";
 import { Context, type IStoreContext } from "@/store/StoreProvider";
 import { PageHeader } from "@/components/ui";
 import type { Artifact, ArtifactBoostType } from "@/http/artifactAPI";
 import { exportArtifactsData } from "@/http/artifactAPI";
 import { downloadBlob, exportFilename } from "@/utils/downloadFile";
+import { getArtifactMarketStats, type ArtifactMarketStatsResponse } from "@/http/artifactMarketAPI";
 import { MediaUploadField } from "@/components/AgentsPageComponents/MediaUploadField";
 
-const BOOST_TYPES: ArtifactBoostType[] = ["COMPANION", "KEY", "WEAPON", "ARMOR", "TRINKET"];
+const BOOST_TYPES: ArtifactBoostType[] = ["HELPER", "KEY", "WEAPON", "ARMOR", "TRINKET"];
 
 const ArtifactsPage = observer(() => {
   const { artifact, agent } = useContext(Context) as IStoreContext;
@@ -26,15 +27,35 @@ const ArtifactsPage = observer(() => {
     level: "1",
     boostType: "TRINKET" as ArtifactBoostType,
     agentId: "" as string | number,
+    buyPrice: "",
+    sellPrice: "",
   });
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewAnimation, setPreviewAnimation] = useState<Record<string, unknown> | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
+  const [marketStats, setMarketStats] = useState<ArtifactMarketStatsResponse | null>(null);
+  const [marketStatsLoading, setMarketStatsLoading] = useState(false);
   const mediaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     artifact.fetchAllArtifacts();
   }, [artifact]);
+
+  const loadMarketStats = async () => {
+    setMarketStatsLoading(true);
+    try {
+      const data = await getArtifactMarketStats();
+      setMarketStats(data);
+    } catch (e) {
+      console.error("Failed to load artifact market stats:", e);
+    } finally {
+      setMarketStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadMarketStats();
+  }, []);
 
   useEffect(() => {
     agent.fetchAllAgents();
@@ -84,6 +105,8 @@ const ArtifactsPage = observer(() => {
       level: "1",
       boostType: "TRINKET",
       agentId: "",
+      buyPrice: "",
+      sellPrice: "",
     });
     onOpen();
   };
@@ -119,6 +142,8 @@ const ArtifactsPage = observer(() => {
       level: String(a.level ?? 1),
       boostType: a.boostType,
       agentId: a.agentId ?? "",
+      buyPrice: a.buyPrice != null ? String(a.buyPrice) : "",
+      sellPrice: a.sellPrice != null ? String(a.sellPrice) : "",
     });
     onOpen();
   };
@@ -134,6 +159,8 @@ const ArtifactsPage = observer(() => {
       level: parseInt(form.level || "1"),
       boostType: form.boostType,
       agentId: form.agentId ? Number(form.agentId) : null,
+      buyPrice: form.buyPrice.trim() ? Number(form.buyPrice) : null,
+      sellPrice: form.sellPrice.trim() ? Number(form.sellPrice) : null,
     };
     try {
       if (isEditing && selected) {
@@ -149,6 +176,7 @@ const ArtifactsPage = observer(() => {
       }
       setMediaFile(null);
       onClose();
+      void loadMarketStats();
     } catch (e: unknown) {
       alert((e as { message?: string })?.message || "Failed to save artifact");
     }
@@ -205,6 +233,77 @@ const ArtifactsPage = observer(() => {
         <div className="text-sm text-red-500">{artifact.error}</div>
       ) : null}
 
+      <div className="border border-zinc-700/70 bg-zinc-900/60 rounded-2xl p-4 space-y-4">
+        <div className="flex items-center justify-between gap-2 border-b border-zinc-700 pb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-xl font-bold text-white">Статистика маркета артефактов</h3>
+          </div>
+          <Button size="sm" variant="flat" onPress={() => void loadMarketStats()} isLoading={marketStatsLoading}>
+            Обновить
+          </Button>
+        </div>
+
+        {marketStats ? (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-xl border border-zinc-700/70 bg-zinc-900/80 p-3">
+                <p className="text-xs text-zinc-400">Покупок</p>
+                <p className="text-2xl font-bold text-white">{marketStats.totals.buyCount}</p>
+              </div>
+              <div className="rounded-xl border border-zinc-700/70 bg-zinc-900/80 p-3">
+                <p className="text-xs text-zinc-400">Продаж</p>
+                <p className="text-2xl font-bold text-white">{marketStats.totals.sellCount}</p>
+              </div>
+              <div className="rounded-xl border border-zinc-700/70 bg-zinc-900/80 p-3">
+                <p className="text-xs text-zinc-400">Потрачено gems (покупки)</p>
+                <p className="text-2xl font-bold text-amber-300">{marketStats.totals.buyTotalPrice}</p>
+              </div>
+              <div className="rounded-xl border border-zinc-700/70 bg-zinc-900/80 p-3">
+                <p className="text-xs text-zinc-400">Получено gems (продажи)</p>
+                <p className="text-2xl font-bold text-emerald-300">{marketStats.totals.sellTotalPrice}</p>
+              </div>
+            </div>
+
+            {marketStats.stats.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-zinc-400 border-b border-zinc-700">
+                      <th className="py-2 pr-4">Артефакт</th>
+                      <th className="py-2 pr-4">История</th>
+                      <th className="py-2 pr-4">Покупок</th>
+                      <th className="py-2 pr-4">Продаж</th>
+                      <th className="py-2 pr-4">Gems (покупки)</th>
+                      <th className="py-2 pr-4">Gems (продажи)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {marketStats.stats.map((row) => (
+                      <tr key={row.artifactId} className="border-b border-zinc-800/80 text-zinc-200">
+                        <td className="py-2 pr-4">
+                          {row.artifact?.name || `#${row.artifactId}`}
+                          <span className="text-zinc-500 ml-1">({row.artifact?.code})</span>
+                        </td>
+                        <td className="py-2 pr-4">{row.artifact?.agent?.displayName || row.artifact?.agent?.historyName || "—"}</td>
+                        <td className="py-2 pr-4">{row.buyCount}</td>
+                        <td className="py-2 pr-4">{row.sellCount}</td>
+                        <td className="py-2 pr-4">{row.buyTotalPrice}</td>
+                        <td className="py-2 pr-4">{row.sellTotalPrice}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-500">Операций пока нет.</p>
+            )}
+          </>
+        ) : marketStatsLoading ? (
+          <p className="text-sm text-zinc-500">Загрузка статистики…</p>
+        ) : null}
+      </div>
+
       <div className="space-y-6">
         {groupedByStory.map((group) => (
           <div key={group.title} className="border border-zinc-700/70 bg-zinc-900/60 rounded-2xl p-4 space-y-4">
@@ -249,6 +348,16 @@ const ArtifactsPage = observer(() => {
 
             {a.description ? <p className="text-xs text-zinc-400 line-clamp-2">{a.description}</p> : null}
 
+            <div className="flex items-center gap-3 text-xs text-zinc-300">
+              <span className="inline-flex items-center gap-1">
+                <ShoppingCart className="w-3 h-3 text-amber-400" />
+                Buy: {a.buyPrice != null ? a.buyPrice : "—"}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                Sell: {a.sellPrice != null ? a.sellPrice : "—"}
+              </span>
+            </div>
+
             <div className="flex justify-end gap-2 pt-1">
               <Button size="sm" color="primary" variant="flat" startContent={<Edit className="w-3 h-3" />} onPress={() => openEdit(a)}>
                 Изменить
@@ -271,6 +380,22 @@ const ArtifactsPage = observer(() => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} isRequired />
               <Input label="Level" type="number" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} />
+              <Input
+                label="Buy price (gems)"
+                type="number"
+                min={0}
+                value={form.buyPrice}
+                onChange={(e) => setForm({ ...form, buyPrice: e.target.value })}
+                description="Пусто = нельзя купить"
+              />
+              <Input
+                label="Sell price (gems)"
+                type="number"
+                min={0}
+                value={form.sellPrice}
+                onChange={(e) => setForm({ ...form, sellPrice: e.target.value })}
+                description="Пусто = нельзя продать. Продажа только дубликатов (2+ шт.)."
+              />
               <div className="md:col-span-2">
                 <Select
                   label="Story (Agent)"

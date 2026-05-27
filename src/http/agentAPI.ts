@@ -175,6 +175,8 @@ export interface Mission {
     uiStepGoals?: { version?: number; steps: Array<{ index: number; text: string }> } | null;
     artifacts?: { id: number; code: string; name: string; boostType: string }[] | null;
     orderIndex: number;
+    /** Уровень миссии — к какому уровню принадлежит миссия (совпадает с уровнем артефактов). */
+    level: number;
     videoId?: number | null;
     createdAt: string;
     updatedAt: string;
@@ -191,6 +193,8 @@ export interface CreateMissionData {
     uiStepGoalsText?: string | null;
     artifactIds?: number[] | null;
     orderIndex: number;
+    /** Уровень миссии (по умолчанию 1). */
+    level?: number;
 }
 
 export interface UpdateMissionData {
@@ -202,6 +206,8 @@ export interface UpdateMissionData {
     uiStepGoalsText?: string | null;
     artifactIds?: number[] | null;
     orderIndex?: number;
+    /** Уровень миссии. */
+    level?: number;
 }
 
 export const getAgentMissions = async (agentId: number): Promise<Mission[]> => {
