@@ -1,10 +1,12 @@
 import { useEffect, useState, useContext } from 'react';
 import { useDisclosure } from '@heroui/react';
-import { Plus } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
 import { RewardStats, RewardsTable, RewardFormModal } from '@/components/RewardsPageComponents';
+import { exportRewardsData } from '@/http/rewardAPI';
+import { downloadBlob, exportFilename } from '@/utils/downloadFile';
 import { type Reward } from '@/types/reward';
 import { createRoot } from 'react-dom/client';
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react';
@@ -108,6 +110,7 @@ const RewardsPage = observer(() => {
     onlyCase: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
     reward.fetchAllRewards();
@@ -227,6 +230,19 @@ const RewardsPage = observer(() => {
   };
 
 
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportRewardsData();
+      downloadBlob(blob, exportFilename('rewards_export'));
+    } catch (error) {
+      console.error('Не удалось выгрузить награды:', error);
+      alert('Не удалось выгрузить данные');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const totalRewards = reward.stats?.totalRewards || 0;
   const activeRewards = reward.stats?.activeRewards || 0;
   const totalPurchases = reward.stats?.totalPurchases || 0;
@@ -236,6 +252,12 @@ const RewardsPage = observer(() => {
       <PageHeader
         title="Награды"
         description="Управление наградами и анимациями"
+        secondaryActionButton={{
+          label: exportLoading ? 'Exporting...' : 'Выгрузить данные',
+          icon: Download,
+          onClick: () => void handleExportData(),
+          variant: 'flat',
+        }}
         actionButton={{
           label: "Создать награду",
           icon: Plus,

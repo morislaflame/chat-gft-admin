@@ -40,6 +40,11 @@ export const getAllRewards = async () => {
     return data;
 };
 
+export const exportRewardsData = async (): Promise<Blob> => {
+    const { data } = await $authHost.get('api/reward/export', { responseType: 'blob' });
+    return data as Blob;
+};
+
 export const updateReward = async (id: number, rewardData: {
     name?: string;
     price?: number;
