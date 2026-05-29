@@ -68,6 +68,13 @@ export interface UserDetailsResponse {
     }>;
     referralCount: number;
     purchasedRewardsCount: number;
+    storyStats: Array<{
+        historyName: string;
+        displayName: string;
+        completedMissions: number;
+        userMessages: number;
+        energySpent: number;
+    }>;
 }
 
 export const getUserDetails = async (userId: string): Promise<UserDetailsResponse> => {

@@ -510,6 +510,42 @@ const UserDetailsPage = observer(() => {
         </Card>
       </div>
 
+      <Card>
+        <CardBody>
+          <h3 className="font-semibold mb-2 text-2xl">Прогресс по историям</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Энергия — приближение: 1 на сообщение (платные подсказки +5 не учитываются).
+          </p>
+          {userDetails.storyStats && userDetails.storyStats.length > 0 ? (
+            <Table aria-label="Статистика по историям">
+              <TableHeader>
+                <TableColumn>ИСТОРИЯ</TableColumn>
+                <TableColumn>МИССИЙ ПРОЙДЕНО</TableColumn>
+                <TableColumn>СООБЩЕНИЙ</TableColumn>
+                <TableColumn>ЭНЕРГИЯ (≈)</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {userDetails.storyStats.map((row) => (
+                  <TableRow key={row.historyName}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{row.displayName}</span>
+                        <span className="text-xs text-gray-400">{row.historyName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{row.completedMissions}</TableCell>
+                    <TableCell>{row.userMessages}</TableCell>
+                    <TableCell>{row.energySpent}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-gray-500 text-sm">Нет активности по историям</p>
+          )}
+        </CardBody>
+      </Card>
+
       {/* Actions */}
       <Card>
         <CardBody>
