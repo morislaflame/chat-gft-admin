@@ -1,4 +1,4 @@
-import { getAgentMissions, getAllAgents, type Mission } from '@/http/agentAPI';
+import { getAgentMissions, getAllAgents, type Mission, type Agent } from '@/http/agentAPI';
 
 export type MissionCatalogByHistory = Map<string, Map<number, MissionDisplayInfo>>;
 
@@ -77,7 +77,7 @@ export function resolveMissionLabel(
 export async function fetchAllMissionCatalogs(): Promise<MissionCatalogByHistory> {
   const agents = await getAllAgents();
   const entries = await Promise.all(
-    agents.map(async (agent) => {
+    agents.map(async (agent: Agent) => {
       const missions = await getAgentMissions(agent.id);
       return [agent.historyName, buildMissionDisplayMap(missions)] as const;
     }),
