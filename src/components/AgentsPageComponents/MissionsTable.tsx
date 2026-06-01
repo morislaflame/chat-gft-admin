@@ -36,8 +36,8 @@ export const MissionsTable = ({
               <Target className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="font-medium">#{mission.orderIndex}</p>
-              <p className="text-sm text-gray-500">ID: {mission.id}</p>
+              <p className="font-medium">Ур. {mission.level ?? 1}</p>
+              <p className="text-sm text-gray-500">№{mission.orderIndex} в уровне</p>
             </div>
           </div>
         );

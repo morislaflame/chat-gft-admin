@@ -24,7 +24,7 @@ import {
   type ArtifactEventRow,
   type UserArtifactEventsResponse,
 } from '@/http/artifactMarketAPI';
-import { getAllAgents, type Agent } from '@/http/agentAPI';
+import { getAllAgents, getAgentMissions, type Agent, type Mission } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
 import { formatDate } from '@/utils/formatters';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
@@ -65,6 +65,7 @@ import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserA
 import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
 import UserCompanionsInventorySection from '@/components/UsersPageComponents/UserCompanionsInventorySection';
 import ChatHistoryMissionGroups from '@/components/UsersPageComponents/ChatHistoryMissionGroups';
+import { useMissionCatalogByHistory } from '@/hooks/useMissionCatalogByHistory';
 import { getUserCompanionsInventory, type UserCompanionInventoryItem } from '@/http/companionAPI';
 import Lottie from 'lottie-react';
 
@@ -72,8 +73,10 @@ const UserDetailsPage = observer(() => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { caseStore } = useContext(Context) as IStoreContext;
+  const { getMissionLabel } = useMissionCatalogByHistory();
   const [userDetails, setUserDetails] = useState<UserDetailsResponse | null>(null);
   const [chatHistory, setChatHistory] = useState<UserChatHistoryResponse | null>(null);
+  const [chatHistoryMissions, setChatHistoryMissions] = useState<Mission[]>([]);
   const [histories, setHistories] = useState<Agent[]>([]);
   const [selectedHistoryName, setSelectedHistoryName] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -261,13 +264,19 @@ const UserDetailsPage = observer(() => {
     setLoadingHistory(true);
     setError(null);
     try {
-      const history = await getUserChatHistory(parseInt(userId), selectedHistoryName);
+      const agent = histories.find((h) => h.historyName === selectedHistoryName);
+      const [history, missions] = await Promise.all([
+        getUserChatHistory(parseInt(userId), selectedHistoryName),
+        agent ? getAgentMissions(agent.id) : Promise.resolve([] as Mission[]),
+      ]);
       setChatHistory(history);
+      setChatHistoryMissions(missions);
     } catch (err: unknown) {
       console.error('Не удалось загрузить историю чата:', err);
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Не удалось загрузить историю чата');
       setChatHistory(null);
+      setChatHistoryMissions([]);
     } finally {
       setLoadingHistory(false);
     }
@@ -470,11 +479,14 @@ const UserDetailsPage = observer(() => {
                 <span className="text-gray-200">Выбранная история:</span>
                 <span>{userDetails.user.selectedHistoryName || 'starwars'}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-200">ID выбранной миссии в чате:</span>
-                <span>
+              <div className="flex justify-between gap-4">
+                <span className="text-gray-200 shrink-0">Миссия в чате:</span>
+                <span className="text-right">
                   {userDetails.user.selectedChatMissionId != null
-                    ? String(userDetails.user.selectedChatMissionId)
+                    ? getMissionLabel(
+                        userDetails.user.selectedHistoryName,
+                        userDetails.user.selectedChatMissionId,
+                      )
                     : '—'}
                 </span>
               </div>
@@ -766,12 +778,10 @@ const UserDetailsPage = observer(() => {
                         </span>
                       </TableCell>
                       <TableCell>{ev.quantityAfter ?? '—'}</TableCell>
-                      <TableCell>
-                        {ev.mission
-                          ? `#${ev.mission.id} ${ev.mission.title}`
-                          : ev.missionId
-                            ? `#${ev.missionId}`
-                            : '—'}
+                      <TableCell className="max-w-[14rem]">
+                        <span className="text-xs leading-snug">
+                          {getMissionLabel(ev.historyName, ev.missionId, ev.mission ?? null)}
+                        </span>
                       </TableCell>
                       <TableCell>
                         {ev.price != null ? (
@@ -1029,7 +1039,7 @@ const UserDetailsPage = observer(() => {
                 </div>
               ) : null}
 
-              <ChatHistoryMissionGroups history={chatHistory.history} />
+              <ChatHistoryMissionGroups history={chatHistory.history} missions={chatHistoryMissions} />
             </>
           )}
         </CardBody>

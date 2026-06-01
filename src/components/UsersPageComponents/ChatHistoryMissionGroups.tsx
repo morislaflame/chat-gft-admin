@@ -10,6 +10,12 @@ import {
 } from '@heroui/react';
 import { formatDate } from '@/utils/formatters';
 import type { UserChatHistoryTurn } from '@/http/adminAPI';
+import type { Mission } from '@/http/agentAPI';
+import {
+  buildMissionDisplayMap,
+  compareMissionGroups,
+  formatMissionGroupLabel,
+} from '@/utils/missionDisplay';
 
 type MissionGroup = {
   key: string;
@@ -19,7 +25,10 @@ type MissionGroup = {
   turns: UserChatHistoryTurn[];
 };
 
-function groupByMission(history: UserChatHistoryTurn[]): MissionGroup[] {
+function groupByMission(
+  history: UserChatHistoryTurn[],
+  missionMap: ReturnType<typeof buildMissionDisplayMap>,
+): MissionGroup[] {
   const order: string[] = [];
   const buckets = new Map<string, { missionId: number | null; turns: UserChatHistoryTurn[] }>();
 
@@ -33,7 +42,7 @@ function groupByMission(history: UserChatHistoryTurn[]): MissionGroup[] {
     buckets.get(key)!.turns.push(turn);
   }
 
-  return order.map((key) => {
+  const groups = order.map((key) => {
     const { missionId, turns } = buckets.get(key)!;
     const firstAt = turns[0]?.createdAt;
     const lastAt = turns[turns.length - 1]?.createdAt;
@@ -47,19 +56,23 @@ function groupByMission(history: UserChatHistoryTurn[]): MissionGroup[] {
     return {
       key,
       missionId,
-      label: missionId === null ? 'Без миссии' : `Миссия ${missionId}`,
+      label: formatMissionGroupLabel(missionId, missionMap),
       turns,
       range,
     };
   });
+
+  return [...groups].sort((a, b) => compareMissionGroups(a, b, missionMap));
 }
 
 type ChatHistoryMissionGroupsProps = {
   history: UserChatHistoryTurn[];
+  missions?: Mission[];
 };
 
-export default function ChatHistoryMissionGroups({ history }: ChatHistoryMissionGroupsProps) {
-  const groups = useMemo(() => groupByMission(history), [history]);
+export default function ChatHistoryMissionGroups({ history, missions = [] }: ChatHistoryMissionGroupsProps) {
+  const missionMap = useMemo(() => buildMissionDisplayMap(missions), [missions]);
+  const groups = useMemo(() => groupByMission(history, missionMap), [history, missionMap]);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
@@ -67,8 +80,13 @@ export default function ChatHistoryMissionGroups({ history }: ChatHistoryMission
       setExpandedKeys(new Set());
       return;
     }
-    setExpandedKeys(new Set([groups[groups.length - 1].key]));
-  }, [history]);
+    const lastActive = [...groups].sort((a, b) => {
+      const atA = a.turns[a.turns.length - 1]?.createdAt ?? '';
+      const atB = b.turns[b.turns.length - 1]?.createdAt ?? '';
+      return atA.localeCompare(atB);
+    })[groups.length - 1];
+    setExpandedKeys(new Set([lastActive?.key ?? groups[groups.length - 1].key]));
+  }, [groups]);
 
   const toggle = (key: string) => {
     setExpandedKeys((prev) => {
@@ -92,7 +110,6 @@ export default function ChatHistoryMissionGroups({ history }: ChatHistoryMission
       {groups.map((group) => {
         const expanded = expandedKeys.has(group.key);
         const congratCount = group.turns.filter((t) => t.isCongratulation).length;
-
         return (
           <div
             key={group.key}

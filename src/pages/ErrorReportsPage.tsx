@@ -4,6 +4,7 @@ import { Button, Spinner } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Link } from "react-router-dom";
 import { getErrorReports, type ClientErrorReportItem } from "@/http/errorReportAPI";
+import { useMissionCatalogByHistory } from "@/hooks/useMissionCatalogByHistory";
 import { LLM_DEBUG_ROUTE } from "@/utils/consts";
 
 const buildLlmDebugLink = (r: ClientErrorReportItem) => {
@@ -15,6 +16,7 @@ const buildLlmDebugLink = (r: ClientErrorReportItem) => {
 };
 
 const ErrorReportsPage: React.FC = observer(() => {
+  const { getMissionLabel } = useMissionCatalogByHistory();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<ClientErrorReportItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -79,7 +81,9 @@ const ErrorReportsPage: React.FC = observer(() => {
                 <div className="col-span-2">{new Date(r.createdAt).toLocaleString()}</div>
                 <div className="col-span-1">{r.userId}</div>
                 <div className="col-span-1 truncate" title={r.historyName}>{r.historyName}</div>
-                <div className="col-span-1">{r.missionId ?? "—"}</div>
+                <div className="col-span-1 truncate" title={getMissionLabel(r.historyName, r.missionId)}>
+                  {getMissionLabel(r.historyName, r.missionId)}
+                </div>
                 <div className="col-span-1">{r.httpStatus ?? "—"}</div>
                 <div className="col-span-2 truncate text-red-300/80" title={r.serverMessage || ""}>
                   {r.serverMessage || "—"}

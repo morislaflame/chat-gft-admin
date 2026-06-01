@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Spinner } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { exportLLMTracesByQuality, getLLMTraceById, getLLMTraces, setLLMTraceQuality, type LLMTraceDetails, type LLMTraceListItem, type LLMTraceQuality, type LLMTraceReason } from "@/http/llmTraceAPI";
+import { useMissionCatalogByHistory } from "@/hooks/useMissionCatalogByHistory";
 
 const JsonBlock = ({ value }: { value: unknown }) => (
   <pre className="text-xs whitespace-pre-wrap break-words bg-zinc-900/60 border border-white/10 rounded-lg p-3 text-white/90 max-h-[420px] overflow-auto">
@@ -141,6 +142,7 @@ const REASONS: Array<{ id: LLMTraceReason; label: string }> = [
 ];
 
 const LLMDebugPage: React.FC = observer(() => {
+  const { getMissionLabel } = useMissionCatalogByHistory();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<LLMTraceListItem[]>([]);
@@ -252,7 +254,13 @@ const LLMDebugPage: React.FC = observer(() => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Input label="ID пользователя" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="например: 13" />
         <Input label="История" value={historyName} onChange={(e) => setHistoryName(e.target.value)} placeholder="starwars" />
-        <Input label="ID миссии" value={missionId} onChange={(e) => setMissionId(e.target.value)} placeholder="(необязательно)" />
+        <Input
+          label="ID миссии в БД"
+          value={missionId}
+          onChange={(e) => setMissionId(e.target.value)}
+          placeholder="например: 17"
+          description="Фильтр по id в таблице llm_traces"
+        />
       </div>
 
       <div className="flex gap-2">
@@ -298,7 +306,9 @@ const LLMDebugPage: React.FC = observer(() => {
                 <div className="col-span-2">{new Date(t.createdAt).toLocaleString()}</div>
                 <div className="col-span-1">{t.userId}</div>
                 <div className="col-span-2">{t.historyName}</div>
-                <div className="col-span-1">{t.missionId ?? "-"}</div>
+                <div className="col-span-1 truncate" title={getMissionLabel(t.historyName, t.missionId ?? null)}>
+                  {getMissionLabel(t.historyName, t.missionId ?? null)}
+                </div>
                 <div className="col-span-1">{t.durationMs ?? "-"}</div>
                 <div className="col-span-1">
                   {t.quality ? (
@@ -363,7 +373,8 @@ const LLMDebugPage: React.FC = observer(() => {
             ) : (
               <div className="space-y-4">
                 <div className="text-sm text-white/70">
-                  #{details.id} • {details.historyName} • user={details.userId} • missionId={details.missionId ?? "-"} • {details.durationMs ?? "-"}ms
+                  #{details.id} • {details.historyName} • user={details.userId} •{' '}
+                  {getMissionLabel(details.historyName, details.missionId ?? null)} • {details.durationMs ?? "-"}ms
                   {details.quality ? (
                     <span className={details.quality === "good" ? "ml-2 text-emerald-300" : "ml-2 text-red-300"}>
                       ({details.quality})
