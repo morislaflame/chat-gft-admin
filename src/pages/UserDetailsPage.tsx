@@ -18,7 +18,12 @@ import {
   type WithdrawalStatus,
   type AdminArtifactsGrantCatalogResponse,
 } from '@/http/adminAPI';
-import { getUserArtifactTransactions, type ArtifactTransactionRow, type UserArtifactTransactionsResponse } from '@/http/artifactMarketAPI';
+import {
+  getUserArtifactEvents,
+  ARTIFACT_EVENT_TYPE_LABELS,
+  type ArtifactEventRow,
+  type UserArtifactEventsResponse,
+} from '@/http/artifactMarketAPI';
 import { getAllAgents, type Agent } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
 import { formatDate } from '@/utils/formatters';
@@ -59,6 +64,7 @@ import {
 import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
 import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
 import UserCompanionsInventorySection from '@/components/UsersPageComponents/UserCompanionsInventorySection';
+import ChatHistoryMissionGroups from '@/components/UsersPageComponents/ChatHistoryMissionGroups';
 import { getUserCompanionsInventory, type UserCompanionInventoryItem } from '@/http/companionAPI';
 import Lottie from 'lottie-react';
 
@@ -79,8 +85,8 @@ const UserDetailsPage = observer(() => {
   const [rewardAnimations, setRewardAnimations] = useState<{ [url: string]: Record<string, unknown> }>({});
   const loadedRewardAnimationUrls = useRef<Set<string>>(new Set());
   const [deletingRewardId, setDeletingRewardId] = useState<number | null>(null);
-  const [artifactTransactions, setArtifactTransactions] = useState<ArtifactTransactionRow[]>([]);
-  const [artifactTxTotals, setArtifactTxTotals] = useState<UserArtifactTransactionsResponse['totals'] | null>(null);
+  const [artifactEvents, setArtifactEvents] = useState<ArtifactEventRow[]>([]);
+  const [artifactTxTotals, setArtifactTxTotals] = useState<UserArtifactEventsResponse['totals'] | null>(null);
   const [artifactTxLoading, setArtifactTxLoading] = useState(false);
   const [artifactTxError, setArtifactTxError] = useState<string | null>(null);
   const [artifactsCatalog, setArtifactsCatalog] = useState<AdminArtifactsGrantCatalogResponse | null>(null);
@@ -176,16 +182,16 @@ const UserDetailsPage = observer(() => {
 
       setArtifactTxLoading(true);
       setArtifactTxError(null);
-      getUserArtifactTransactions(userId)
+      getUserArtifactEvents(userId)
         .then((data) => {
-          setArtifactTransactions(data.transactions || []);
+          setArtifactEvents(data.events || []);
           setArtifactTxTotals(data.totals || null);
         })
         .catch((err: unknown) => {
-          console.error('Не удалось загрузить операции с артефактами:', err);
+          console.error('Не удалось загрузить журнал артефактов:', err);
           const errorObj = err as { response?: { data?: { message?: string } } };
-          setArtifactTxError(errorObj.response?.data?.message || 'Не удалось загрузить операции с артефактами');
-          setArtifactTransactions([]);
+          setArtifactTxError(errorObj.response?.data?.message || 'Не удалось загрузить журнал артефактов');
+          setArtifactEvents([]);
           setArtifactTxTotals(null);
         })
         .finally(() => setArtifactTxLoading(false));
@@ -676,16 +682,16 @@ const UserDetailsPage = observer(() => {
         error={artifactsCatalogError}
       />
 
-      {/* Artifact market transactions */}
+      {/* Artifact inventory journal */}
       <Card>
         <CardBody className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold flex items-center gap-2">
               <Gem className="w-4 h-4 text-amber-400" />
-              Операции с артефактами
+              Журнал артефактов
             </h3>
             <Chip size="sm" variant="flat" color="warning">
-              {artifactTransactions.length}
+              {artifactEvents.length}
             </Chip>
           </div>
 
@@ -719,48 +725,74 @@ const UserDetailsPage = observer(() => {
           ) : null}
 
           {!artifactTxLoading ? (
-            artifactTransactions.length > 0 ? (
-              <Table aria-label="Таблица операций с артефактами">
+            artifactEvents.length > 0 ? (
+              <Table aria-label="Журнал артефактов">
                 <TableHeader>
                   <TableColumn>АРТЕФАКТ</TableColumn>
                   <TableColumn>ИСТОРИЯ</TableColumn>
                   <TableColumn>ТИП</TableColumn>
-                  <TableColumn>ЦЕНА</TableColumn>
-                  <TableColumn>БАЛАНС</TableColumn>
+                  <TableColumn>Δ</TableColumn>
+                  <TableColumn>ОСТАТОК</TableColumn>
+                  <TableColumn>МИССИЯ</TableColumn>
+                  <TableColumn>GEMS</TableColumn>
                   <TableColumn>ДАТА</TableColumn>
                 </TableHeader>
                 <TableBody>
-                  {artifactTransactions.map((tx) => (
-                    <TableRow key={tx.id}>
+                  {artifactEvents.map((ev) => {
+                    const typeLabel = ARTIFACT_EVENT_TYPE_LABELS[ev.type] ?? ev.type;
+                    const chipColor =
+                      ev.type === 'BUY' || ev.type === 'USE' || ev.type === 'BURN_LEVEL'
+                        ? 'warning'
+                        : ev.type === 'SELL'
+                          ? 'success'
+                          : 'primary';
+                    return (
+                    <TableRow key={ev.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{tx.artifact?.name || `#${tx.artifactId}`}</p>
-                          <p className="text-xs text-gray-500">{tx.artifact?.code}</p>
+                          <p className="font-medium">{ev.artifact?.name || `#${ev.artifactId}`}</p>
+                          <p className="text-xs text-gray-500">{ev.artifact?.code}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{tx.historyName}</TableCell>
+                      <TableCell>{ev.historyName}</TableCell>
                       <TableCell>
-                        <Chip
-                          size="sm"
-                          variant="flat"
-                          color={tx.type === 'BUY' ? 'warning' : 'success'}
-                        >
-                          {tx.type === 'BUY' ? 'Покупка' : 'Продажа'}
+                        <Chip size="sm" variant="flat" color={chipColor}>
+                          {typeLabel}
                         </Chip>
                       </TableCell>
-                      <TableCell>{tx.price}</TableCell>
                       <TableCell>
-                        <span className="text-xs text-gray-500">{tx.balanceBefore}</span>
-                        <span className="mx-1">→</span>
-                        <span className="text-xs">{tx.balanceAfter}</span>
+                        <span className={ev.delta > 0 ? 'text-emerald-400' : 'text-amber-400'}>
+                          {ev.delta > 0 ? `+${ev.delta}` : ev.delta}
+                        </span>
                       </TableCell>
-                      <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                      <TableCell>{ev.quantityAfter ?? '—'}</TableCell>
+                      <TableCell>
+                        {ev.mission
+                          ? `#${ev.mission.id} ${ev.mission.title}`
+                          : ev.missionId
+                            ? `#${ev.missionId}`
+                            : '—'}
+                      </TableCell>
+                      <TableCell>
+                        {ev.price != null ? (
+                          <>
+                            <span className="text-xs text-gray-500">{ev.balanceBefore ?? '—'}</span>
+                            <span className="mx-1">→</span>
+                            <span className="text-xs">{ev.balanceAfter ?? '—'}</span>
+                            <span className="block text-xs text-amber-500/90">{ev.price} gems</span>
+                          </>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      <TableCell>{formatDate(ev.createdAt)}</TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center py-8 text-gray-400">Операций с артефактами не найдено.</div>
+              <div className="text-center py-8 text-gray-400">Записей в журнале артефактов нет.</div>
             )
           ) : null}
         </CardBody>
@@ -964,63 +996,40 @@ const UserDetailsPage = observer(() => {
 
           {chatHistory && (
             <>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-zinc-800  rounded">
-                  <div className="text-sm text-gray-200">Всего сообщений</div>
-                  <div className="text-xl font-bold">{chatHistory.totalMessages}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-zinc-800 rounded">
+                  <div className="text-sm text-gray-200">Ходов</div>
+                  <div className="text-xl font-bold">{chatHistory.turnCount ?? chatHistory.userMessageCount}</div>
                 </div>
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">Сообщений пользователя</div>
-                  <div className="text-xl font-bold">{chatHistory.userMessageCount}</div>
+                  <div className="text-sm text-gray-200">Payable</div>
+                  <div className="text-xl font-bold">{chatHistory.stats?.payable ?? 0}</div>
                 </div>
                 <div className="text-center p-3 bg-zinc-800 rounded">
-                  <div className="text-sm text-gray-200">Сообщений ассистента</div>
-                  <div className="text-xl font-bold">{chatHistory.assistantMessageCount}</div>
+                  <div className="text-sm text-gray-200">USE артефактов</div>
+                  <div className="text-xl font-bold">{chatHistory.stats?.artifactUse ?? 0}</div>
+                </div>
+                <div className="text-center p-3 bg-zinc-800 rounded">
+                  <div className="text-sm text-gray-200">RECEIVE артефактов</div>
+                  <div className="text-xl font-bold">{chatHistory.stats?.artifactReceive ?? 0}</div>
                 </div>
               </div>
-
-              {chatHistory.history.length > 0 ? (
-                <Table aria-label="Таблица истории чата">
-                  <TableHeader>
-                    <TableColumn>ДАТА</TableColumn>
-                    <TableColumn>СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ</TableColumn>
-                    <TableColumn>ОТВЕТ АССИСТЕНТА</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {chatHistory.history.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div className="text-xs text-gray-500">
-                            {formatDate(item.createdAt)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-md">
-                            <div className="text-sm bg-blue-500/20 rounded-lg p-2">
-                              {item.userMessage}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-md">
-                            {item.assistantMessage ? (
-                              <div className="text-sm bg-gray-500/20 rounded-lg p-2">
-                                {item.assistantMessage}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-gray-400 italic">Нет ответа</span>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-gray-400">
-                  История чата для выбранной истории не найдена.
+              {chatHistory.stats?.legacyTurnCount ? (
+                <p className="text-xs text-amber-400/90 mt-2">
+                  {chatHistory.stats.legacyTurnCount} ход(ов) до обновления — только длина сообщения, без текста.
+                </p>
+              ) : null}
+              {chatHistory.stats?.bySuggestionKind && Object.keys(chatHistory.stats.bySuggestionKind).length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {Object.entries(chatHistory.stats.bySuggestionKind).map(([kind, count]) => (
+                    <span key={kind} className="text-xs px-2 py-1 rounded bg-zinc-700 text-gray-200">
+                      {kind}: {count}
+                    </span>
+                  ))}
                 </div>
-              )}
+              ) : null}
+
+              <ChatHistoryMissionGroups history={chatHistory.history} />
             </>
           )}
         </CardBody>

@@ -219,18 +219,41 @@ export interface ResetUserHistoryResponse {
     deletedUserMissions: number;
 }
 
+export interface UserChatHistoryTurn {
+    id: number;
+    userMessage: string | null;
+    assistantMessage: string | null;
+    createdAt: string;
+    missionId?: number | null;
+    isCongratulation?: boolean;
+    suggestionKind?: string | null;
+    suggestionId?: string | null;
+    payable?: boolean;
+    artifactAction?: boolean;
+    artifactActionType?: string | null;
+    artifactCode?: string | null;
+    artifactApplied?: boolean;
+    mainStep?: number | null;
+    nextSuggestions?: unknown;
+    legacyOnlyLength?: boolean;
+    messageLength?: number | null;
+}
+
 export interface UserChatHistoryResponse {
     userId: number;
     historyName: string;
+    turnCount: number;
     totalMessages: number;
     userMessageCount: number;
     assistantMessageCount: number;
-    history: Array<{
-        id: number;
-        userMessage: string;
-        assistantMessage: string | null;
-        createdAt: string;
-    }>;
+    stats: {
+        bySuggestionKind: Record<string, number>;
+        payable: number;
+        artifactUse: number;
+        artifactReceive: number;
+        legacyTurnCount: number;
+    };
+    history: UserChatHistoryTurn[];
 }
 
 export const resetUserHistory = async (userId: number, historyName: string): Promise<ResetUserHistoryResponse> => {

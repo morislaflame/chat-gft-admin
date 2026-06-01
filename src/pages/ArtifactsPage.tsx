@@ -394,7 +394,7 @@ const ArtifactsPage = observer(() => {
                 min={0}
                 value={form.sellPrice}
                 onChange={(e) => setForm({ ...form, sellPrice: e.target.value })}
-                description="Пусто = нельзя продать. Продажа только дубликатов (2+ шт.)."
+                description="Пусто = нельзя продать. На текущем уровне сюжета — только дубли (2+). После открытия следующего уровня — можно продать и одиночную копию прошлого уровня."
               />
               <div className="md:col-span-2">
                 <Select

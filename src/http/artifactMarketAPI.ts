@@ -20,21 +20,38 @@ export interface ArtifactMarketStatsResponse {
   };
 }
 
-export interface ArtifactTransactionRow {
+export type ArtifactEventType =
+  | "RECEIVE"
+  | "USE"
+  | "BUY"
+  | "SELL"
+  | "BURN_LEVEL"
+  | "FIRST_MISSION_GRANT"
+  | "ADMIN_GRANT";
+
+export interface ArtifactEventRow {
   id: number;
   userId: number;
   artifactId: number;
   historyName: string;
-  type: "BUY" | "SELL";
-  price: number;
-  balanceBefore: number;
-  balanceAfter: number;
+  type: ArtifactEventType;
+  delta: number;
+  quantityAfter: number | null;
+  missionId: number | null;
+  stepIndex: number | null;
+  price: number | null;
+  balanceBefore: number | null;
+  balanceAfter: number | null;
   createdAt: string;
   artifact?: Artifact | null;
+  mission?: { id: number; title: string; level: number; orderIndex: number } | null;
 }
 
-export interface UserArtifactTransactionsResponse {
-  transactions: ArtifactTransactionRow[];
+/** @deprecated use ArtifactEventRow */
+export type ArtifactTransactionRow = ArtifactEventRow;
+
+export interface UserArtifactEventsResponse {
+  events: ArtifactEventRow[];
   totals: {
     buyCount: number;
     sellCount: number;
@@ -43,17 +60,38 @@ export interface UserArtifactTransactionsResponse {
   };
 }
 
+/** @deprecated use UserArtifactEventsResponse */
+export type UserArtifactTransactionsResponse = UserArtifactEventsResponse & {
+  transactions: ArtifactEventRow[];
+};
+
 export const getArtifactMarketStats = async (): Promise<ArtifactMarketStatsResponse> => {
   const { data } = await $authHost.get("api/artifact-market/admin/stats");
   return data;
 };
 
-export const getUserArtifactTransactions = async (
+export const getUserArtifactEvents = async (
   userId: string | number,
   limit = 200
-): Promise<UserArtifactTransactionsResponse> => {
+): Promise<UserArtifactEventsResponse> => {
   const { data } = await $authHost.get(`api/artifact-market/admin/user/${userId}/transactions`, {
     params: { limit },
   });
-  return data;
+  return {
+    events: data.events ?? data.transactions ?? [],
+    totals: data.totals,
+  };
+};
+
+/** @deprecated use getUserArtifactEvents */
+export const getUserArtifactTransactions = getUserArtifactEvents;
+
+export const ARTIFACT_EVENT_TYPE_LABELS: Record<ArtifactEventType, string> = {
+  RECEIVE: "Находка в миссии",
+  USE: "Применение в миссии",
+  BUY: "Покупка",
+  SELL: "Продажа",
+  BURN_LEVEL: "Сжигание при открытии уровня",
+  FIRST_MISSION_GRANT: "Награда за 1-ю миссию",
+  ADMIN_GRANT: "Выдача админом",
 };
