@@ -39,6 +39,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     descriptionEn: '',
     missionPrompt: '',
     uiStepGoalsText: '',
+    uiStepGoalsTextEn: '',
     artifactIds: [] as number[],
     orderIndex: '',
     level: '1'
@@ -59,7 +60,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
     // Сбрасываем форму при изменении missions
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1' });
   }, [missions, artifact]);
 
   const handleEditMission = (mission: Mission) => {
@@ -71,6 +72,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       descriptionEn: mission.descriptionEn || '',
       missionPrompt: mission.missionPrompt || '',
       uiStepGoalsText: uiStepGoalsToEditableText(mission.uiStepGoals ?? null),
+      uiStepGoalsTextEn: uiStepGoalsToEditableText(mission.uiStepGoalsEn ?? null),
       artifactIds: (mission.artifacts || []).map((a) => a.id),
       orderIndex: mission.orderIndex.toString(),
       level: (mission.level ?? 1).toString()
@@ -90,6 +92,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
         missionPrompt: missionFormData.missionPrompt || null,
         // Всегда строка, чтобы ключ ушёл в JSON (axios выкидывает undefined).
         uiStepGoalsText: missionFormData.uiStepGoalsText ?? '',
+        uiStepGoalsTextEn: missionFormData.uiStepGoalsTextEn ?? '',
         artifactIds: missionFormData.artifactIds,
         orderIndex: parseInt(missionFormData.orderIndex),
         level: missionFormData.level ? parseInt(missionFormData.level) : 1
@@ -103,7 +106,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1' });
     } catch (error) {
       console.error('Не удалось сохранить миссию:', error);
     }
@@ -122,7 +125,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', artifactIds: [], orderIndex: '', level: '1' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1' });
   };
 
   const handleCreateNewMission = () => {
@@ -134,6 +137,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
       descriptionEn: '',
       missionPrompt: '',
       uiStepGoalsText: '',
+    uiStepGoalsTextEn: '',
       artifactIds: [],
       orderIndex: getNextOrderIndexForLevel('1'),
       level: '1'
@@ -229,6 +233,14 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = ({
                   onChange={(e) => setMissionFormData({ ...missionFormData, uiStepGoalsText: e.target.value })}
                   minRows={5}
                   description="Один шаг на строку, нумерация как у main_step в LLM (1, 2, 3…). Сохраняется как JSON в миссии."
+                />
+                <Textarea
+                  label="UI step goals (chat, EN)"
+                  placeholder={'1) Look around and plan\n2) Find the entrance\n…'}
+                  value={missionFormData.uiStepGoalsTextEn}
+                  onChange={(e) => setMissionFormData({ ...missionFormData, uiStepGoalsTextEn: e.target.value })}
+                  minRows={5}
+                  description="English labels for the chat progress bar. Same numbering as main_step."
                 />
               </div>
 

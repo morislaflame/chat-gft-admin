@@ -173,6 +173,7 @@ export interface Mission {
     missionPrompt?: string | null;
     /** Сохранённое на сервере JSON целей шагов UI (индекс = main_step LLM). */
     uiStepGoals?: { version?: number; steps: Array<{ index: number; text: string }> } | null;
+    uiStepGoalsEn?: { version?: number; steps: Array<{ index: number; text: string }> } | null;
     artifacts?: { id: number; code: string; name: string; boostType: string }[] | null;
     orderIndex: number;
     /** Уровень миссии — к какому уровню принадлежит миссия (совпадает с уровнем артефактов). */
@@ -191,6 +192,7 @@ export interface CreateMissionData {
     missionPrompt?: string | null;
     /** Многострочный список вида "1) Текст"; сервер парсит в uiStepGoals. */
     uiStepGoalsText?: string | null;
+    uiStepGoalsTextEn?: string | null;
     artifactIds?: number[] | null;
     orderIndex: number;
     /** Уровень миссии (по умолчанию 1). */
@@ -204,6 +206,7 @@ export interface UpdateMissionData {
     descriptionEn?: string | null;
     missionPrompt?: string | null;
     uiStepGoalsText?: string | null;
+    uiStepGoalsTextEn?: string | null;
     artifactIds?: number[] | null;
     orderIndex?: number;
     /** Уровень миссии. */

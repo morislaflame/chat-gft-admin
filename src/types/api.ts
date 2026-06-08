@@ -14,7 +14,8 @@ export interface UserInfo {
   onboardingSeen: boolean;
   refCode?: string;
   referredBy?: number;
-  referralCount: number;
+  /** Вычисляется через COUNT(referredBy), не хранится в users */
+  referralCount?: number;
   referralDepositBonusAwarded: number;
   role: 'USER' | 'ADMIN';
   createdAt: string;
