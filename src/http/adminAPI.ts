@@ -268,6 +268,17 @@ export const getUserChatHistory = async (userId: number, historyName: string): P
     return data;
 };
 
+export const exportUserChatHistory = async (
+    userId: number | string,
+    historyName: string,
+): Promise<Blob> => {
+    const { data } = await $authHost.get(`api/admin/user/${userId}/chat-history/export`, {
+        params: { historyName },
+        responseType: 'blob',
+    });
+    return data as Blob;
+};
+
 export type WithdrawalStatus = 'pending' | 'completed' | 'rejected';
 
 export interface WithdrawalRequestAdmin {

@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui';
 import { 
   getUserDetails,
   getUserChatHistory,
+  exportUserChatHistory,
   resetUserHistory,
   setUserBalance,
   setUserEnergy,
@@ -27,6 +28,7 @@ import {
 import { getAllAgents, getAgentMissions, type Agent, type Mission } from '@/http/agentAPI';
 import { USERS_ROUTE } from '@/utils/consts';
 import { formatDate } from '@/utils/formatters';
+import { downloadBlob, exportFilename } from '@/utils/downloadFile';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import {
   Card,
@@ -56,6 +58,7 @@ import {
   Trash2, 
   RotateCcw, 
   MessageSquare,
+  Download,
   Zap,
   Coins,
   Gift,
@@ -81,6 +84,7 @@ const UserDetailsPage = observer(() => {
   const [selectedHistoryName, setSelectedHistoryName] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [exportChatLoading, setExportChatLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [purchasedRewards, setPurchasedRewards] = useState<PurchasedRewardAdmin[]>([]);
   const [purchasedRewardsLoading, setPurchasedRewardsLoading] = useState(false);
@@ -279,6 +283,27 @@ const UserDetailsPage = observer(() => {
       setChatHistoryMissions([]);
     } finally {
       setLoadingHistory(false);
+    }
+  };
+
+  const handleExportChatHistory = async () => {
+    if (!userId || !selectedHistoryName) {
+      setError('Пожалуйста, выберите историю');
+      return;
+    }
+
+    setExportChatLoading(true);
+    setError(null);
+    try {
+      const blob = await exportUserChatHistory(userId, selectedHistoryName);
+      const safeHistoryName = selectedHistoryName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      downloadBlob(blob, exportFilename(`user_${userId}_${safeHistoryName}_chat_export`));
+    } catch (err: unknown) {
+      console.error('Не удалось выгрузить историю чата:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setError(errorObj.response?.data?.message || 'Не удалось выгрузить историю чата');
+    } finally {
+      setExportChatLoading(false);
     }
   };
 
@@ -989,6 +1014,15 @@ const UserDetailsPage = observer(() => {
                 isDisabled={!selectedHistoryName}
               >
                 Загрузить историю
+              </Button>
+              <Button
+                variant="flat"
+                startContent={<Download size={16} />}
+                onPress={() => void handleExportChatHistory()}
+                isLoading={exportChatLoading}
+                isDisabled={!selectedHistoryName}
+              >
+                {exportChatLoading ? 'Выгрузка...' : 'Выгрузить переписку'}
               </Button>
               {chatHistory && (
                 <Button
