@@ -466,125 +466,135 @@ const PushPage = observer(() => {
       </Card>
 
       {/* Create / Edit Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="2xl" className="bg-zinc-800 text-white">
+      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
         <ModalContent>
-          <ModalHeader className="border-b border-zinc-700">
+          <ModalHeader>
             {editingScenario ? `Редактировать сценарий #${editingScenario.id}` : "Создать сценарий пуша"}
           </ModalHeader>
-          <ModalBody className="py-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Событие-триггер"
-                selectedKeys={[formData.triggerType]}
-                onChange={(e) => setFormData({ ...formData, triggerType: e.target.value })}
-                className="text-white"
-                classNames={{ trigger: "bg-zinc-900 border border-zinc-700 text-white" }}
-              >
-                {TRIGGERS.map((t) => (
-                  <SelectItem key={t.key} className="text-zinc-800 dark:text-zinc-200">
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </Select>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                  label="Событие-триггер"
+                  selectedKeys={[formData.triggerType]}
+                  onChange={(e) => setFormData({ ...formData, triggerType: e.target.value })}
+                >
+                  {TRIGGERS.map((t) => (
+                    <SelectItem key={t.key} textValue={t.label}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </Select>
 
-              <Select
-                label="Сегмент игроков"
-                selectedKeys={[formData.segmentType]}
-                onChange={(e) => setFormData({ ...formData, segmentType: e.target.value })}
-                classNames={{ trigger: "bg-zinc-900 border border-zinc-700 text-white" }}
-              >
-                {SEGMENTS.map((s) => (
-                  <SelectItem key={s.key} className="text-zinc-800 dark:text-zinc-200">
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </Select>
-            </div>
-
-            {/* Dry-run indicator in modal */}
-            <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-700/50 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-zinc-400">
-                <Users size={16} className="text-zinc-500" />
-                <span>Оценочный охват аудитории (Dry-Run):</span>
+                <Select
+                  label="Сегмент игроков"
+                  selectedKeys={[formData.segmentType]}
+                  onChange={(e) => setFormData({ ...formData, segmentType: e.target.value })}
+                >
+                  {SEGMENTS.map((s) => (
+                    <SelectItem key={s.key} textValue={s.label}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </Select>
               </div>
-              <div className="font-bold text-sm">
-                {modalDryRunLoading ? (
-                  <Spinner size="sm" />
-                ) : modalDryRunCount !== null ? (
-                  <span className="text-emerald-400">{modalDryRunCount} игроков</span>
-                ) : (
-                  <span className="text-zinc-500">—</span>
-                )}
+
+              <div className="flex items-center justify-between gap-4 rounded-lg border border-default-200 dark:border-default-100/20 bg-default-50 dark:bg-default-100/10 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <Users size={16} />
+                  <span>Оценочный охват (Dry-Run)</span>
+                </div>
+                <div className="text-sm font-semibold">
+                  {modalDryRunLoading ? (
+                    <Spinner size="sm" />
+                  ) : modalDryRunCount !== null ? (
+                    <span>{modalDryRunCount} игроков</span>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <Textarea
-              label="Текст уведомления (RU)"
-              placeholder="Привет, {username}! Твоя энергия полностью восстановилась... 🚀"
-              value={formData.textRu}
-              onChange={(e) => setFormData({ ...formData, textRu: e.target.value })}
-              classNames={{ input: "bg-zinc-900 border border-zinc-700 text-white" }}
-              rows={3}
-            />
-
-            <Textarea
-              label="Текст уведомления (EN)"
-              placeholder="Hello, {username}! Your energy is fully restored... 🚀"
-              value={formData.textEn}
-              onChange={(e) => setFormData({ ...formData, textEn: e.target.value })}
-              classNames={{ input: "bg-zinc-900 border border-zinc-700 text-white" }}
-              rows={3}
-            />
-
-            <div className="text-xs text-zinc-500 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800">
-              💡 Поддерживаются переменные автоподстановки: <strong>{`{username}`}</strong> или <strong>{`{first_name}`}</strong>. Они заменяются на имя игрока в Telegram.
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                type="number"
-                label="Holdout группа (%)"
-                placeholder="20"
-                value={formData.holdoutPercentage.toString()}
-                onChange={(e) => setFormData({ ...formData, holdoutPercentage: parseInt(e.target.value) || 0 })}
-                classNames={{ input: "bg-zinc-900 border border-zinc-700 text-white" }}
+              <Textarea
+                label="Текст уведомления (RU)"
+                placeholder="Привет, {username}! Твоя энергия полностью восстановилась... 🚀"
+                value={formData.textRu}
+                onChange={(e) => setFormData({ ...formData, textRu: e.target.value })}
+                minRows={3}
+                description="Перед отправкой {username} и {first_name} заменятся на имя игрока: сначала firstName из Telegram, иначе @username, иначе «Player»."
               />
 
-              <Input
-                type="number"
-                label="Кулдаун (часов)"
-                placeholder="24"
-                value={formData.cooldownHours.toString()}
-                onChange={(e) => setFormData({ ...formData, cooldownHours: parseInt(e.target.value) || 0 })}
-                classNames={{ input: "bg-zinc-900 border border-zinc-700 text-white" }}
+              <Textarea
+                label="Текст уведомления (EN)"
+                placeholder="Hello, {username}! Your energy is fully restored... 🚀"
+                value={formData.textEn}
+                onChange={(e) => setFormData({ ...formData, textEn: e.target.value })}
+                minRows={3}
+                description="Same placeholders as RU: {username} and {first_name} resolve to the player's display name."
               />
 
-              <Input
-                type="number"
-                label="Приоритет"
-                placeholder="10"
-                value={formData.priority.toString()}
-                onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
-                classNames={{ input: "bg-zinc-900 border border-zinc-700 text-white" }}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  type="number"
+                  label="Holdout группа (%)"
+                  placeholder="20"
+                  value={formData.holdoutPercentage.toString()}
+                  onChange={(e) =>
+                    setFormData({ ...formData, holdoutPercentage: parseInt(e.target.value, 10) || 0 })
+                  }
+                  description="Доля пользователей в контрольной группе без отправки пуша"
+                />
+
+                <Input
+                  type="number"
+                  label="Кулдаун (часов)"
+                  placeholder="24"
+                  value={formData.cooldownHours.toString()}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cooldownHours: parseInt(e.target.value, 10) || 0 })
+                  }
+                  description="Минимальный интервал между пушами по этому сценарию"
+                />
+
+                <Input
+                  type="number"
+                  label="Приоритет"
+                  placeholder="10"
+                  value={formData.priority.toString()}
+                  onChange={(e) =>
+                    setFormData({ ...formData, priority: parseInt(e.target.value, 10) || 0 })
+                  }
+                  description="Чем выше число, тем раньше сценарий обрабатывается в цикле"
+                />
+              </div>
+
+              <Select
+                label="Статус"
+                selectedKeys={[formData.status]}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    status: e.target.value as "draft" | "approved" | "active",
+                  })
+                }
+              >
+                <SelectItem key="draft" textValue="DRAFT (Черновик)">
+                  DRAFT (Черновик)
+                </SelectItem>
+                <SelectItem key="approved" textValue="APPROVED (Одобрен)">
+                  APPROVED (Одобрен)
+                </SelectItem>
+                <SelectItem key="active" textValue="ACTIVE (Запущен)">
+                  ACTIVE (Запущен)
+                </SelectItem>
+              </Select>
             </div>
-
-            <Select
-              label="Статус"
-              selectedKeys={[formData.status]}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              classNames={{ trigger: "bg-zinc-900 border border-zinc-700 text-white" }}
-            >
-              <SelectItem key="draft" className="text-zinc-800 dark:text-zinc-200">DRAFT (Черновик)</SelectItem>
-              <SelectItem key="approved" className="text-zinc-800 dark:text-zinc-200">APPROVED (Одобрен)</SelectItem>
-              <SelectItem key="active" className="text-zinc-800 dark:text-zinc-200">ACTIVE (Запущен)</SelectItem>
-            </Select>
           </ModalBody>
-          <ModalFooter className="border-t border-zinc-700">
-            <Button variant="flat" className="bg-zinc-700 text-white hover:bg-zinc-600" onClick={onClose}>
+          <ModalFooter>
+            <Button variant="light" onPress={onClose}>
               Отмена
             </Button>
-            <Button color="primary" onClick={handleSave} className="font-semibold">
+            <Button color="primary" onPress={() => void handleSave()}>
               Сохранить
             </Button>
           </ModalFooter>
