@@ -348,6 +348,11 @@ export interface PushScenario {
     updatedAt: string;
 }
 
+export interface PushFailedBreakdownItem {
+    error_type: 'chat_not_found' | 'bot_blocked' | 'rate_limited' | 'user_deactivated' | 'bot_kicked' | 'rate_limiter_internal' | 'unknown' | 'other';
+    count: number;
+}
+
 export interface PushStats {
     overall: {
         sent: number;
@@ -355,6 +360,7 @@ export interface PushStats {
         holdout: number;
         clicks: number;
         returns: number;
+        failedBreakdown: PushFailedBreakdownItem[];
     };
     scenarios: Array<{
         id: number;
@@ -365,6 +371,9 @@ export interface PushStats {
         holdout: number;
         clicks: number;
         returns: number;
+        failedChatNotFound: number;
+        failedBotBlocked: number;
+        failedOther: number;
     }>;
 }
 

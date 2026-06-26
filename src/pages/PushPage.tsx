@@ -238,6 +238,17 @@ const PushPage = observer(() => {
   const ctr = stats?.overall.sent ? ((stats.overall.clicks / stats.overall.sent) * 100).toFixed(1) : "0.0";
   const returnRate = stats?.overall.clicks ? ((stats.overall.returns / stats.overall.clicks) * 100).toFixed(1) : "0.0";
 
+  const ERROR_TYPE_LABELS: Record<string, string> = {
+    chat_not_found: "Нет чата с ботом",
+    bot_blocked: "Бот заблокирован",
+    rate_limited: "Rate limit Telegram",
+    user_deactivated: "Аккаунт удалён",
+    bot_kicked: "Бот выгнан из чата",
+    rate_limiter_internal: "Внутренний rate limiter",
+    unknown: "Неизвестно",
+    other: "Прочие",
+  };
+
   if (loading) {
     return (
       <div className="p-6 flex justify-center items-center min-h-[50vh]">
@@ -266,71 +277,91 @@ const PushPage = observer(() => {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <Card className="bg-zinc-800 border border-zinc-700">
-            <CardBody className="p-4 flex flex-row items-center gap-4">
-              <div className="p-3 bg-emerald-950 text-emerald-400 rounded-xl">
-                <CheckCircle2 size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 font-medium">Отправлено</p>
-                <p className="text-2xl font-bold text-emerald-400">{stats.overall.sent}</p>
-              </div>
-            </CardBody>
-          </Card>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="bg-zinc-800 border border-zinc-700">
+              <CardBody className="p-4 flex flex-row items-center gap-4">
+                <div className="p-3 bg-emerald-950 text-emerald-400 rounded-xl">
+                  <CheckCircle2 size={24} />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 font-medium">Отправлено</p>
+                  <p className="text-2xl font-bold text-emerald-400">{stats.overall.sent}</p>
+                </div>
+              </CardBody>
+            </Card>
 
-          <Card className="bg-zinc-800 border border-zinc-700">
-            <CardBody className="p-4 flex flex-row items-center gap-4">
-              <div className="p-3 bg-red-950 text-red-400 rounded-xl">
-                <AlertCircle size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 font-medium">Ошибки</p>
-                <p className="text-2xl font-bold text-red-400">{stats.overall.failed}</p>
-              </div>
-            </CardBody>
-          </Card>
+            <Card className="bg-zinc-800 border border-zinc-700">
+              <CardBody className="p-4 flex flex-row items-center gap-4">
+                <div className="p-3 bg-zinc-900 text-zinc-400 rounded-xl">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 font-medium">Holdout (Контроль)</p>
+                  <p className="text-2xl font-bold text-zinc-300">{stats.overall.holdout}</p>
+                </div>
+              </CardBody>
+            </Card>
 
-          <Card className="bg-zinc-800 border border-zinc-700">
-            <CardBody className="p-4 flex flex-row items-center gap-4">
-              <div className="p-3 bg-zinc-900 text-zinc-400 rounded-xl">
-                <Users size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 font-medium">Holdout (Контроль)</p>
-                <p className="text-2xl font-bold text-zinc-300">{stats.overall.holdout}</p>
-              </div>
-            </CardBody>
-          </Card>
+            <Card className="bg-zinc-800 border border-zinc-700">
+              <CardBody className="p-4 flex flex-row items-center gap-4">
+                <div className="p-3 bg-blue-950 text-blue-400 rounded-xl">
+                  <Eye size={24} />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 font-medium">Клики (CTR)</p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {stats.overall.clicks} <span className="text-sm font-medium text-zinc-400">({ctr}%)</span>
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
 
-          <Card className="bg-zinc-800 border border-zinc-700">
-            <CardBody className="p-4 flex flex-row items-center gap-4">
-              <div className="p-3 bg-blue-950 text-blue-400 rounded-xl">
-                <Eye size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 font-medium">Клики (CTR)</p>
-                <p className="text-2xl font-bold text-blue-400">
-                  {stats.overall.clicks} <span className="text-sm font-medium text-zinc-400">({ctr}%)</span>
-                </p>
-              </div>
-            </CardBody>
-          </Card>
+            <Card className="bg-zinc-800 border border-zinc-700">
+              <CardBody className="p-4 flex flex-row items-center gap-4">
+                <div className="p-3 bg-purple-950 text-purple-400 rounded-xl">
+                  <BarChart3 size={24} />
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 font-medium">Возвраты в игру</p>
+                  <p className="text-2xl font-bold text-purple-400">
+                    {stats.overall.returns} <span className="text-sm font-medium text-zinc-400">({returnRate}%)</span>
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
 
-          <Card className="bg-zinc-800 border border-zinc-700">
-            <CardBody className="p-4 flex flex-row items-center gap-4">
-              <div className="p-3 bg-purple-950 text-purple-400 rounded-xl">
-                <BarChart3 size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 font-medium">Возвраты в игру</p>
-                <p className="text-2xl font-bold text-purple-400">
-                  {stats.overall.returns} <span className="text-sm font-medium text-zinc-400">({returnRate}%)</span>
-                </p>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
+          {/* Errors breakdown */}
+          {stats.overall.failed > 0 && (
+            <Card className="bg-zinc-800 border border-zinc-700">
+              <CardHeader className="px-6 py-3 border-b border-zinc-700 flex items-center gap-2">
+                <AlertCircle size={16} className="text-red-400" />
+                <h3 className="text-sm font-semibold text-red-400">
+                  Ошибки отправки: {stats.overall.failed}
+                </h3>
+              </CardHeader>
+              <CardBody className="px-6 py-4">
+                <div className="flex flex-wrap gap-3">
+                  {stats.overall.failedBreakdown.map((item) => (
+                    <div
+                      key={item.error_type}
+                      className="flex items-center gap-2 px-3 py-2 bg-zinc-900 rounded-lg border border-zinc-700"
+                    >
+                      <span className="text-sm text-zinc-300 font-medium">
+                        {ERROR_TYPE_LABELS[item.error_type] ?? item.error_type}
+                      </span>
+                      <span className="text-sm font-bold text-red-400">{item.count}</span>
+                      <span className="text-xs text-zinc-500">
+                        ({((item.count / stats.overall.failed) * 100).toFixed(0)}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          )}
+        </>
       )}
 
       {/* Scenarios Table */}
@@ -416,10 +447,24 @@ const PushPage = observer(() => {
                     </TableCell>
                     <TableCell className="px-6 py-4 text-xs">
                       {sStats ? (
-                        <div className="flex flex-col text-zinc-400">
+                        <div className="flex flex-col gap-0.5 text-zinc-400">
                           <span>Отправлено: <strong className="text-zinc-300">{sStats.sent}</strong> <span className="text-zinc-500">(H: {sStats.holdout})</span></span>
                           <span>Клики: <strong className="text-blue-400">{sStats.clicks}</strong> <span className="text-zinc-500">({sCtr}%)</span></span>
                           <span>Возвраты: <strong className="text-purple-400">{sStats.returns}</strong> <span className="text-zinc-500">({sRet}%)</span></span>
+                          {sStats.failed > 0 && (
+                            <span className="text-red-400 mt-1">
+                              Ошибки: <strong>{sStats.failed}</strong>
+                              {sStats.failedChatNotFound > 0 && (
+                                <span className="text-zinc-500"> (нет чата: {sStats.failedChatNotFound}</span>
+                              )}
+                              {sStats.failedBotBlocked > 0 && (
+                                <span className="text-zinc-500">{sStats.failedChatNotFound > 0 ? ", " : " ("}блок: {sStats.failedBotBlocked}</span>
+                              )}
+                              {(sStats.failedChatNotFound > 0 || sStats.failedBotBlocked > 0) && (
+                                <span className="text-zinc-500">)</span>
+                              )}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-zinc-500">Нет данных</span>
