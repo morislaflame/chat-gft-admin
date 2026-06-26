@@ -331,3 +331,71 @@ export const deleteUserPurchasedReward = async (userId: number | string, userRew
     const { data } = await $authHost.delete(`api/admin/user/${userId}/purchased-reward/${userRewardId}`);
     return data;
 };
+
+// ========== PUSH NOTIFICATIONS SYSTEM ==========
+
+export interface PushScenario {
+    id: number;
+    triggerType: string;
+    segmentType: string;
+    textRu: string;
+    textEn: string;
+    holdoutPercentage: number;
+    cooldownHours: number;
+    priority: number;
+    status: 'draft' | 'approved' | 'active';
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PushStats {
+    overall: {
+        sent: number;
+        failed: number;
+        holdout: number;
+        clicks: number;
+        returns: number;
+    };
+    scenarios: Array<{
+        id: number;
+        triggerType: string;
+        segmentType: string;
+        sent: number;
+        failed: number;
+        holdout: number;
+        clicks: number;
+        returns: number;
+    }>;
+}
+
+export const getPushScenarios = async (): Promise<PushScenario[]> => {
+    const { data } = await $authHost.get('api/admin/push/scenarios');
+    return data;
+};
+
+export const createPushScenario = async (scenario: Partial<PushScenario>): Promise<PushScenario> => {
+    const { data } = await $authHost.post('api/admin/push/scenarios', scenario);
+    return data;
+};
+
+export const updatePushScenario = async (id: number, scenario: Partial<PushScenario>): Promise<PushScenario> => {
+    const { data } = await $authHost.put(`api/admin/push/scenarios/${id}`, scenario);
+    return data;
+};
+
+export const deletePushScenario = async (id: number): Promise<{ success: boolean; message: string }> => {
+    const { data } = await $authHost.delete(`api/admin/push/scenarios/${id}`);
+    return data;
+};
+
+export const getPushDryRun = async (triggerType: string, segmentType: string): Promise<{ count: number }> => {
+    const { data } = await $authHost.get('api/admin/push/dry-run', {
+        params: { triggerType, segmentType }
+    });
+    return data;
+};
+
+export const getPushStats = async (): Promise<PushStats> => {
+    const { data } = await $authHost.get('api/admin/push/stats');
+    return data;
+};

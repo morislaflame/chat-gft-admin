@@ -17,6 +17,7 @@ import {
   Calendar,
   Download,
   Menu,
+  Bell,
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
@@ -40,6 +41,7 @@ const Navbar = observer(() => {
     { key: 'llmDebug', label: 'LLM Debug', icon: Bug, path: '/llm-debug' },
     { key: 'errorReports', label: 'Ошибки чата', icon: AlertTriangle, path: '/error-reports' },
     { key: 'trafficSources', label: 'Трафик', icon: Link2, path: '/traffic-sources' },
+    { key: 'push', label: 'Пуши', icon: Bell, path: '/push' },
   ];
 
   const isActive = (path: string) => {
