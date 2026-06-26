@@ -24,7 +24,6 @@ import {
   Spinner,
 } from "@heroui/react";
 import {
-  Bell,
   Plus,
   Trash2,
   Edit,
@@ -241,35 +240,29 @@ const PushPage = observer(() => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-zinc-900 text-white">
+      <div className="p-6 flex justify-center items-center min-h-[50vh]">
         <Spinner size="lg" label="Загрузка системы пушей..." color="primary" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 bg-zinc-900 min-h-screen text-white">
-      <PageHeader title="Умные Пуш-Уведомления" icon={Bell}>
-        <div className="flex gap-2">
-          <Button
-            isIconOnly
-            variant="flat"
-            className="bg-zinc-800 hover:bg-zinc-700 text-white"
-            onClick={loadData}
-            isLoading={statsLoading}
-          >
-            <RefreshCw size={18} />
-          </Button>
-          <Button
-            color="primary"
-            startContent={<Plus size={18} />}
-            onClick={handleOpenCreate}
-            className="font-semibold"
-          >
-            Создать сценарий
-          </Button>
-        </div>
-      </PageHeader>
+    <div className="p-6 space-y-6">
+      <PageHeader
+        title="Умные пуш-уведомления"
+        description="Сценарии, сегменты и статистика Telegram-пушей"
+        secondaryActionButton={{
+          label: statsLoading ? "Обновление..." : "Обновить",
+          icon: RefreshCw,
+          onClick: () => void loadData(),
+          variant: "flat",
+        }}
+        actionButton={{
+          label: "Создать сценарий",
+          icon: Plus,
+          onClick: handleOpenCreate,
+        }}
+      />
 
       {/* Stats Cards */}
       {stats && (
@@ -488,7 +481,7 @@ const PushPage = observer(() => {
                 classNames={{ trigger: "bg-zinc-900 border border-zinc-700 text-white" }}
               >
                 {TRIGGERS.map((t) => (
-                  <SelectItem key={t.key} key={t.key} className="text-zinc-800 dark:text-zinc-200">
+                  <SelectItem key={t.key} className="text-zinc-800 dark:text-zinc-200">
                     {t.label}
                   </SelectItem>
                 ))}
@@ -501,7 +494,7 @@ const PushPage = observer(() => {
                 classNames={{ trigger: "bg-zinc-900 border border-zinc-700 text-white" }}
               >
                 {SEGMENTS.map((s) => (
-                  <SelectItem key={s.key} key={s.key} className="text-zinc-800 dark:text-zinc-200">
+                  <SelectItem key={s.key} className="text-zinc-800 dark:text-zinc-200">
                     {s.label}
                   </SelectItem>
                 ))}
