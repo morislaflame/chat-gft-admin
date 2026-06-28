@@ -15,9 +15,10 @@ import {
   Pagination,
   Input,
   Card,
-  CardBody
+  CardBody,
+  Checkbox,
 } from '@heroui/react';
-import { Eye, Search } from 'lucide-react';
+import { Eye, Search, AlertTriangle } from 'lucide-react';
 import { getInitials } from '@/utils/formatters';
 import { USERS_ROUTE } from '@/utils/consts';
 
@@ -30,6 +31,7 @@ interface User {
   language: string | null;
   balance: number;
   energy: number;
+  hasResourceAnomaly?: boolean;
   createdAt: string;
 }
 
@@ -43,9 +45,16 @@ const UsersPage = observer(() => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [anomalyOnly, setAnomalyOnly] = useState(false);
   const limit = 20;
 
-  const loadUsers = async (currentPage: number = page, id?: string, telegramId?: string, username?: string) => {
+  const loadUsers = async (
+    currentPage: number = page,
+    id?: string,
+    telegramId?: string,
+    username?: string,
+    anomaliesOnly?: boolean,
+  ) => {
     setLoading(true);
     try {
       const response: UsersResponse = await getUsers(
@@ -53,7 +62,8 @@ const UsersPage = observer(() => {
         limit, 
         id !== undefined && id !== '' ? id : undefined, 
         telegramId !== undefined && telegramId !== '' ? telegramId : undefined, 
-        username !== undefined && username !== '' ? username : undefined
+        username !== undefined && username !== '' ? username : undefined,
+        anomaliesOnly ?? anomalyOnly,
       );
       setUsers(response.users);
       setTotalPages(response.pagination.totalPages);
@@ -67,23 +77,24 @@ const UsersPage = observer(() => {
 
   // Загружаем пользователей при первой загрузке и при изменении страницы
   useEffect(() => {
-    loadUsers(page, searchId, searchTelegramId, searchUsername);
+    loadUsers(page, searchId, searchTelegramId, searchUsername, anomalyOnly);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, anomalyOnly]);
 
   const handleSearch = () => {
     setPage(1); // Сбрасываем на первую страницу при поиске
-    loadUsers(1, searchId, searchTelegramId, searchUsername);
+    loadUsers(1, searchId, searchTelegramId, searchUsername, anomalyOnly);
   };
 
   const handleClearSearch = () => {
     setSearchId('');
     setSearchTelegramId('');
     setSearchUsername('');
+    setAnomalyOnly(false);
     setPage(1);
     // Загружаем всех пользователей после очистки
     setTimeout(() => {
-      loadUsers(1, '', '', '');
+      loadUsers(1, '', '', '', false);
     }, 0);
   };
 
@@ -97,6 +108,7 @@ const UsersPage = observer(() => {
     { key: 'telegramId', label: 'TELEGRAM ID' },
     { key: 'balance', label: 'БАЛАНС' },
     { key: 'energy', label: 'ЭНЕРГИЯ' },
+    { key: 'anomaly', label: 'АНОМАЛИИ' },
     { key: 'actions', label: 'ДЕЙСТВИЯ' },
   ];
 
@@ -134,6 +146,16 @@ const UsersPage = observer(() => {
             {user.energy}
           </Chip>
         );
+      case 'anomaly':
+        return user.hasResourceAnomaly ? (
+          <Chip color="danger" variant="flat" startContent={<AlertTriangle size={14} />}>
+            Есть
+          </Chip>
+        ) : (
+          <Chip color="success" variant="flat">
+            Нет
+          </Chip>
+        );
       case 'actions':
         return (
           <Button
@@ -160,7 +182,7 @@ const UsersPage = observer(() => {
 
       <Card>
         <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Input
               label="ID пользователя"
               placeholder="Введите ID пользователя"
@@ -205,7 +227,7 @@ const UsersPage = observer(() => {
               >
                 Поиск
               </Button>
-              {(searchId || searchTelegramId || searchUsername) && (
+              {(searchId || searchTelegramId || searchUsername || anomalyOnly) && (
                 <Button
                   variant="light"
                   onPress={handleClearSearch}
@@ -213,6 +235,17 @@ const UsersPage = observer(() => {
                   Сброс
                 </Button>
               )}
+            </div>
+            <div className="flex items-end">
+              <Checkbox
+                isSelected={anomalyOnly}
+                onValueChange={(v) => {
+                  setPage(1);
+                  setAnomalyOnly(v);
+                }}
+              >
+                Только с аномалиями
+              </Checkbox>
             </div>
           </div>
         </CardBody>

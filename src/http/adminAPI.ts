@@ -10,6 +10,7 @@ export interface UsersResponse {
         language: string | null;
         balance: number;
         energy: number;
+        hasResourceAnomaly?: boolean;
         createdAt: string;
     }>;
     pagination: {
@@ -25,20 +26,23 @@ export const getUsers = async (
     limit?: number, 
     id?: string, 
     telegramId?: string, 
-    username?: string
+    username?: string,
+    anomalyOnly?: boolean,
 ): Promise<UsersResponse> => {
     const params: { 
         page?: number; 
         limit?: number; 
         id?: string; 
         telegramId?: string; 
-        username?: string 
+        username?: string;
+        anomalyOnly?: boolean;
     } = {};
     if (page !== undefined) params.page = page;
     if (limit !== undefined) params.limit = limit;
     if (id !== undefined && id !== '') params.id = id;
     if (telegramId !== undefined && telegramId !== '') params.telegramId = telegramId;
     if (username !== undefined && username !== '') params.username = username;
+    if (anomalyOnly === true) params.anomalyOnly = true;
     
     const { data } = await $authHost.get('api/admin/users', { params });
     return data;
@@ -330,6 +334,46 @@ export interface DeleteUserPurchasedRewardResponse {
 export const deleteUserPurchasedReward = async (userId: number | string, userRewardId: number): Promise<DeleteUserPurchasedRewardResponse> => {
     const { data } = await $authHost.delete(`api/admin/user/${userId}/purchased-reward/${userRewardId}`);
     return data;
+};
+
+export type UserResourceType = 'energy' | 'balance';
+
+export interface UserResourceEventRow {
+    id: number;
+    userId: number;
+    resource: UserResourceType;
+    type: string;
+    delta: number;
+    balanceBefore: number | null;
+    balanceAfter: number | null;
+    historyName: string | null;
+    missionId: number | null;
+    createdAt: string;
+    meta?: Record<string, unknown> | null;
+    mission?: {
+        id: number;
+        title: string;
+        level: number;
+        orderIndex: number;
+    } | null;
+}
+
+export interface UserResourceEventsResponse {
+    userId: number;
+    events: UserResourceEventRow[];
+}
+
+export const getUserResourceEvents = async (
+    userId: string | number,
+    limit = 300,
+): Promise<UserResourceEventsResponse> => {
+    const { data } = await $authHost.get(`api/admin/user/${userId}/resource-events`, {
+        params: { limit },
+    });
+    return {
+        userId: data.userId,
+        events: Array.isArray(data.events) ? data.events : [],
+    };
 };
 
 // ========== PUSH NOTIFICATIONS SYSTEM ==========

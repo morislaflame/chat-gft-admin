@@ -13,11 +13,13 @@ import {
   deleteUserPurchasedReward,
   deleteUser,
   getUserArtifactsGrantCatalog,
+  getUserResourceEvents,
   type UserDetailsResponse,
   type UserChatHistoryResponse,
   type PurchasedRewardAdmin,
   type WithdrawalStatus,
   type AdminArtifactsGrantCatalogResponse,
+  type UserResourceEventRow,
 } from '@/http/adminAPI';
 import {
   getUserArtifactEvents,
@@ -62,7 +64,8 @@ import {
   Zap,
   Coins,
   Gift,
-  Gem
+  Gem,
+  AlertTriangle,
 } from 'lucide-react';
 import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
 import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
@@ -71,6 +74,25 @@ import ChatHistoryMissionGroups from '@/components/UsersPageComponents/ChatHisto
 import { useMissionCatalogByHistory } from '@/hooks/useMissionCatalogByHistory';
 import { getUserCompanionsInventory, type UserCompanionInventoryItem } from '@/http/companionAPI';
 import Lottie from 'lottie-react';
+
+const RESOURCE_EVENT_TYPE_LABELS: Record<string, string> = {
+  CHAT_MESSAGE_SPENT: 'Списано за сообщение',
+  CHAT_MESSAGE_REFUND: 'Возврат списания',
+  DAILY_REWARD: 'Ежедневная награда',
+  STAGE_REWARD: 'Награда за этап',
+  MISSION_STEP_REWARD: 'Награда за шаг миссии',
+  CASE_PURCHASE: 'Покупка кейса',
+  CASE_OPEN_REWARD: 'Награда из кейса',
+  REWARD_PURCHASE: 'Покупка награды',
+  ARTIFACT_MARKET_BUY: 'Покупка артефакта',
+  ARTIFACT_MARKET_SELL: 'Продажа артефакта',
+  ADMIN_GRANT: 'Начисление админом',
+  ADMIN_SET: 'Установка админом',
+  TASK_REWARD: 'Награда за задание',
+  REF_CODE_CHANGE: 'Смена рефкода',
+  PAYMENT_PURCHASE: 'Покупка энергии',
+  REFERRAL_PURCHASE_BONUS: 'Реферальный бонус',
+};
 
 const UserDetailsPage = observer(() => {
   const { userId } = useParams<{ userId: string }>();
@@ -96,6 +118,9 @@ const UserDetailsPage = observer(() => {
   const [artifactTxTotals, setArtifactTxTotals] = useState<UserArtifactEventsResponse['totals'] | null>(null);
   const [artifactTxLoading, setArtifactTxLoading] = useState(false);
   const [artifactTxError, setArtifactTxError] = useState<string | null>(null);
+  const [resourceEvents, setResourceEvents] = useState<UserResourceEventRow[]>([]);
+  const [resourceEventsLoading, setResourceEventsLoading] = useState(false);
+  const [resourceEventsError, setResourceEventsError] = useState<string | null>(null);
   const [artifactsCatalog, setArtifactsCatalog] = useState<AdminArtifactsGrantCatalogResponse | null>(null);
   const [artifactsCatalogLoading, setArtifactsCatalogLoading] = useState(false);
   const [artifactsCatalogError, setArtifactsCatalogError] = useState<string | null>(null);
@@ -143,6 +168,23 @@ const UserDetailsPage = observer(() => {
       setCompanionsInventory([]);
     } finally {
       setCompanionsInventoryLoading(false);
+    }
+  }, [userId]);
+
+  const loadUserResourceEvents = useCallback(async () => {
+    if (!userId) return;
+    setResourceEventsLoading(true);
+    setResourceEventsError(null);
+    try {
+      const data = await getUserResourceEvents(userId);
+      setResourceEvents(data.events || []);
+    } catch (err: unknown) {
+      console.error('Не удалось загрузить журнал баланса/энергии:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setResourceEventsError(errorObj.response?.data?.message || 'Не удалось загрузить журнал баланса/энергии');
+      setResourceEvents([]);
+    } finally {
+      setResourceEventsLoading(false);
     }
   }, [userId]);
 
@@ -205,8 +247,9 @@ const UserDetailsPage = observer(() => {
 
       void loadArtifactsCatalog();
       void loadCompanionsInventory();
+      void loadUserResourceEvents();
     }
-  }, [userId, loadUserDetails, loadArtifactsCatalog, loadCompanionsInventory, caseStore]);
+  }, [userId, loadUserDetails, loadArtifactsCatalog, loadCompanionsInventory, loadUserResourceEvents, caseStore]);
 
   // Load Lottie JSON animations for purchased rewards
   useEffect(() => {
@@ -249,6 +292,75 @@ const UserDetailsPage = observer(() => {
       .map((c) => `${c.caseName}: ${c.count}`)
       .join(' • ');
   }, [caseOpenHistory]);
+
+  const resourceSummary = useMemo(() => {
+    return resourceEvents.reduce(
+      (acc, ev) => {
+        if (ev.resource === 'balance') {
+          if (ev.delta > 0) acc.balancePlus += ev.delta;
+          else acc.balanceMinus += Math.abs(ev.delta);
+        } else if (ev.resource === 'energy') {
+          if (ev.delta > 0) acc.energyPlus += ev.delta;
+          else acc.energyMinus += Math.abs(ev.delta);
+        }
+        return acc;
+      },
+      { balancePlus: 0, balanceMinus: 0, energyPlus: 0, energyMinus: 0 },
+    );
+  }, [resourceEvents]);
+
+  const resourceAnomalies = useMemo(() => {
+    const anomalies: string[] = [];
+    if (!userDetails) return anomalies;
+
+    const checkResource = (
+      resource: 'energy' | 'balance',
+      currentValue: number,
+      label: string,
+    ) => {
+      const rows = resourceEvents
+        .filter((ev) => ev.resource === resource)
+        .slice()
+        .sort((a, b) => {
+          const t = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          if (t !== 0) return t;
+          return a.id - b.id;
+        });
+
+      // Важно: если событий нет, не считаем это аномалией (legacy пользователи).
+      if (rows.length === 0) return;
+
+      for (let i = 0; i < rows.length; i += 1) {
+        const row = rows[i];
+        if (row.balanceBefore != null && row.balanceAfter != null && row.balanceBefore + row.delta !== row.balanceAfter) {
+          anomalies.push(
+            `${label}: несогласованные данные в событии ${row.id} (before + delta != after).`,
+          );
+        }
+
+        if (i > 0) {
+          const prev = rows[i - 1];
+          if (prev.balanceAfter != null && row.balanceBefore != null && prev.balanceAfter !== row.balanceBefore) {
+            anomalies.push(
+              `${label}: разрыв между событиями ${prev.id} и ${row.id} (возможно незалогированное изменение).`,
+            );
+          }
+        }
+      }
+
+      const last = rows[rows.length - 1];
+      if (last.balanceAfter != null && Number(last.balanceAfter) !== Number(currentValue)) {
+        anomalies.push(
+          `${label}: текущее значение (${currentValue}) не совпадает с последним after в журнале (${last.balanceAfter}).`,
+        );
+      }
+    };
+
+    checkResource('balance', Number(userDetails.user.balance) || 0, 'Гемы');
+    checkResource('energy', Number(userDetails.user.energy) || 0, 'Энергия');
+
+    return anomalies;
+  }, [resourceEvents, userDetails]);
 
   const loadHistories = async () => {
     try {
@@ -350,7 +462,7 @@ const UserDetailsPage = observer(() => {
       alert(`Баланс успешно установлен!`);
       onBalanceModalClose();
       setBalanceAmount('');
-      await loadUserDetails();
+      await Promise.all([loadUserDetails(), loadUserResourceEvents()]);
     } catch (err: unknown) {
       console.error('Не удалось обновить баланс:', err);
       const error = err as { response?: { data?: { message?: string } } };
@@ -375,7 +487,7 @@ const UserDetailsPage = observer(() => {
       alert(`Энергия успешно установлена!`);
       onEnergyModalClose();
       setEnergyAmount('');
-      await loadUserDetails();
+      await Promise.all([loadUserDetails(), loadUserResourceEvents()]);
     } catch (err: unknown) {
       console.error('Не удалось обновить энергию:', err);
       const error = err as { response?: { data?: { message?: string } } };
@@ -828,6 +940,121 @@ const UserDetailsPage = observer(() => {
               </Table>
             ) : (
               <div className="text-center py-8 text-gray-400">Записей в журнале артефактов нет.</div>
+            )
+          ) : null}
+        </CardBody>
+      </Card>
+
+      {resourceAnomalies.length > 0 ? (
+        <Card className="border border-danger/50">
+          <CardBody className="space-y-3">
+            <div className="flex items-center gap-2 text-danger">
+              <AlertTriangle className="w-4 h-4" />
+              <h3 className="font-semibold">Обнаружены аномалии журнала</h3>
+            </div>
+            <div className="text-xs text-gray-400">
+              Проверка выполняется с первой записи журнала и не учитывает период до внедрения логирования.
+            </div>
+            <ul className="text-sm space-y-1">
+              {resourceAnomalies.map((item) => (
+                <li key={item} className="text-danger-300">• {item}</li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Coins className="w-4 h-4 text-emerald-400" />
+              Журнал баланса и энергии
+            </h3>
+            <Chip size="sm" variant="flat" color="success">
+              {resourceEvents.length}
+            </Chip>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="rounded-lg border border-zinc-700/60 p-3">
+              <p className="text-xs text-gray-500">Баланс +</p>
+              <p className="text-lg font-semibold text-emerald-400">+{resourceSummary.balancePlus}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-700/60 p-3">
+              <p className="text-xs text-gray-500">Баланс -</p>
+              <p className="text-lg font-semibold text-amber-400">-{resourceSummary.balanceMinus}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-700/60 p-3">
+              <p className="text-xs text-gray-500">Энергия +</p>
+              <p className="text-lg font-semibold text-emerald-400">+{resourceSummary.energyPlus}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-700/60 p-3">
+              <p className="text-xs text-gray-500">Энергия -</p>
+              <p className="text-lg font-semibold text-amber-400">-{resourceSummary.energyMinus}</p>
+            </div>
+          </div>
+
+          {resourceEventsError ? <div className="text-sm text-red-500">{resourceEventsError}</div> : null}
+
+          {resourceEventsLoading ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : null}
+
+          {!resourceEventsLoading ? (
+            resourceEvents.length > 0 ? (
+              <Table aria-label="Журнал баланса и энергии">
+                <TableHeader>
+                  <TableColumn>РЕСУРС</TableColumn>
+                  <TableColumn>ТИП</TableColumn>
+                  <TableColumn>Δ</TableColumn>
+                  <TableColumn>БАЛАНС</TableColumn>
+                  <TableColumn>ИСТОРИЯ / МИССИЯ</TableColumn>
+                  <TableColumn>ДАТА</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {resourceEvents.map((ev) => {
+                    const resourceColor = ev.resource === 'energy' ? 'warning' : 'success';
+                    const resourceLabel = ev.resource === 'energy' ? 'Энергия' : 'Гемы';
+                    const typeLabel = RESOURCE_EVENT_TYPE_LABELS[ev.type] ?? ev.type;
+                    return (
+                      <TableRow key={ev.id}>
+                        <TableCell>
+                          <Chip size="sm" variant="flat" color={resourceColor}>
+                            {resourceLabel}
+                          </Chip>
+                        </TableCell>
+                        <TableCell>{typeLabel}</TableCell>
+                        <TableCell>
+                          <span className={ev.delta > 0 ? 'text-emerald-400' : 'text-amber-400'}>
+                            {ev.delta > 0 ? `+${ev.delta}` : ev.delta}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-gray-500">{ev.balanceBefore ?? '—'}</span>
+                          <span className="mx-1">→</span>
+                          <span className="text-xs">{ev.balanceAfter ?? '—'}</span>
+                        </TableCell>
+                        <TableCell className="max-w-[16rem]">
+                          <div className="text-xs leading-snug">
+                            <div>{ev.historyName || '—'}</div>
+                            {ev.missionId ? (
+                              <div className="text-gray-500">
+                                {getMissionLabel(ev.historyName ?? '', ev.missionId, ev.mission ?? null)}
+                              </div>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(ev.createdAt)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-gray-400">Записей в журнале пока нет.</div>
             )
           ) : null}
         </CardBody>
