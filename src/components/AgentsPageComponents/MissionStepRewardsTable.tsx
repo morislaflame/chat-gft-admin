@@ -65,7 +65,7 @@ export const MissionStepRewardsTable = ({
       onInlineUpdateError(
         maybeResponse ||
           (field === "rewardGems"
-            ? "Не удалось сохранить кристаллы"
+            ? "Не удалось сохранить гемы"
             : "Не удалось сохранить энергию")
       );
     } finally {
@@ -90,7 +90,7 @@ export const MissionStepRewardsTable = ({
       <Card>
         <CardBody>
           <div className="text-center py-8 text-gray-500">
-            Наград за шаги пока нет. Добавьте правила выдачи кристаллов и/или энергии за правильные
+            Наград за шаги пока нет. Добавьте правила выдачи гем и/или энергии за правильные
             шаги в любой миссии.
           </div>
         </CardBody>
@@ -116,7 +116,7 @@ export const MissionStepRewardsTable = ({
                   type="number"
                   min={0}
                   size="md"
-                  aria-label="Кристаллы"
+                  aria-label="Гемы"
                   value={drafts[reward.id]?.rewardGems ?? String(reward.rewardGems ?? 0)}
                   onChange={(e) =>
                     setDrafts((prev) => ({
