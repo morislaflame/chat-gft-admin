@@ -1,56 +1,71 @@
 import { $authHost } from "./index";
+import type { Mission } from "./agentAPI";
+import type { Case } from "./caseAPI";
+
+export interface StageRewardMission {
+  id: number;
+  agentId: number;
+  title: string;
+  titleEn?: string | null;
+  orderIndex: number;
+  level: number;
+  agent?: {
+    id: number;
+    historyName: string;
+    displayName?: string | null;
+  } | null;
+}
 
 export interface StageReward {
-    id: number;
-    stageNumber: number;
-    rewardAmount: number;
-    rewardCaseId?: number | null;
-    rewardCase?: {
-        id: number;
-        name: string;
-        nameEn?: string | null;
-        description?: string | null;
-        descriptionEn?: string | null;
-        mediaFile?: { id: number; url: string; mimeType: string } | null;
-    } | null;
-    isActive: boolean;
-    createdAt: string;
+  id: number;
+  missionId: number;
+  rewardAmount: number;
+  rewardCaseId?: number | null;
+  rewardCase?: Case | null;
+  isActive: boolean;
+  createdAt: string;
+  mission?: StageRewardMission | null;
 }
 
 export interface CreateStageRewardData {
-    stageNumber: number;
-    rewardAmount: number;
-    rewardCaseId?: number | null;
+  missionId: number;
+  rewardAmount: number;
+  rewardCaseId?: number | null;
 }
 
 export interface UpdateStageRewardData {
-    rewardAmount?: number;
-    isActive?: boolean;
-    rewardCaseId?: number | null;
+  rewardAmount?: number;
+  rewardCaseId?: number | null;
+  isActive?: boolean;
 }
 
-export const getAllStageRewards = async () => {
-    const { data } = await $authHost.get('api/admin/stage-rewards');
-    return data;
+export type { Mission };
+
+export const getAllStageRewards = async (): Promise<StageReward[]> => {
+  const { data } = await $authHost.get("api/admin/stage-rewards");
+  return data;
 };
 
-export const getStageRewardByNumber = async (stageNumber: number) => {
-    const { data } = await $authHost.get(`api/admin/stage-rewards/${stageNumber}`);
-    return data;
+export const getStageRewardById = async (id: number): Promise<StageReward> => {
+  const { data } = await $authHost.get(`api/admin/stage-rewards/${id}`);
+  return data;
 };
 
-export const createStageReward = async (rewardData: CreateStageRewardData) => {
-    const { data } = await $authHost.post('api/admin/stage-rewards', rewardData);
-    return data;
+export const createStageReward = async (
+  rewardData: CreateStageRewardData
+): Promise<StageReward> => {
+  const { data } = await $authHost.post("api/admin/stage-rewards", rewardData);
+  return data;
 };
 
-export const updateStageReward = async (stageNumber: number, rewardData: UpdateStageRewardData) => {
-    const { data } = await $authHost.put(`api/admin/stage-rewards/${stageNumber}`, rewardData);
-    return data;
+export const updateStageReward = async (
+  id: number,
+  rewardData: UpdateStageRewardData
+): Promise<StageReward> => {
+  const { data } = await $authHost.put(`api/admin/stage-rewards/${id}`, rewardData);
+  return data;
 };
 
-export const deleteStageReward = async (stageNumber: number) => {
-    const { data } = await $authHost.delete(`api/admin/stage-rewards/${stageNumber}`);
-    return data;
+export const deleteStageReward = async (id: number): Promise<void> => {
+  await $authHost.delete(`api/admin/stage-rewards/${id}`);
 };
-

@@ -257,7 +257,7 @@ export const CaseFormModal = ({
                         Награда
                       </SelectItem>
                       <SelectItem key="gems">
-                        Кристаллы
+                        Гемы
                       </SelectItem>
                       <SelectItem key="energy">
                         Энергия

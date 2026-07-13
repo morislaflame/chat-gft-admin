@@ -9,6 +9,17 @@ import {
   type UpdateMissionStepRewardData,
 } from "@/http/missionStepRewardAPI";
 
+function compareByMissionStep(a: MissionStepRewardType, b: MissionStepRewardType): number {
+  const la = Number(a.mission?.level) || 1;
+  const lb = Number(b.mission?.level) || 1;
+  if (la !== lb) return la - lb;
+  const oa = Number(a.mission?.orderIndex) || 0;
+  const ob = Number(b.mission?.orderIndex) || 0;
+  if (oa !== ob) return oa - ob;
+  if (a.missionId !== b.missionId) return a.missionId - b.missionId;
+  return a.stepNumber - b.stepNumber;
+}
+
 export default class MissionStepRewardStore {
   _rewards: MissionStepRewardType[] = [];
   _loading = false;
@@ -37,11 +48,7 @@ export default class MissionStepRewardStore {
       const data = await createMissionStepReward(payload);
       runInAction(() => {
         this._rewards.push(data);
-        this._rewards.sort(
-          (a, b) =>
-            a.missionOrderIndex - b.missionOrderIndex ||
-            a.stepNumber - b.stepNumber
-        );
+        this._rewards.sort(compareByMissionStep);
       });
       return data;
     } catch (error: unknown) {

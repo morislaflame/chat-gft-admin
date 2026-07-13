@@ -1,16 +1,31 @@
 import { $authHost } from "./index";
 
+export interface MissionStepRewardMission {
+  id: number;
+  agentId: number;
+  title: string;
+  titleEn?: string | null;
+  orderIndex: number;
+  level: number;
+  agent?: {
+    id: number;
+    historyName: string;
+    displayName?: string | null;
+  } | null;
+}
+
 export interface MissionStepReward {
   id: number;
-  missionOrderIndex: number;
+  missionId: number;
   stepNumber: number;
   rewardGems: number;
   rewardEnergy: number;
   createdAt: string;
+  mission?: MissionStepRewardMission | null;
 }
 
 export interface CreateMissionStepRewardData {
-  missionOrderIndex: number;
+  missionId: number;
   stepNumber: number;
   rewardGems: number;
   rewardEnergy: number;

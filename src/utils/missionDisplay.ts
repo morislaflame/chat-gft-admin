@@ -85,6 +85,74 @@ export async function fetchAllMissionCatalogs(): Promise<MissionCatalogByHistory
   return new Map(entries);
 }
 
+export type MissionPickerOption = {
+  id: number;
+  agentId: number;
+  historyName: string;
+  agentLabel: string;
+  level: number;
+  orderIndex: number;
+  title: string;
+  label: string;
+};
+
+/** Плоский список миссий всех агентов для Select в админке наград. */
+export async function fetchAllMissionPickerOptions(): Promise<MissionPickerOption[]> {
+  const agents = await getAllAgents();
+  const chunks = await Promise.all(
+    agents.map(async (agent: Agent) => {
+      const missions = await getAgentMissions(agent.id);
+      const agentLabel =
+        (agent.displayName || "").trim() || agent.historyName || `agent ${agent.id}`;
+      return missions
+        .slice()
+        .sort(compareMissionStoryOrder)
+        .map((m) => {
+          const level = Number(m.level) || 1;
+          const orderIndex = Number(m.orderIndex) || 0;
+          const title = (m.title || "").trim() || `id ${m.id}`;
+          return {
+            id: m.id,
+            agentId: agent.id,
+            historyName: agent.historyName,
+            agentLabel,
+            level,
+            orderIndex,
+            title,
+            label: `${agentLabel} · Ур. ${level} · №${orderIndex} — ${title}`,
+          };
+        });
+    }),
+  );
+  return chunks.flat();
+}
+
+export function formatRewardMissionLabel(
+  mission:
+    | {
+        title?: string | null;
+        level?: number;
+        orderIndex?: number;
+        agent?: { historyName?: string; displayName?: string | null } | null;
+      }
+    | null
+    | undefined,
+  missionId?: number | null,
+): string {
+  if (!mission) {
+    return missionId != null ? `Миссия id ${missionId}` : "Миссия не указана";
+  }
+  const agentLabel =
+    (mission.agent?.displayName || "").trim() ||
+    (mission.agent?.historyName || "").trim() ||
+    "";
+  const level = Number(mission.level) || 1;
+  const orderIndex = Number(mission.orderIndex) || 0;
+  const title = (mission.title || "").trim() || (missionId != null ? `id ${missionId}` : "—");
+  const core = `Ур. ${level} · №${orderIndex} — ${title}`;
+  return agentLabel ? `${agentLabel} · ${core}` : core;
+}
+
 export function compareMissionGroups(
   a: { missionId: number | null },
   b: { missionId: number | null },
