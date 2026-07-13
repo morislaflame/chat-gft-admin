@@ -5,6 +5,7 @@ export interface MissionStepReward {
   missionOrderIndex: number;
   stepNumber: number;
   rewardGems: number;
+  rewardEnergy: number;
   createdAt: string;
 }
 
@@ -12,10 +13,12 @@ export interface CreateMissionStepRewardData {
   missionOrderIndex: number;
   stepNumber: number;
   rewardGems: number;
+  rewardEnergy: number;
 }
 
 export interface UpdateMissionStepRewardData {
   rewardGems?: number;
+  rewardEnergy?: number;
 }
 
 export const getAllMissionStepRewards = async (): Promise<MissionStepReward[]> => {

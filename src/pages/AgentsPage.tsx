@@ -43,7 +43,8 @@ const AgentsPage = observer(() => {
   const [stepRewardFormData, setStepRewardFormData] = useState({
     missionOrderIndex: 1,
     stepNumber: 1,
-    rewardGems: 0
+    rewardGems: 0,
+    rewardEnergy: 0,
   });
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
@@ -150,7 +151,7 @@ const AgentsPage = observer(() => {
   };
 
   const handleCreateStepReward = () => {
-    setStepRewardFormData({ missionOrderIndex: 1, stepNumber: 1, rewardGems: 0 });
+    setStepRewardFormData({ missionOrderIndex: 1, stepNumber: 1, rewardGems: 0, rewardEnergy: 0 });
     onStepRewardModalOpen();
   };
 
@@ -159,7 +160,8 @@ const AgentsPage = observer(() => {
       await missionStepReward.createReward({
         missionOrderIndex: stepRewardFormData.missionOrderIndex,
         stepNumber: stepRewardFormData.stepNumber,
-        rewardGems: stepRewardFormData.rewardGems
+        rewardGems: stepRewardFormData.rewardGems,
+        rewardEnergy: stepRewardFormData.rewardEnergy,
       });
       onStepRewardModalClose();
       missionStepReward.fetchAllRewards();
@@ -170,7 +172,7 @@ const AgentsPage = observer(() => {
 
   const handleInlineUpdateStepReward = async (
     reward: MissionStepReward,
-    patch: { rewardGems?: number }
+    patch: { rewardGems?: number; rewardEnergy?: number }
   ) => {
     await missionStepReward.updateReward(reward.id, patch);
   };
@@ -274,11 +276,11 @@ const AgentsPage = observer(() => {
         />
       </div>
 
-      {/* Step Rewards (Missions 1 & 2) */}
+      {/* Step Rewards */}
       <div className="mt-12 pt-8 border-t border-gray-200">
         <PageHeader
-          title="Награды за шаги (миссии 1 и 2)"
-          description="Кристаллы за каждый правильный шаг в миссиях 1 и 2 (при росте прогресса)"
+          title="Награды за шаги"
+          description="Кристаллы и/или энергия за правильные шаги любой миссии (при росте прогресса)"
           actionButton={{
             label: "Создать награду за шаг",
             icon: Footprints,

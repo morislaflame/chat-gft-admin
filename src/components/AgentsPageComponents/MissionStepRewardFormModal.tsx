@@ -6,17 +6,16 @@ import {
   ModalFooter,
   Button,
   Input,
-  Select,
-  SelectItem,
 } from "@heroui/react";
-import { Footprints } from "lucide-react";
+import { Footprints, Gem, Zap } from "lucide-react";
 import type { MissionStepReward } from "@/http/missionStepRewardAPI";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface MissionStepRewardFormData {
   missionOrderIndex: number;
   stepNumber: number;
   rewardGems: number;
+  rewardEnergy: number;
 }
 
 interface MissionStepRewardFormModalProps {
@@ -29,11 +28,6 @@ interface MissionStepRewardFormModalProps {
   existingReward?: MissionStepReward | null;
 }
 
-const MISSION_OPTIONS = [
-  { value: 1, label: "Миссия 1" },
-  { value: 2, label: "Миссия 2" },
-];
-
 export const MissionStepRewardFormModal = ({
   isOpen,
   onClose,
@@ -42,36 +36,45 @@ export const MissionStepRewardFormModal = ({
   onFormDataChange,
   onSave,
 }: MissionStepRewardFormModalProps) => {
-  const missionKeys = useMemo(
-    () => new Set([String(formData.missionOrderIndex)]),
-    [formData.missionOrderIndex]
-  );
-
+  const [missionDisplay, setMissionDisplay] = useState(String(formData.missionOrderIndex));
   const [stepDisplay, setStepDisplay] = useState(String(formData.stepNumber));
-  const [rewardDisplay, setRewardDisplay] = useState(String(formData.rewardGems));
+  const [gemsDisplay, setGemsDisplay] = useState(String(formData.rewardGems));
+  const [energyDisplay, setEnergyDisplay] = useState(String(formData.rewardEnergy));
   const prevOpenRef = useRef(false);
 
   useEffect(() => {
     if (isOpen && !prevOpenRef.current) {
+      setMissionDisplay(String(formData.missionOrderIndex));
       setStepDisplay(String(formData.stepNumber));
-      setRewardDisplay(String(formData.rewardGems));
+      setGemsDisplay(String(formData.rewardGems));
+      setEnergyDisplay(String(formData.rewardEnergy));
     }
     prevOpenRef.current = isOpen;
-  }, [isOpen, formData.stepNumber, formData.rewardGems]);
+  }, [
+    isOpen,
+    formData.missionOrderIndex,
+    formData.stepNumber,
+    formData.rewardGems,
+    formData.rewardEnergy,
+  ]);
 
   const handleNum = (field: keyof MissionStepRewardFormData, value: number) => {
     onFormDataChange({ ...formData, [field]: value });
   };
 
+  const missionNum = parseInt(missionDisplay, 10);
   const stepNum = parseInt(stepDisplay, 10);
-  const rewardNum = parseInt(rewardDisplay, 10);
+  const gemsNum = parseInt(gemsDisplay, 10);
+  const energyNum = parseInt(energyDisplay, 10);
   const canSave =
-    formData.missionOrderIndex >= 1 &&
-    formData.missionOrderIndex <= 2 &&
+    !Number.isNaN(missionNum) &&
+    missionNum >= 1 &&
     !Number.isNaN(stepNum) &&
     stepNum >= 1 &&
-    !Number.isNaN(rewardNum) &&
-    rewardNum >= 0;
+    !Number.isNaN(gemsNum) &&
+    gemsNum >= 0 &&
+    !Number.isNaN(energyNum) &&
+    energyNum >= 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -83,26 +86,25 @@ export const MissionStepRewardFormModal = ({
         </ModalHeader>
         <ModalBody>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Когда пользователь делает правильный шаг в миссии 1 или 2 (прогресс растет), он получает
-            награду за номер этого шага. Поддерживаются только миссии 1 и 2.
+            Когда пользователь делает правильный шаг в миссии (прогресс растёт), он получает
+            награду за номер этого шага. Можно выдать кристаллы, энергию или оба ресурса.
           </p>
           <div className="space-y-4">
-            <Select
-              label="Миссия"
-              selectedKeys={missionKeys}
-              onSelectionChange={(keys) => {
-                const k = Array.from(keys)[0] as string | undefined;
-                if (k) handleNum("missionOrderIndex", Number(k));
+            <Input
+              label="Номер миссии"
+              type="number"
+              value={missionDisplay}
+              onChange={(e) => {
+                const v = e.target.value;
+                setMissionDisplay(v);
+                const n = parseInt(v, 10);
+                if (!Number.isNaN(n)) handleNum("missionOrderIndex", n);
               }}
+              min={1}
               isDisabled={isEditing}
               startContent={<Footprints className="w-4 h-4 text-gray-400" />}
-            >
-              {MISSION_OPTIONS.map((o) => (
-                <SelectItem key={String(o.value)} textValue={o.label}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </Select>
+              description="orderIndex миссии (1, 2, 3…)"
+            />
 
             <Input
               label="Номер шага"
@@ -122,15 +124,31 @@ export const MissionStepRewardFormModal = ({
             <Input
               label="Награда в кристаллах"
               type="number"
-              value={rewardDisplay}
+              value={gemsDisplay}
               onChange={(e) => {
                 const v = e.target.value;
-                setRewardDisplay(v);
+                setGemsDisplay(v);
                 const n = parseInt(v, 10);
                 if (!Number.isNaN(n)) handleNum("rewardGems", n);
               }}
               min={0}
-              description="Сколько кристаллов добавить пользователю"
+              startContent={<Gem className="w-4 h-4 text-amber-500" />}
+              description="Сколько кристаллов добавить пользователю (0 — без кристаллов)"
+            />
+
+            <Input
+              label="Награда в энергии"
+              type="number"
+              value={energyDisplay}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEnergyDisplay(v);
+                const n = parseInt(v, 10);
+                if (!Number.isNaN(n)) handleNum("rewardEnergy", n);
+              }}
+              min={0}
+              startContent={<Zap className="w-4 h-4 text-yellow-400" />}
+              description="Сколько энергии добавить пользователю (0 — без энергии)"
             />
           </div>
         </ModalBody>

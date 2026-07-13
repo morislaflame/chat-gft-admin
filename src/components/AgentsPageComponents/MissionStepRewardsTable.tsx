@@ -1,5 +1,5 @@
 import { Button, Card, CardBody, Input } from "@heroui/react";
-import { Trash2, Gem } from "lucide-react";
+import { Trash2, Gem, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { MissionStepReward } from "@/http/missionStepRewardAPI";
 
@@ -7,9 +7,14 @@ interface MissionStepRewardsTableProps {
   rewards: MissionStepReward[];
   loading: boolean;
   onDelete: (id: number) => void;
-  onInlineUpdateReward: (reward: MissionStepReward, patch: { rewardGems?: number }) => Promise<void>;
+  onInlineUpdateReward: (
+    reward: MissionStepReward,
+    patch: { rewardGems?: number; rewardEnergy?: number }
+  ) => Promise<void>;
   onInlineUpdateError: (message: string) => void;
 }
+
+type Draft = { rewardGems: string; rewardEnergy: string };
 
 export const MissionStepRewardsTable = ({
   rewards,
@@ -18,32 +23,51 @@ export const MissionStepRewardsTable = ({
   onInlineUpdateReward,
   onInlineUpdateError,
 }: MissionStepRewardsTableProps) => {
-  const [drafts, setDrafts] = useState<Record<number, { rewardGems: string }>>({});
+  const [drafts, setDrafts] = useState<Record<number, Draft>>({});
   const [savingField, setSavingField] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const next: Record<number, { rewardGems: string }> = {};
+    const next: Record<number, Draft> = {};
     for (const reward of rewards) {
-      next[reward.id] = { rewardGems: String(reward.rewardGems ?? 0) };
+      next[reward.id] = {
+        rewardGems: String(reward.rewardGems ?? 0),
+        rewardEnergy: String(reward.rewardEnergy ?? 0),
+      };
     }
     setDrafts(next);
   }, [rewards]);
 
-  const saveRewardGemsOnBlur = async (reward: MissionStepReward) => {
-    const key = `${reward.id}-rewardGems`;
+  const saveFieldOnBlur = async (
+    reward: MissionStepReward,
+    field: "rewardGems" | "rewardEnergy"
+  ) => {
+    const key = `${reward.id}-${field}`;
     const current = drafts[reward.id];
     if (!current) return;
 
-    const parsedValue = Number.parseInt(current.rewardGems || "0", 10);
-    if (parsedValue === reward.rewardGems) return;
+    const parsedValue = Number.parseInt(current[field] || "0", 10);
+    const currentValue = Number(reward[field] ?? 0);
+    if (parsedValue === currentValue) return;
 
     try {
       setSavingField((prev) => ({ ...prev, [key]: true }));
-      await onInlineUpdateReward(reward, { rewardGems: parsedValue });
+      await onInlineUpdateReward(reward, { [field]: parsedValue });
     } catch (error: unknown) {
-      setDrafts((prev) => ({ ...prev, [reward.id]: { rewardGems: String(reward.rewardGems ?? 0) } }));
-      const maybeResponse = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      onInlineUpdateError(maybeResponse || "Не удалось сохранить кристаллы");
+      setDrafts((prev) => ({
+        ...prev,
+        [reward.id]: {
+          rewardGems: String(reward.rewardGems ?? 0),
+          rewardEnergy: String(reward.rewardEnergy ?? 0),
+        },
+      }));
+      const maybeResponse = (error as { response?: { data?: { message?: string } } })?.response
+        ?.data?.message;
+      onInlineUpdateError(
+        maybeResponse ||
+          (field === "rewardGems"
+            ? "Не удалось сохранить кристаллы"
+            : "Не удалось сохранить энергию")
+      );
     } finally {
       setSavingField((prev) => ({ ...prev, [key]: false }));
     }
@@ -66,7 +90,8 @@ export const MissionStepRewardsTable = ({
       <Card>
         <CardBody>
           <div className="text-center py-8 text-gray-500">
-            Наград за шаги пока нет. Добавьте правила выдачи кристаллов за правильные шаги в миссиях 1 и 2.
+            Наград за шаги пока нет. Добавьте правила выдачи кристаллов и/или энергии за правильные
+            шаги в любой миссии.
           </div>
         </CardBody>
       </Card>
@@ -86,17 +111,46 @@ export const MissionStepRewardsTable = ({
               </div>
 
               <div className="flex flex-row gap-2 items-center">
-                <Gem className="w-5 h-5 text-amber-500" />
+                <Gem className="w-5 h-5 text-amber-500 shrink-0" />
                 <Input
                   type="number"
                   min={0}
                   size="md"
-                  value={drafts[reward.id]?.rewardGems ?? String(reward.rewardGems)}
+                  aria-label="Кристаллы"
+                  value={drafts[reward.id]?.rewardGems ?? String(reward.rewardGems ?? 0)}
                   onChange={(e) =>
-                    setDrafts((prev) => ({ ...prev, [reward.id]: { rewardGems: e.target.value } }))
+                    setDrafts((prev) => ({
+                      ...prev,
+                      [reward.id]: {
+                        rewardGems: e.target.value,
+                        rewardEnergy: prev[reward.id]?.rewardEnergy ?? String(reward.rewardEnergy ?? 0),
+                      },
+                    }))
                   }
-                  onBlur={() => saveRewardGemsOnBlur(reward)}
+                  onBlur={() => saveFieldOnBlur(reward, "rewardGems")}
                   isDisabled={savingField[`${reward.id}-rewardGems`]}
+                />
+              </div>
+
+              <div className="flex flex-row gap-2 items-center">
+                <Zap className="w-5 h-5 text-yellow-400 shrink-0" />
+                <Input
+                  type="number"
+                  min={0}
+                  size="md"
+                  aria-label="Энергия"
+                  value={drafts[reward.id]?.rewardEnergy ?? String(reward.rewardEnergy ?? 0)}
+                  onChange={(e) =>
+                    setDrafts((prev) => ({
+                      ...prev,
+                      [reward.id]: {
+                        rewardGems: prev[reward.id]?.rewardGems ?? String(reward.rewardGems ?? 0),
+                        rewardEnergy: e.target.value,
+                      },
+                    }))
+                  }
+                  onBlur={() => saveFieldOnBlur(reward, "rewardEnergy")}
+                  isDisabled={savingField[`${reward.id}-rewardEnergy`]}
                 />
               </div>
 
