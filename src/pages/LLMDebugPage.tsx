@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
-import { Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Spinner } from "@heroui/react";
+import { Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Select, SelectItem, Spinner } from "@heroui/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { exportLLMTracesByQuality, getLLMTraceById, getLLMTraces, setLLMTraceQuality, type LLMTraceDetails, type LLMTraceListItem, type LLMTraceQuality, type LLMTraceReason } from "@/http/llmTraceAPI";
+import { getAllAgents, type Agent } from "@/http/agentAPI";
 import { useMissionCatalogByHistory } from "@/hooks/useMissionCatalogByHistory";
+
+const ALL_HISTORIES_KEY = "__all__";
 
 const JsonBlock = ({ value }: { value: unknown }) => (
   <pre className="text-xs whitespace-pre-wrap break-words bg-zinc-900/60 border border-white/10 rounded-lg p-3 text-white/90 max-h-[420px] overflow-auto">
@@ -152,8 +155,9 @@ const LLMDebugPage: React.FC = observer(() => {
   const [exportLoading, setExportLoading] = useState(false);
 
   const [userId, setUserId] = useState("");
-  const [historyName, setHistoryName] = useState("starwars");
+  const [historyName, setHistoryName] = useState("");
   const [missionId, setMissionId] = useState("");
+  const [agents, setAgents] = useState<Agent[]>([]);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -161,6 +165,25 @@ const LLMDebugPage: React.FC = observer(() => {
   const [markLoading, setMarkLoading] = useState(false);
   const [selectedReasons, setSelectedReasons] = useState<LLMTraceReason[]>([]);
   const [qualityNote, setQualityNote] = useState("");
+
+  const historySelectItems = useMemo(() => {
+    const trimmed = historyName.trim();
+    const items: Array<{ key: string; label: string; textValue: string }> = [
+      { key: ALL_HISTORIES_KEY, label: "Все истории", textValue: "Все истории" },
+      ...agents.map((agent) => {
+        const name = (agent.displayName || "").trim() || agent.historyName;
+        return {
+          key: agent.historyName,
+          label: `${name} (${agent.historyName})`,
+          textValue: `${name} (${agent.historyName})`,
+        };
+      }),
+    ];
+    if (trimmed && !agents.some((a) => a.historyName === trimmed)) {
+      items.push({ key: trimmed, label: trimmed, textValue: trimmed });
+    }
+    return items;
+  }, [agents, historyName]);
 
   const params = useMemo(() => {
     const p: { limit: number; offset: number; userId?: number; historyName?: string; missionId?: number } = { limit, offset };
@@ -180,6 +203,24 @@ const LLMDebugPage: React.FC = observer(() => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllAgents()
+      .then((data: Agent[]) => {
+        if (!cancelled) {
+          const list = Array.isArray(data) ? data : [];
+          setAgents([...list].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0)));
+        }
+      })
+      .catch((err) => {
+        console.error("Не удалось загрузить список историй:", err);
+        if (!cancelled) setAgents([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const uid = searchParams.get("userId");
@@ -253,7 +294,26 @@ const LLMDebugPage: React.FC = observer(() => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Input label="ID пользователя" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="например: 13" />
-        <Input label="История" value={historyName} onChange={(e) => setHistoryName(e.target.value)} placeholder="starwars" />
+        <Select
+          label="История"
+          placeholder="Все истории"
+          selectedKeys={[historyName.trim() ? historyName.trim() : ALL_HISTORIES_KEY]}
+          onSelectionChange={(keys) => {
+            const selected = Array.from(keys)[0] as string | undefined;
+            if (!selected || selected === ALL_HISTORIES_KEY) {
+              setHistoryName("");
+              return;
+            }
+            setHistoryName(selected);
+          }}
+          items={historySelectItems}
+        >
+          {(item) => (
+            <SelectItem key={item.key} textValue={item.textValue}>
+              {item.label}
+            </SelectItem>
+          )}
+        </Select>
         <Input
           label="ID миссии в БД"
           value={missionId}

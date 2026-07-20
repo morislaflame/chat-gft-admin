@@ -62,9 +62,9 @@ const TRIGGERS = [
 const SEGMENTS = [
   { key: "ALL", label: "Все игроки (ALL)" },
   { key: "NEW", label: "Новые < 48ч (NEW)" },
-  { key: "ACTIVE", label: "Активные < 48ч (ACTIVE)" },
-  { key: "COOLING", label: "Остывающие 2-7 дней (COOLING)" },
-  { key: "DORMANT", label: "Спящие 7+ дней (DORMANT)" },
+  { key: "ACTIVE", label: "Заходили < 48ч (ACTIVE)" },
+  { key: "COOLING", label: "Не заходили 2–7 дней (COOLING)" },
+  { key: "DORMANT", label: "Не заходили 7+ дней (DORMANT)" },
   { key: "PAYER", label: "Платящие (PAYER)" },
   { key: "NEAR_PAYER", label: "Почти платящие (NEAR_PAYER)" },
   { key: "HAS_VALUE", label: "С балансом (HAS_VALUE)" },
