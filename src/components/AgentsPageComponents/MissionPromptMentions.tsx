@@ -77,6 +77,11 @@ export default function MissionPromptMentions({
           For side-chain pickup timing use tag in the beat text: <code>@artifact_side(K)</code> (for example <code>@artifact_side(2)</code>).
           Legacy <code>@artifact_detour(K)</code> is still parsed for backward compatibility.
         </div>
+        <div className="text-white/70 text-xs">
+          Story memory: write plain-text mapping inside the beat (tags are stripped at runtime), e.g.{" "}
+          <code>- cooperate → suggestions[].memory = user_cooperate</code>, then keep{" "}
+          <code>@memory(...)</code> / <code>@memory_group(...)</code> at the end for the parser.
+        </div>
       </div>
       <MentionsInput
         value={value}

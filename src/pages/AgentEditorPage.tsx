@@ -33,6 +33,7 @@ const AgentEditorPage = observer(() => {
     descriptionEn: '',
     orderIndex: '0',
     isActive: true,
+    persistStoryMemory: false,
   });
 
   useEffect(() => {
@@ -56,6 +57,7 @@ const AgentEditorPage = observer(() => {
         descriptionEn: '',
         orderIndex: '0',
         isActive: true,
+        persistStoryMemory: false,
       });
       return;
     }
@@ -70,6 +72,7 @@ const AgentEditorPage = observer(() => {
         descriptionEn: selectedAgent.descriptionEn || '',
         orderIndex: String(selectedAgent.orderIndex ?? 0),
         isActive: selectedAgent.isActive ?? true,
+        persistStoryMemory: selectedAgent.persistStoryMemory ?? false,
       });
     }
   }, [selectedAgent, isCreateMode]);
@@ -89,6 +92,7 @@ const AgentEditorPage = observer(() => {
       descriptionEn: formData.descriptionEn || null,
       orderIndex: parseInt(formData.orderIndex, 10) || 0,
       isActive: formData.isActive,
+      persistStoryMemory: formData.persistStoryMemory,
     };
 
     try {
@@ -101,6 +105,32 @@ const AgentEditorPage = observer(() => {
       }
     } catch (error) {
       console.error('Failed to save agent:', error);
+    }
+  };
+
+  const handlePersistStoryMemoryChange = async (value: boolean) => {
+    const prev = formData.persistStoryMemory;
+    setFormData({ ...formData, persistStoryMemory: value });
+    if (isCreateMode || !numericAgentId) return;
+    try {
+      await agent.updateAgent(numericAgentId, { persistStoryMemory: value });
+      await agent.fetchAllAgents();
+    } catch (error) {
+      console.error('Failed to update persistStoryMemory:', error);
+      setFormData((current) => ({ ...current, persistStoryMemory: prev }));
+    }
+  };
+
+  const handleIsActiveChange = async (value: boolean) => {
+    const prev = formData.isActive;
+    setFormData({ ...formData, isActive: value });
+    if (isCreateMode || !numericAgentId) return;
+    try {
+      await agent.updateAgent(numericAgentId, { isActive: value });
+      await agent.fetchAllAgents();
+    } catch (error) {
+      console.error('Failed to update isActive:', error);
+      setFormData((current) => ({ ...current, isActive: prev }));
     }
   };
 
@@ -200,9 +230,20 @@ const AgentEditorPage = observer(() => {
               onChange={(e) => setFormData({ ...formData, orderIndex: e.target.value })}
             />
             <div className="rounded-xl border border-slate-200 dark:border-zinc-700 p-4">
-              <Switch isSelected={formData.isActive} onValueChange={(value) => setFormData({ ...formData, isActive: value })}>
+              <Switch isSelected={formData.isActive} onValueChange={(value) => void handleIsActiveChange(value)}>
                 Активен
               </Switch>
+            </div>
+            <div className="rounded-xl border border-slate-200 dark:border-zinc-700 p-4 md:col-span-2">
+              <Switch
+                isSelected={formData.persistStoryMemory}
+                onValueChange={(value) => void handlePersistStoryMemoryChange(value)}
+              >
+                Память истории между миссиями (@memory)
+              </Switch>
+              <p className="mt-2 text-xs text-slate-500 dark:text-zinc-400">
+                Сохраняет исходы @memory / @memory_group между миссиями. При реплее канон меняется только после полного прохождения.
+              </p>
             </div>
           </div>
         </div>

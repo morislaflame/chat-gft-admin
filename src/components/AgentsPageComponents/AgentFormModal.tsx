@@ -25,6 +25,7 @@ interface AgentFormData {
   descriptionEn: string;
   orderIndex: string;
   isActive: boolean;
+  persistStoryMemory?: boolean;
 }
 
 interface AgentFormModalProps {
@@ -278,6 +279,13 @@ export const AgentFormModal = ({
               onValueChange={(value) => handleInputChange('isActive', value)}
             >
               Active
+            </Switch>
+
+            <Switch
+              isSelected={Boolean(formData.persistStoryMemory)}
+              onValueChange={(value) => handleInputChange('persistStoryMemory', value)}
+            >
+              Persist story memory (@memory) across missions
             </Switch>
 
             <Textarea

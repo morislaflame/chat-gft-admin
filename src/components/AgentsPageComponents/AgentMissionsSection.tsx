@@ -684,13 +684,32 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
               </div>
               <div className="mb-3 rounded-lg border border-zinc-700 bg-zinc-900/70 p-3 text-xs text-zinc-300 space-y-1">
                 <div>
-                  Поддерживаемые теги в <code>Required beats</code>:
-                </div>
-                <div>
-                  <code>@progress(flag)</code>, <code>@artifact(CODE)</code>, <code>@artifact_side(K)</code>.
+                  Шаблон beat: контекст → карта «вариант → suggestions[].memory» прозой → «шаг
+                  завершается, когда…» → машинные теги в конце.
                 </div>
                 <div className="text-zinc-400">
-                  `@artifact_side(K)` означает: RECEIVE артефакта доступен в side-цепочке с K-го side-хода.
+                  Теги <code>@progress</code> / <code>@memory</code> вырезаются из runtime-текста —
+                  привязку флагов к кнопкам пишите обычным текстом внутри шага.
+                </div>
+                <div>
+                  Поддерживаемые теги в <code>## Required beats</code>:
+                </div>
+                <div>
+                  <code>@progress(flag)</code>, <code>@memory(flag)</code>,{" "}
+                  <code>@memory_group(id: a | b)</code>, <code>@artifact(CODE)</code>,{" "}
+                  <code>@artifact_side(K)</code>.
+                </div>
+                <div className="text-zinc-400">
+                  <code>@progress</code> — закрытие шага. <code>@memory</code> /{" "}
+                  <code>@memory_group</code> — исходы для следующих миссий (свитч «Память истории» у
+                  агента; LLM пишет ключ в <code>suggestions[].memory</code>). После фиксации выбора
+                  на шаге повторно флаги не ставятся — нарратив опирается на выбранный флаг.
+                </div>
+                <div className="text-zinc-400">
+                  Пример: <code>- сотрудничество → suggestions[].memory = user_cooperate</code>
+                </div>
+                <div className="text-zinc-400">
+                  <code>@artifact_side(K)</code>: RECEIVE в side-цепочке с K-го side-хода.
                 </div>
               </div>
               <MissionPromptMentions

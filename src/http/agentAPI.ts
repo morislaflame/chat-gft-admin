@@ -27,6 +27,7 @@ export interface Agent {
     previewId?: number | null;
     backgroundId?: number | null;
     isActive: boolean;
+    persistStoryMemory?: boolean;
     createdAt: string;
     updatedAt: string;
     video?: MediaFile | null;
@@ -44,6 +45,7 @@ export interface CreateAgentData {
     descriptionEn?: string | null;
     orderIndex?: number;
     isActive?: boolean;
+    persistStoryMemory?: boolean;
 }
 
 export interface UpdateAgentData {
@@ -59,6 +61,7 @@ export interface UpdateAgentData {
     previewId?: number | null;
     backgroundId?: number | null;
     isActive?: boolean;
+    persistStoryMemory?: boolean;
 }
 
 export const createAgent = async (agentData: CreateAgentData) => {
