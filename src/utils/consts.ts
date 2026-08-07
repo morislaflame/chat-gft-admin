@@ -22,3 +22,4 @@ export const ERROR_REPORTS_ROUTE = '/error-reports';
 export const USER_CHAT_HISTORY_ROUTE = '/user-chat-history';
 export const USER_DETAILS_ROUTE = '/users/:userId';
 export const PUSH_ROUTE = '/push';
+export const PROMPTS_ROUTE = '/prompts';

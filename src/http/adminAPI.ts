@@ -452,3 +452,106 @@ export const getPushStats = async (): Promise<PushStats> => {
     const { data } = await $authHost.get('api/admin/push/stats');
     return data;
 };
+
+// ========== LLM PROMPT REGISTRY ==========
+
+export type PromptCategory = 'engine' | 'runtime' | 'compose';
+export type PromptVersionStatus = 'draft' | 'active' | 'archived';
+
+export interface PromptVersion {
+    id: number;
+    templateId: number;
+    version: number;
+    status: PromptVersionStatus;
+    body: string;
+    changelog: string | null;
+    createdByUserId: number | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export type PromptVersionSummary = Pick<
+    PromptVersion,
+    'id' | 'version' | 'status' | 'updatedAt' | 'changelog'
+>;
+
+export interface PromptTemplate {
+    id: number;
+    key: string;
+    name: string;
+    description: string | null;
+    category: PromptCategory;
+    sortOrder: number;
+    placeholders: string[] | null;
+    activeVersionId: number | null;
+    /** List endpoint: summary without body. Detail: may include body. */
+    activeVersion?: (PromptVersionSummary & { body?: string }) | null;
+    versions?: PromptVersion[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PromptSeedResult {
+    success: boolean;
+    created: string[];
+    skipped: string[];
+    draftForced: string[];
+    inventoryDoc: string;
+}
+
+export const getPromptTemplates = async (
+    category?: PromptCategory,
+    signal?: AbortSignal
+): Promise<PromptTemplate[]> => {
+    const params: { category?: string } = {};
+    if (category) params.category = category;
+    const { data } = await $authHost.get('api/admin/prompts', { params, signal });
+    return data;
+};
+
+export const getPromptTemplate = async (
+    id: number,
+    signal?: AbortSignal
+): Promise<PromptTemplate> => {
+    const { data } = await $authHost.get(`api/admin/prompts/${id}`, { signal });
+    return data;
+};
+
+export const seedPromptTemplates = async (force = false): Promise<PromptSeedResult> => {
+    const { data } = await $authHost.post('api/admin/prompts/seed', { force }, {
+        params: force ? { force: 'true' } : undefined,
+    });
+    return data;
+};
+
+/** Upserts the single draft (or creates it). activate=true saves+activates atomically. */
+export const createPromptVersion = async (
+    templateId: number,
+    payload: { body: string; changelog?: string | null; activate?: boolean }
+): Promise<PromptTemplate> => {
+    const { data } = await $authHost.post(`api/admin/prompts/${templateId}/versions`, payload);
+    return data;
+};
+
+export const updatePromptDraftVersion = async (
+    versionId: number,
+    payload: {
+        body?: string;
+        changelog?: string | null;
+        expectedUpdatedAt?: string;
+    }
+): Promise<PromptVersion> => {
+    const { data } = await $authHost.put(`api/admin/prompts/versions/${versionId}`, payload);
+    return data;
+};
+
+export const activatePromptVersion = async (
+    versionId: number,
+    payload?: { body?: string; changelog?: string | null }
+): Promise<PromptTemplate> => {
+    const { data } = await $authHost.post(
+        `api/admin/prompts/versions/${versionId}/activate`,
+        payload || {}
+    );
+    return data;
+};

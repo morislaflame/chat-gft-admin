@@ -19,6 +19,7 @@ import TrafficSourcesPage from '@/pages/TrafficSourcesPage';
 import LLMDebugPage from '@/pages/LLMDebugPage';
 import ErrorReportsPage from '@/pages/ErrorReportsPage';
 import PushPage from '@/pages/PushPage';
+import PromptsPage from '@/pages/PromptsPage';
 import {
   MAIN_ROUTE,
   AUTH_ROUTE,
@@ -38,7 +39,8 @@ import {
   LLM_DEBUG_ROUTE,
   ERROR_REPORTS_ROUTE,
   USER_DETAILS_ROUTE,
-  PUSH_ROUTE
+  PUSH_ROUTE,
+  PROMPTS_ROUTE,
 } from '@/utils/consts';
 
 interface Route {
@@ -69,4 +71,5 @@ export const privateRoutes: Route[] = [
   { path: LLM_DEBUG_ROUTE, Component: LLMDebugPage },
   { path: ERROR_REPORTS_ROUTE, Component: ErrorReportsPage },
   { path: PUSH_ROUTE, Component: PushPage },
+  { path: PROMPTS_ROUTE, Component: PromptsPage },
 ];

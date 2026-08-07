@@ -18,9 +18,11 @@ import {
   Download,
   Menu,
   Bell,
+  FileText,
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
+import { PROMPTS_ROUTE } from '@/utils/consts';
 
 const Navbar = observer(() => {
   const navigate = useNavigate();
@@ -38,6 +40,7 @@ const Navbar = observer(() => {
     { key: 'dailyRewards', label: 'Daily Rewards', icon: Calendar, path: '/daily-rewards' },
     { key: 'agents', label: 'Agents', icon: Bot, path: '/agents' },
     { key: 'artifacts', label: 'Artifacts', icon: Sparkles, path: '/artifacts' },
+    { key: 'prompts', label: 'Тексты ИИ', icon: FileText, path: PROMPTS_ROUTE },
     { key: 'llmDebug', label: 'LLM Debug', icon: Bug, path: '/llm-debug' },
     { key: 'errorReports', label: 'Ошибки чата', icon: AlertTriangle, path: '/error-reports' },
     { key: 'trafficSources', label: 'Трафик', icon: Link2, path: '/traffic-sources' },
