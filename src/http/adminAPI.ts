@@ -524,6 +524,11 @@ export const seedPromptTemplates = async (force = false): Promise<PromptSeedResu
     return data;
 };
 
+export const exportPromptTemplates = async (): Promise<Blob> => {
+    const { data } = await $authHost.get('api/admin/prompts/export', { responseType: 'blob' });
+    return data as Blob;
+};
+
 /** Upserts the single draft (or creates it). activate=true saves+activates atomically. */
 export const createPromptVersion = async (
     templateId: number,

@@ -16,12 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from "@heroui/react";
-import { FileText, RefreshCw } from "lucide-react";
+import { Download, FileText, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/ui";
 import { PromptFullscreenEditor } from "@/components/PromptsPageComponents";
 import {
   activatePromptVersion,
   createPromptVersion,
+  exportPromptTemplates,
   getPromptTemplate,
   getPromptTemplates,
   seedPromptTemplates,
@@ -29,6 +30,7 @@ import {
   type PromptTemplate,
   type PromptVersion,
 } from "@/http/adminAPI";
+import { downloadBlob, exportFilename } from "@/utils/downloadFile";
 
 const CATEGORY_LABELS: Record<PromptCategory | "all", string> = {
   all: "Все разделы",
@@ -95,6 +97,7 @@ const PromptsPage = observer(() => {
   const [baselineChangelog, setBaselineChangelog] = useState("");
   const [editingVersion, setEditingVersion] = useState<PromptVersion | null>(null);
   const [saving, setSaving] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(
     null
   );
@@ -241,6 +244,19 @@ const PromptsPage = observer(() => {
     setDetailError(null);
     setEditorSnapshot("", "", null);
   }, [confirmIfDirty, setEditorSnapshot]);
+
+  const handleExportData = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportPromptTemplates();
+      downloadBlob(blob, exportFilename("prompts_export"));
+    } catch (e) {
+      console.error(e);
+      showToast(getErrorMessage(e, "Не удалось выгрузить данные"), "error");
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   const handleSeed = async () => {
     if (
@@ -488,6 +504,12 @@ const PromptsPage = observer(() => {
       <PageHeader
         title="Тексты для ИИ"
         description="Здесь правятся общие правила ответов бота. Стиль истории и текст миссий по-прежнему настраиваются в разделе Agents."
+        secondaryActionButton={{
+          label: exportLoading ? "Выгрузка..." : "Выгрузить данные",
+          icon: Download,
+          onClick: () => void handleExportData(),
+          variant: "flat",
+        }}
       />
 
       <div className="flex flex-wrap gap-3 items-end">
