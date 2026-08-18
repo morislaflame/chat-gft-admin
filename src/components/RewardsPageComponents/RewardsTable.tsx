@@ -4,7 +4,7 @@ import {
   Card,
   CardBody
 } from '@heroui/react';
-import { Edit, Trash2, Gift, Gem } from 'lucide-react';
+import { Edit, Trash2, Gift, Gem, Crown } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import { type Reward } from '@/types/reward';
 import { useMemo } from 'react';
@@ -73,9 +73,21 @@ export const RewardsTable = ({
 
               <div className="flex items-start justify-between gap-2">
                 <p className="font-semibold text-white leading-tight">{reward.name}</p>
-                <Chip color={reward.isActive ? 'success' : 'danger'} variant="flat" size="sm">
-                  {reward.isActive ? 'Активна' : 'Неактивна'}
-                </Chip>
+                <div className="flex flex-col items-end gap-1">
+                  <Chip color={reward.isActive ? 'success' : 'danger'} variant="flat" size="sm">
+                    {reward.isActive ? 'Активна' : 'Неактивна'}
+                  </Chip>
+                  {reward.isPremium ? (
+                    <Chip color="warning" variant="flat" size="sm" startContent={<Crown size={12} />}>
+                      Premium
+                    </Chip>
+                  ) : null}
+                  {reward.onlyCase ? (
+                    <Chip color="secondary" variant="flat" size="sm">
+                      Кейс
+                    </Chip>
+                  ) : null}
+                </div>
               </div>
 
               <p className="text-xs text-zinc-400 line-clamp-2">{reward.description || 'Без описания'}</p>

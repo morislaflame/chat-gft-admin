@@ -11,6 +11,8 @@ export interface UsersResponse {
         balance: number;
         energy: number;
         hasResourceAnomaly?: boolean;
+        isPremium?: boolean;
+        premiumPurchasedAt?: string | null;
         createdAt: string;
     }>;
     pagination: {
@@ -28,6 +30,7 @@ export const getUsers = async (
     telegramId?: string, 
     username?: string,
     anomalyOnly?: boolean,
+    premiumOnly?: boolean,
 ): Promise<UsersResponse> => {
     const params: { 
         page?: number; 
@@ -36,6 +39,7 @@ export const getUsers = async (
         telegramId?: string; 
         username?: string;
         anomalyOnly?: boolean;
+        premiumOnly?: boolean;
     } = {};
     if (page !== undefined) params.page = page;
     if (limit !== undefined) params.limit = limit;
@@ -43,6 +47,7 @@ export const getUsers = async (
     if (telegramId !== undefined && telegramId !== '') params.telegramId = telegramId;
     if (username !== undefined && username !== '') params.username = username;
     if (anomalyOnly === true) params.anomalyOnly = true;
+    if (premiumOnly === true) params.premiumOnly = true;
     
     const { data } = await $authHost.get('api/admin/users', { params });
     return data;
@@ -62,6 +67,9 @@ export interface UserDetailsResponse {
         createdAt: string;
         selectedHistoryName: string;
         selectedChatMissionId?: number | null;
+        isPremium?: boolean;
+        premiumPurchasedAt?: string | null;
+        premiumOrderId?: number | null;
     };
     registeredAt: string;
     messageCount: number;
@@ -208,11 +216,89 @@ export interface DashboardDataResponse {
     orderStats: { totalOrders: number; completedOrders: number };
     productStats: { totalProducts: number };
     purchaseStats: { total_purchases: number; total_stars: number };
+    premiumStats?: { premiumUsers: number; total_purchases: number; total_stars: number };
     recentUsers?: RecentUserSession[];
 }
 
 export const getDashboardData = async (): Promise<DashboardDataResponse> => {
     const { data } = await $authHost.get('api/admin/dashboard');
+    return data;
+};
+
+export interface EconomySettings {
+    energyCapRegular: number;
+    energyCapPremium: number;
+    dailyRewardPremiumMultiplier: number;
+    updatedAt?: string | null;
+    premiumProduct?: {
+        id: number;
+        name: string;
+        type?: string;
+        starsPrice: number;
+        energy: number;
+        referralBonus?: {
+            energy?: number;
+            balance?: number;
+        } | null;
+    } | null;
+}
+
+export interface PremiumStatsResponse extends EconomySettings {
+    premiumUsers: number;
+    totalUsers: number;
+    conversionPercent: number;
+    purchases: {
+        total_purchases: number;
+        total_stars: number;
+    };
+    settings: {
+        energyCapRegular: number;
+        energyCapPremium: number;
+        dailyRewardPremiumMultiplier: number;
+        updatedAt?: string | null;
+    };
+}
+
+export const getEconomySettings = async (): Promise<EconomySettings> => {
+    const { data } = await $authHost.get('api/admin/economy-settings');
+    return data;
+};
+
+export const updateEconomySettings = async (payload: {
+    energyCapRegular?: number;
+    energyCapPremium?: number;
+    dailyRewardPremiumMultiplier?: number;
+}): Promise<EconomySettings> => {
+    const { data } = await $authHost.put('api/admin/economy-settings', payload);
+    return data;
+};
+
+export const getPremiumStats = async (): Promise<PremiumStatsResponse> => {
+    const { data } = await $authHost.get('api/admin/premium/stats');
+    return data;
+};
+
+export const upsertPremiumProduct = async (payload: {
+    name: string;
+    starsPrice: number;
+    referralBonus?: { energy?: number; balance?: number } | null;
+}): Promise<EconomySettings> => {
+    const { data } = await $authHost.put('api/admin/premium/product', payload);
+    return data;
+};
+
+export const setUserPremium = async (
+    userId: string | number,
+    isPremium: boolean,
+): Promise<{
+    success: boolean;
+    userId: number;
+    isPremium: boolean;
+    premiumPurchasedAt: string | null;
+    premiumOrderId: number | null;
+    energyCap: number;
+}> => {
+    const { data } = await $authHost.put(`api/admin/user/${userId}/premium`, { isPremium });
     return data;
 };
 

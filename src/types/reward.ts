@@ -6,6 +6,7 @@ export interface Reward {
   description?: string;
   isActive: boolean;
   onlyCase?: boolean;
+  isPremium?: boolean;
   previewId?: number | null;
   createdAt: string;
   updatedAt: string;

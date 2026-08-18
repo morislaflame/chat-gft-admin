@@ -11,6 +11,7 @@ import { Zap, Star } from 'lucide-react';
 
 interface ProductFormData {
   name: string;
+  type: 'energy';
   energy: string;
   starsPrice: string;
   referralBonusEnergy: string;
@@ -38,9 +39,16 @@ export const ProductFormModal = ({
     onFormDataChange({ ...formData, [field]: value });
   };
 
-  const valueRatio = formData.energy && formData.starsPrice 
-    ? (parseInt(formData.energy) / parseInt(formData.starsPrice)).toFixed(2)
-    : '0.00';
+  const energyNum = parseInt(formData.energy, 10);
+  const starsNum = parseInt(formData.starsPrice, 10);
+  const valueRatio = Number.isFinite(energyNum) && Number.isFinite(starsNum) && starsNum > 0
+    ? (energyNum / starsNum).toFixed(2)
+    : null;
+  const canSave = Boolean(formData.name)
+    && Number.isFinite(starsNum)
+    && starsNum > 0
+    && Number.isFinite(energyNum)
+    && energyNum > 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -82,7 +90,7 @@ export const ProductFormModal = ({
               />
             </div>
 
-            {formData.energy && formData.starsPrice && (
+            {valueRatio && (
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">Соотношение ценности:</p>
                 <p className="text-lg font-semibold">
@@ -118,10 +126,10 @@ export const ProductFormModal = ({
           <Button color="danger" variant="light" onPress={onClose}>
             Отмена
           </Button>
-          <Button 
-            color="primary" 
+          <Button
+            color="primary"
             onPress={onSave}
-            disabled={!formData.name || !formData.energy || !formData.starsPrice}
+            disabled={!canSave}
           >
             {isEditing ? 'Сохранить' : 'Создать'}
           </Button>

@@ -13,6 +13,7 @@ interface Product {
   name: string;
   starsPrice: number;
   energy: number;
+  type?: 'energy' | 'premium';
 }
 
 interface InvoiceGeneratorProps {
@@ -48,7 +49,8 @@ export const InvoiceGenerator = ({
             >
               {products.map((prod) => (
                 <SelectItem key={prod.id.toString()}>
-                  {prod.name} - {prod.starsPrice} звезд ({prod.energy} энергии)
+                  {prod.name} - {prod.starsPrice} звезд
+                  {prod.type === 'premium' ? ' (Premium)' : ` (${prod.energy} энергии)`}
                 </SelectItem>
               ))}
             </Select>

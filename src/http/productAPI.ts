@@ -5,8 +5,11 @@ export interface ReferralBonus {
     balance?: number;
 }
 
+export type ProductType = 'energy' | 'premium';
+
 export const createProduct = async (productData: {
     name: string;
+    type?: ProductType;
     energy: number;
     starsPrice: number;
     referralBonus?: ReferralBonus | null;
@@ -22,6 +25,7 @@ export const getAllProducts = async () => {
 
 export const updateProduct = async (id: number, productData: {
     name?: string;
+    type?: ProductType;
     energy?: number;
     starsPrice?: number;
     referralBonus?: ReferralBonus | null;

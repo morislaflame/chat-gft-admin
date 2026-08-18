@@ -11,6 +11,7 @@ export interface User {
     balance: number;
     energy: number;
     createdAt: string;
+    isPremium?: boolean;
 }
 
 export interface UserDetails {
@@ -79,6 +80,11 @@ export interface DashboardData {
         totalProducts: number;
     };
     purchaseStats: {
+        total_purchases: number;
+        total_stars: number;
+    };
+    premiumStats?: {
+        premiumUsers: number;
         total_purchases: number;
         total_stars: number;
     };

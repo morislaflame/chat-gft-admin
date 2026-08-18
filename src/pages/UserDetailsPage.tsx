@@ -14,6 +14,7 @@ import {
   deleteUser,
   getUserArtifactsGrantCatalog,
   getUserResourceEvents,
+  setUserPremium,
   type UserDetailsResponse,
   type UserChatHistoryResponse,
   type PurchasedRewardAdmin,
@@ -66,6 +67,7 @@ import {
   Gift,
   Gem,
   AlertTriangle,
+  Crown,
 } from 'lucide-react';
 import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
 import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
@@ -542,6 +544,28 @@ const UserDetailsPage = observer(() => {
     }
   };
 
+  const handleTogglePremium = async () => {
+    if (!userId) return;
+    const next = !userDetails?.user.isPremium;
+    const label = next ? 'выдать Premium' : 'снять Premium';
+    if (!window.confirm(`Точно ${label} этому пользователю?`)) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      await setUserPremium(userId, next);
+      await loadUserDetails();
+    } catch (err: unknown) {
+      console.error('Не удалось обновить Premium:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setError(errorObj.response?.data?.message || 'Не удалось обновить Premium');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading && !userDetails) {
     return (
       <div className="p-6 flex justify-center items-center min-h-screen">
@@ -600,6 +624,23 @@ const UserDetailsPage = observer(() => {
           <CardBody>
             <h3 className="font-semibold mb-4 text-3xl">Информация о пользователе</h3>
             <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-200">Premium:</span>
+                <Chip
+                  size="sm"
+                  color={userDetails.user.isPremium ? 'warning' : 'default'}
+                  variant="flat"
+                  startContent={userDetails.user.isPremium ? <Crown size={12} /> : undefined}
+                >
+                  {userDetails.user.isPremium ? 'Активен' : 'Нет'}
+                </Chip>
+              </div>
+              {userDetails.user.premiumPurchasedAt && (
+                <div className="flex justify-between">
+                  <span className="text-gray-200">Premium с:</span>
+                  <span>{formatDate(userDetails.user.premiumPurchasedAt)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-200">Username:</span>
                 <span className="font-medium">@{userDetails.user.username || 'без username'}</span>
@@ -706,6 +747,15 @@ const UserDetailsPage = observer(() => {
         <CardBody>
           <h3 className="font-semibold mb-4">Действия</h3>
           <div className="flex flex-wrap gap-3">
+            <Button
+              color="warning"
+              variant="flat"
+              startContent={<Crown size={16} />}
+              onPress={handleTogglePremium}
+              isLoading={loading}
+            >
+              {userDetails.user.isPremium ? 'Снять Premium' : 'Выдать Premium'}
+            </Button>
             <Button
               color="warning"
               variant="flat"

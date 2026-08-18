@@ -6,9 +6,12 @@ export interface ReferralBonus {
     balance?: number;
 }
 
+export type ProductType = 'energy' | 'premium';
+
 export interface Product {
     id: number;
     name: string;
+    type?: ProductType;
     energy: number;
     starsPrice: number;
     referralBonus?: ReferralBonus | null;
@@ -39,6 +42,7 @@ export default class ProductStore {
 
     async createProduct(productData: {
         name: string;
+        type?: ProductType;
         energy: number;
         starsPrice: number;
         referralBonus?: ReferralBonus | null;
@@ -65,6 +69,7 @@ export default class ProductStore {
 
     async updateProduct(id: number, productData: {
         name?: string;
+        type?: ProductType;
         energy?: number;
         starsPrice?: number;
         referralBonus?: ReferralBonus | null;

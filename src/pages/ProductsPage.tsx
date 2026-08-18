@@ -20,6 +20,7 @@ const ProductsPage = observer(() => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    type: 'energy' as const,
     energy: '',
     starsPrice: '',
     referralBonusEnergy: '',
@@ -36,6 +37,7 @@ const ProductsPage = observer(() => {
     setIsEditing(false);
     setFormData({
       name: '',
+      type: 'energy',
       energy: '',
       starsPrice: '',
       referralBonusEnergy: '',
@@ -49,6 +51,7 @@ const ProductsPage = observer(() => {
     setIsEditing(true);
     setFormData({
       name: prod.name,
+      type: prod.type === 'premium' ? 'energy' : (prod.type || 'energy'),
       energy: prod.energy.toString(),
       starsPrice: prod.starsPrice.toString(),
       referralBonusEnergy: prod.referralBonus?.energy?.toString() || '',
@@ -69,6 +72,7 @@ const ProductsPage = observer(() => {
 
       const productData = {
         name: formData.name,
+        type: 'energy' as const,
         energy: parseInt(formData.energy),
         starsPrice: parseInt(formData.starsPrice),
         referralBonus: referralBonus
@@ -99,9 +103,10 @@ const ProductsPage = observer(() => {
   };
 
 
-  const totalProducts = product.products.length;
-  const totalEnergy = product.products.reduce((sum, prod) => sum + prod.energy, 0);
-  const totalStars = product.products.reduce((sum, prod) => sum + prod.starsPrice, 0);
+  const energyProducts = product.products.filter((prod) => prod.type !== 'premium');
+  const totalProducts = energyProducts.length;
+  const totalEnergy = energyProducts.reduce((sum, prod) => sum + prod.energy, 0);
+  const totalStars = energyProducts.reduce((sum, prod) => sum + prod.starsPrice, 0);
   const avgPrice = totalProducts > 0 ? Math.round(totalStars / totalProducts) : 0;
   const totalRevenue = payment.orders
     .filter((order) => order.status === 'paid' || order.status === 'completed')
@@ -128,7 +133,7 @@ const ProductsPage = observer(() => {
     <div className="p-6 space-y-6">
       <PageHeader
         title="Продукты"
-        description="Управление пакетами энергии и ценами"
+        description="Пакеты энергии за Stars. Premium-пасс настраивается на странице Premium."
         actionButton={{
           label: "Создать продукт",
           icon: Plus,
@@ -144,7 +149,7 @@ const ProductsPage = observer(() => {
       />
 
       <ProductsTable
-        products={product.products}
+        products={energyProducts}
         loading={product.loading}
         onEditProduct={handleEditProduct}
         onDeleteProduct={handleDeleteProduct}
@@ -173,7 +178,7 @@ const ProductsPage = observer(() => {
         />
 
         <InvoiceGenerator
-          products={product.products}
+          products={energyProducts}
           selectedProduct={invoiceProductId}
           onProductChange={setInvoiceProductId}
           onGenerateInvoice={handleGenerateInvoice}

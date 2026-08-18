@@ -1,4 +1,4 @@
-import { Users, MessageSquare, Target, Gift, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, MessageSquare, Target, Gift, TrendingUp, DollarSign, Crown } from 'lucide-react';
 import { StatsCard } from '@/components/ui/StatsCard';
 
 interface DashboardData {
@@ -23,6 +23,11 @@ interface DashboardData {
     totalProducts: number;
   };
   purchaseStats?: {
+    total_purchases: number;
+    total_stars: number;
+  };
+  premiumStats?: {
+    premiumUsers: number;
     total_purchases: number;
     total_stars: number;
   };
@@ -63,6 +68,13 @@ export const DashboardStats = ({ dashboardData }: DashboardStatsProps) => {
       bgColor: 'bg-orange-100',
     },
     {
+      title: 'Premium-пользователи',
+      value: dashboardData?.premiumStats?.premiumUsers || 0,
+      icon: Crown,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-100',
+    },
+    {
       title: 'Всего заказов',
       value: dashboardData?.orderStats?.totalOrders || 0,
       icon: DollarSign,
@@ -79,7 +91,7 @@ export const DashboardStats = ({ dashboardData }: DashboardStatsProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
       {statsCards.map((stat, index) => (
         <StatsCard
           key={index}

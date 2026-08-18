@@ -18,7 +18,7 @@ import {
   CardBody,
   Checkbox,
 } from '@heroui/react';
-import { Eye, Search, AlertTriangle } from 'lucide-react';
+import { Eye, Search, AlertTriangle, Crown } from 'lucide-react';
 import { getInitials } from '@/utils/formatters';
 import { USERS_ROUTE } from '@/utils/consts';
 
@@ -32,6 +32,7 @@ interface User {
   balance: number;
   energy: number;
   hasResourceAnomaly?: boolean;
+  isPremium?: boolean;
   createdAt: string;
 }
 
@@ -46,6 +47,7 @@ const UsersPage = observer(() => {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [anomalyOnly, setAnomalyOnly] = useState(false);
+  const [premiumOnly, setPremiumOnly] = useState(false);
   const limit = 20;
 
   const loadUsers = async (
@@ -54,6 +56,7 @@ const UsersPage = observer(() => {
     telegramId?: string,
     username?: string,
     anomaliesOnly?: boolean,
+    premiumFilter?: boolean,
   ) => {
     setLoading(true);
     try {
@@ -64,6 +67,7 @@ const UsersPage = observer(() => {
         telegramId !== undefined && telegramId !== '' ? telegramId : undefined, 
         username !== undefined && username !== '' ? username : undefined,
         anomaliesOnly ?? anomalyOnly,
+        premiumFilter ?? premiumOnly,
       );
       setUsers(response.users);
       setTotalPages(response.pagination.totalPages);
@@ -77,13 +81,13 @@ const UsersPage = observer(() => {
 
   // Загружаем пользователей при первой загрузке и при изменении страницы
   useEffect(() => {
-    loadUsers(page, searchId, searchTelegramId, searchUsername, anomalyOnly);
+    loadUsers(page, searchId, searchTelegramId, searchUsername, anomalyOnly, premiumOnly);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, anomalyOnly]);
+  }, [page, anomalyOnly, premiumOnly]);
 
   const handleSearch = () => {
     setPage(1); // Сбрасываем на первую страницу при поиске
-    loadUsers(1, searchId, searchTelegramId, searchUsername, anomalyOnly);
+    loadUsers(1, searchId, searchTelegramId, searchUsername, anomalyOnly, premiumOnly);
   };
 
   const handleClearSearch = () => {
@@ -91,10 +95,11 @@ const UsersPage = observer(() => {
     setSearchTelegramId('');
     setSearchUsername('');
     setAnomalyOnly(false);
+    setPremiumOnly(false);
     setPage(1);
     // Загружаем всех пользователей после очистки
     setTimeout(() => {
-      loadUsers(1, '', '', '', false);
+      loadUsers(1, '', '', '', false, false);
     }, 0);
   };
 
@@ -108,6 +113,7 @@ const UsersPage = observer(() => {
     { key: 'telegramId', label: 'TELEGRAM ID' },
     { key: 'balance', label: 'БАЛАНС' },
     { key: 'energy', label: 'ЭНЕРГИЯ' },
+    { key: 'premium', label: 'PREMIUM' },
     { key: 'anomaly', label: 'АНОМАЛИИ' },
     { key: 'actions', label: 'ДЕЙСТВИЯ' },
   ];
@@ -145,6 +151,14 @@ const UsersPage = observer(() => {
           <Chip color="warning" variant="flat">
             {user.energy}
           </Chip>
+        );
+      case 'premium':
+        return user.isPremium ? (
+          <Chip color="warning" variant="flat" startContent={<Crown size={14} />}>
+            Да
+          </Chip>
+        ) : (
+          <Chip variant="flat">Нет</Chip>
         );
       case 'anomaly':
         return user.hasResourceAnomaly ? (
@@ -227,7 +241,7 @@ const UsersPage = observer(() => {
               >
                 Поиск
               </Button>
-              {(searchId || searchTelegramId || searchUsername || anomalyOnly) && (
+              {(searchId || searchTelegramId || searchUsername || anomalyOnly || premiumOnly) && (
                 <Button
                   variant="light"
                   onPress={handleClearSearch}
@@ -236,7 +250,7 @@ const UsersPage = observer(() => {
                 </Button>
               )}
             </div>
-            <div className="flex items-end">
+            <div className="flex items-end gap-4">
               <Checkbox
                 isSelected={anomalyOnly}
                 onValueChange={(v) => {
@@ -245,6 +259,15 @@ const UsersPage = observer(() => {
                 }}
               >
                 Только с аномалиями
+              </Checkbox>
+              <Checkbox
+                isSelected={premiumOnly}
+                onValueChange={(v) => {
+                  setPage(1);
+                  setPremiumOnly(v);
+                }}
+              >
+                Только Premium
               </Checkbox>
             </div>
           </div>

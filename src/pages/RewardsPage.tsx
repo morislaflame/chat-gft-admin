@@ -108,6 +108,7 @@ const RewardsPage = observer(() => {
     description: '',
     isActive: true,
     onlyCase: false,
+    isPremium: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
@@ -127,6 +128,7 @@ const RewardsPage = observer(() => {
       description: '',
       isActive: true,
       onlyCase: false,
+      isPremium: false,
     });
     setImageFile(null);
     onOpen();
@@ -142,6 +144,7 @@ const RewardsPage = observer(() => {
       description: rew.description || '',
       isActive: rew.isActive,
       onlyCase: !!rew.onlyCase,
+      isPremium: !!rew.isPremium,
     });
     setImageFile(null);
     onOpen();
@@ -156,6 +159,7 @@ const RewardsPage = observer(() => {
         description: formData.description,
         isActive: formData.isActive,
         onlyCase: formData.onlyCase,
+        isPremium: formData.isPremium,
       };
 
       let saved: { id: number } | null = null;

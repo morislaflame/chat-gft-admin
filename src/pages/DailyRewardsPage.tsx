@@ -122,7 +122,7 @@ const DailyRewardsPage = observer(() => {
 
       <PageHeader
         title="Ежедневные награды"
-        description="Управление настройкой ежедневных наград (цикл 7 дней)"
+        description="Управление настройкой ежедневных наград (цикл 7 дней). Premium получает те же награды с множителем со страницы Premium."
         actionButton={{
           label: "Создать награду",
           icon: Plus,

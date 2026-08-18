@@ -1,5 +1,5 @@
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea, Select, SelectItem, Switch } from '@heroui/react';
-import { Target, Edit, Trash2, Plus, Gem, Package, Zap } from 'lucide-react';
+import { Target, Edit, Trash2, Plus, Gem, Package, Zap, Crown } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { CreateMissionData, Mission, UpdateMissionData } from '@/http/agentAPI';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
@@ -68,7 +68,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
     uiStepGoalsTextEn: '',
     artifactIds: [] as number[],
     orderIndex: '',
-    level: '1'
+    level: '1',
+    isPremium: false,
   });
   const [uploadingVideo, setUploadingVideo] = useState<Record<number, boolean>>({});
   const [deletingVideo, setDeletingVideo] = useState<Record<number, boolean>>({});
@@ -128,7 +129,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
   useEffect(() => {
     setEditingMission(null);
     setShowMissionForm(false);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1', isPremium: false });
   }, [missions]);
 
   useEffect(() => {
@@ -430,7 +431,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
       uiStepGoalsTextEn: uiStepGoalsToEditableText(mission.uiStepGoalsEn ?? null),
       artifactIds: (mission.artifacts || []).map((a) => a.id),
       orderIndex: mission.orderIndex.toString(),
-      level: (mission.level ?? 1).toString()
+      level: (mission.level ?? 1).toString(),
+      isPremium: !!mission.isPremium,
     });
     setShowMissionForm(true);
   };
@@ -449,7 +451,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
         uiStepGoalsTextEn: missionFormData.uiStepGoalsTextEn ?? '',
         artifactIds: missionFormData.artifactIds,
         orderIndex: parseInt(missionFormData.orderIndex),
-        level: missionFormData.level ? parseInt(missionFormData.level) : 1
+        level: missionFormData.level ? parseInt(missionFormData.level) : 1,
+        isPremium: missionFormData.isPremium,
       };
 
       if (editingMission) {
@@ -460,7 +463,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
       
       setShowMissionForm(false);
       setEditingMission(null);
-      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1' });
+      setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1', isPremium: false });
     } catch (error) {
       console.error('Не удалось сохранить миссию:', error);
     }
@@ -483,7 +486,7 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
   const handleCancel = () => {
     setShowMissionForm(false);
     setEditingMission(null);
-    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1' });
+    setMissionFormData({ title: '', titleEn: '', description: '', descriptionEn: '', missionPrompt: '', uiStepGoalsText: '', uiStepGoalsTextEn: '', artifactIds: [], orderIndex: '', level: '1', isPremium: false });
   };
 
   const handleCreateNewMission = () => {
@@ -498,7 +501,8 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
       uiStepGoalsTextEn: '',
       artifactIds: [],
       orderIndex: getNextOrderIndexForLevel('1'),
-      level: '1'
+      level: '1',
+      isPremium: false,
     });
     setShowMissionForm(true);
   };
@@ -641,6 +645,15 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
                   isRequired
                   description="Уровень совпадает с уровнем артефактов этой миссии"
                 />
+                <Switch
+                  isSelected={missionFormData.isPremium}
+                  onValueChange={(value) => setMissionFormData({ ...missionFormData, isPremium: value })}
+                >
+                  Premium-миссия (бонус внутри этой арки)
+                </Switch>
+                <p className="text-xs text-zinc-500">
+                  Обычный игрок скипает её в последовательности. Гейт следующей арки считают только обычные миссии. Первая миссия сюжета и единственная миссия уровня не могут быть Premium.
+                </p>
 
                 <div className="border border-zinc-700 rounded-lg p-3">
                   <p className="text-lg font-extrabold text-white mb-2">Видео миссии</p>
@@ -772,6 +785,12 @@ export const AgentMissionsSection: React.FC<AgentMissionsSectionProps> = observe
                               <span className="text-md font-semibold text-zinc-400">
                                 №{mission.orderIndex}
                               </span>
+                              {mission.isPremium ? (
+                                <span className="inline-flex items-center gap-1 text-xs text-amber-400">
+                                  <Crown size={12} />
+                                  Premium
+                                </span>
+                              ) : null}
                             </div>
                             <h4 className="text-lg font-semibold text-white leading-tight truncate">{mission.title}</h4>
                           </div>

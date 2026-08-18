@@ -1,9 +1,10 @@
 import {
   Button,
   Card,
-  CardBody
+  CardBody,
+  Chip
 } from '@heroui/react';
-import { Edit, Trash2, Zap, Star } from 'lucide-react';
+import { Edit, Trash2, Zap, Star, Crown } from 'lucide-react';
 import { type Product } from '@/types/product';
 
 interface ProductsTableProps {
@@ -46,6 +47,7 @@ export const ProductsTable = ({
       <div className="text-sm text-gray-400">Всего продуктов: {products.length}</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {products.map((product) => {
+          const isPremium = product.type === 'premium';
           return (
             <Card key={product.id} className="border border-zinc-700/70 bg-zinc-900/70">
               <CardBody className="space-y-3">
@@ -54,7 +56,9 @@ export const ProductsTable = ({
                     <div className="flex gap-4">
                       <div className="flex flex-col gap-1">
                         <p className="font-semibold text-white text-2xl truncate">{product.name}</p>
-                        {/* <p className="text-xs text-zinc-500">ID: {product.id}</p> */}
+                        <Chip size="sm" color={isPremium ? 'warning' : 'secondary'} variant="flat">
+                          {isPremium ? 'Premium-пасс' : 'Энергия'}
+                        </Chip>
                       </div>
                     </div>
                   </div>
@@ -66,8 +70,14 @@ export const ProductsTable = ({
 
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-purple-500" />
-                    <span className="font-semibold text-white text-xl ">{product.energy}</span>
+                    {isPremium ? (
+                      <Crown className="w-5 h-5 text-yellow-400" />
+                    ) : (
+                      <Zap className="w-5 h-5 text-purple-500" />
+                    )}
+                    <span className="font-semibold text-white text-xl ">
+                      {isPremium ? 'Разовый пасс' : product.energy}
+                    </span>
                   </div>
                   
                 </div>

@@ -2,6 +2,7 @@ import { Navbar as NextUINavbar, NavbarBrand, NavbarContent, NavbarItem, Link, B
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import {
+  Crown,
   Users,
   Target,
   Package,
@@ -22,7 +23,7 @@ import {
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
-import { PROMPTS_ROUTE } from '@/utils/consts';
+import { PROMPTS_ROUTE, PREMIUM_ROUTE } from '@/utils/consts';
 
 const Navbar = observer(() => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const Navbar = observer(() => {
     { key: 'users', label: 'Users', icon: Users, path: '/users' },
     { key: 'quests', label: 'Quests', icon: Target, path: '/quests' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
+    { key: 'premium', label: 'Premium', icon: Crown, path: PREMIUM_ROUTE },
     { key: 'rewards', label: 'Rewards', icon: Gift, path: '/rewards' },
     { key: 'cases', label: 'Cases', icon: Box, path: '/cases' },
     { key: 'withdrawals', label: 'Withdrawals', icon: Download, path: '/withdrawals' },

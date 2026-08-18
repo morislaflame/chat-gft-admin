@@ -38,6 +38,7 @@ export interface Reward {
     description?: string;
     isActive: boolean;
     onlyCase?: boolean;
+    isPremium?: boolean;
     previewId?: number | null;
     createdAt: string;
     updatedAt: string;
@@ -120,6 +121,7 @@ export default class RewardStore {
         tonPrice?: number;
         description?: string;
         onlyCase?: boolean;
+        isPremium?: boolean;
         isActive?: boolean;
     }, imageFile?: File) {
         try {
@@ -149,6 +151,7 @@ export default class RewardStore {
         description?: string;
         isActive?: boolean;
         onlyCase?: boolean;
+        isPremium?: boolean;
     }, imageFile?: File) {
         try {
             this.setLoading(true);

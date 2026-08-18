@@ -181,6 +181,7 @@ export interface Mission {
     orderIndex: number;
     /** Уровень миссии — к какому уровню принадлежит миссия (совпадает с уровнем артефактов). */
     level: number;
+    isPremium?: boolean;
     videoId?: number | null;
     createdAt: string;
     updatedAt: string;
@@ -200,6 +201,7 @@ export interface CreateMissionData {
     orderIndex: number;
     /** Уровень миссии (по умолчанию 1). */
     level?: number;
+    isPremium?: boolean;
 }
 
 export interface UpdateMissionData {
@@ -214,6 +216,7 @@ export interface UpdateMissionData {
     orderIndex?: number;
     /** Уровень миссии. */
     level?: number;
+    isPremium?: boolean;
 }
 
 export const getAgentMissions = async (agentId: number): Promise<Mission[]> => {

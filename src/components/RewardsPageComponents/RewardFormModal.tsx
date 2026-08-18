@@ -20,6 +20,7 @@ interface RewardFormData {
   description: string;
   isActive: boolean;
   onlyCase: boolean;
+  isPremium: boolean;
 }
 
 interface RewardFormModalProps {
@@ -168,6 +169,14 @@ export const RewardFormModal = ({
                 onValueChange={(value) => handleInputChange('onlyCase', value)}
               />
               <span className="text-sm text-gray-700">Только для кейсов</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                isSelected={formData.isPremium}
+                onValueChange={(value) => handleInputChange('isPremium', value)}
+              />
+              <span className="text-sm text-gray-700">Premium: магазин и вывод только с пассом. Из кейса выпадает всем</span>
             </div>
           </div>
         </ModalBody>
