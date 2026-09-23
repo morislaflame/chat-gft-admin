@@ -19,11 +19,14 @@ import {
   createLeaderboardPrize,
   deleteLeaderboardPrize,
   getLeaderboardPrizes,
+  setLeaderboardTierCases,
   setLeaderboardTierPrizes,
   uploadLeaderboardPrizePreview,
   type LeaderboardPrize,
   type LeaderboardPrizeTier,
+  type LeaderboardTierCase,
 } from '@/http/adminAPI';
+import { getAllCasesAdmin, type Case } from '@/http/caseAPI';
 
 const TIER_LABELS: Record<string, string> = {
   '1': '1 место',
@@ -126,11 +129,121 @@ function UploadSlot({
   );
 }
 
+function CaseRewardEditor({
+  tier,
+  catalog,
+  busy,
+  onSave,
+}: {
+  tier: LeaderboardPrizeTier;
+  catalog: Case[];
+  busy: boolean;
+  onSave: (next: Array<{ caseId: number; quantity: number }>) => void;
+}) {
+  const assigned = tier.cases || [];
+  const [qtyDraft, setQtyDraft] = useState<Record<number, string>>({});
+  const remaining = catalog.filter((item) => !assigned.some((row) => row.caseId === item.id));
+
+  const commitQuantity = (row: LeaderboardTierCase) => {
+    const raw = qtyDraft[row.caseId];
+    if (raw == null) return;
+    const quantity = parseInt(raw, 10);
+    setQtyDraft((prev) => {
+      const next = { ...prev };
+      delete next[row.caseId];
+      return next;
+    });
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99 || quantity === row.quantity) return;
+    onSave(assigned.map((item) => (item.caseId === row.caseId ? { caseId: item.caseId, quantity } : { caseId: item.caseId, quantity: item.quantity })));
+  };
+
+  return (
+    <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">
+      <div className="text-xs text-zinc-400">Кейсы в инвентарь</div>
+      {assigned.length === 0 ? (
+        <p className="text-xs text-zinc-500">Кейс не выбран</p>
+      ) : (
+        <div className="space-y-2">
+          {assigned.map((row) => (
+            <div key={row.caseId} className="flex items-center gap-2">
+              {row.imageUrl ? (
+                <img src={row.imageUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
+              ) : (
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-zinc-900 text-[10px] text-zinc-500">нет</div>
+              )}
+              <span className="min-w-0 flex-1 truncate text-xs">{row.name}</span>
+              <Input
+                size="sm"
+                type="number"
+                min={1}
+                max={99}
+                label="Шт."
+                className="w-20"
+                value={qtyDraft[row.caseId] ?? String(row.quantity)}
+                isDisabled={busy}
+                onChange={(event) =>
+                  setQtyDraft((prev) => ({ ...prev, [row.caseId]: event.target.value }))
+                }
+                onBlur={() => commitQuantity(row)}
+              />
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                aria-label={`Убрать кейс ${row.name}`}
+                isDisabled={busy}
+                onPress={() =>
+                  onSave(
+                    assigned
+                      .filter((item) => item.caseId !== row.caseId)
+                      .map((item) => ({ caseId: item.caseId, quantity: item.quantity }))
+                  )
+                }
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+      {remaining.length === 0 ? (
+        <p className="text-xs text-zinc-500">
+          {catalog.length === 0 ? 'Кейсов в магазине нет' : 'Все кейсы уже добавлены'}
+        </p>
+      ) : (
+        <Select
+          size="sm"
+          label="Добавить кейс"
+          placeholder="Выберите кейс"
+          selectedKeys={new Set<string>()}
+          isDisabled={busy}
+          onSelectionChange={(keys) => {
+            const selectedKey = Array.from(keys)[0] as string | undefined;
+            const caseId = Number(selectedKey);
+            if (!Number.isInteger(caseId) || caseId < 1) return;
+            onSave([
+              ...assigned.map((item) => ({ caseId: item.caseId, quantity: item.quantity })),
+              { caseId, quantity: 1 },
+            ]);
+          }}
+        >
+          {remaining.map((item) => (
+            <SelectItem key={String(item.id)} textValue={item.name}>
+              {item.isActive ? item.name : `${item.name} (скрыт)`}
+            </SelectItem>
+          ))}
+        </Select>
+      )}
+    </div>
+  );
+}
+
 const LeaderboardPrizesSection = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [loading, setLoading] = useState(true);
   const [prizes, setPrizes] = useState<LeaderboardPrize[]>([]);
   const [tiers, setTiers] = useState<LeaderboardPrizeTier[]>([]);
+  const [caseCatalog, setCaseCatalog] = useState<Case[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [savingTierId, setSavingTierId] = useState<string | null>(null);
@@ -151,7 +264,12 @@ const LeaderboardPrizesSection = () => {
     setLoading(true);
     setError(null);
     try {
-      applyCatalog(await getLeaderboardPrizes());
+      const [catalog, cases] = await Promise.all([
+        getLeaderboardPrizes(),
+        getAllCasesAdmin(),
+      ]);
+      applyCatalog(catalog);
+      setCaseCatalog(Array.isArray(cases) ? cases : []);
     } catch (err: unknown) {
       setError(errorMessage(err, 'Не удалось загрузить призы'));
     } finally {
@@ -205,7 +323,7 @@ const LeaderboardPrizesSection = () => {
       .filter((tier) => tier.prizeIds.includes(prizeId))
       .map((tier) => TIER_LABELS[tier.id] || tier.id);
 
-  const filledCount = tiers.filter((tier) => tier.prizeIds.length > 0).length;
+  const filledCount = tiers.filter((tier) => tier.prizeIds.length > 0 || (tier.cases || []).length > 0).length;
 
   const resetForm = () => {
     setName('');
@@ -274,6 +392,25 @@ const LeaderboardPrizesSection = () => {
     }
   };
 
+  const saveCases = async (tier: LeaderboardPrizeTier, cases: Array<{ caseId: number; quantity: number }>) => {
+    setSavingTierId(tier.id);
+    setError(null);
+    setNotice(null);
+    try {
+      applyCatalog(
+        await setLeaderboardTierCases({
+          rankFrom: tier.from,
+          rankTo: tier.to,
+          cases,
+        })
+      );
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Не удалось сохранить кейсы'));
+    } finally {
+      setSavingTierId(null);
+    }
+  };
+
   const canCreate = Boolean(name.trim() && animationFile && previewFile);
 
   return (
@@ -283,8 +420,8 @@ const LeaderboardPrizesSection = () => {
           <div>
             <h3 className="text-xl font-semibold">Призы сезона</h3>
             <p className="mt-1 max-w-2xl text-sm text-zinc-400">
-              Сначала загрузите приз: JSON-анимация и картинка, которую увидят игроки. Потом назначьте его на место.
-              Назначение сохраняется сразу.
+              Сначала загрузите приз: JSON-анимация и картинка, которую увидят игроки. На место можно также назначить кейсы и их количество.
+              Назначение сохраняется сразу. Кейсы попадут в инвентарь, когда сезон завершится.
             </p>
           </div>
           <Button color="primary" startContent={<Plus size={16} />} onPress={onOpen}>
@@ -464,6 +601,12 @@ const LeaderboardPrizesSection = () => {
                           </Select>
                         </div>
                       )}
+                      <CaseRewardEditor
+                        tier={tier}
+                        catalog={caseCatalog}
+                        busy={busy}
+                        onSave={(next) => saveCases(tier, next)}
+                      />
                     </div>
                   );
                 })}

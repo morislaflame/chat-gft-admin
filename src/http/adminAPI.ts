@@ -752,6 +752,13 @@ export interface LeaderboardPrize {
     animation: LeaderboardPrizeMedia | null;
 }
 
+export interface LeaderboardTierCase {
+    caseId: number;
+    quantity: number;
+    name: string;
+    imageUrl: string | null;
+}
+
 export interface LeaderboardPrizeTier {
     id: string;
     from: number;
@@ -759,6 +766,7 @@ export interface LeaderboardPrizeTier {
     kind: 'podium' | 'single' | 'pool';
     titleKey: string;
     prizeIds: number[];
+    cases: LeaderboardTierCase[];
 }
 
 export const getLeaderboardPrizes = async (): Promise<{
@@ -799,5 +807,14 @@ export const setLeaderboardTierPrizes = async (payload: {
     prizeIds: number[];
 }): Promise<{ prizes: LeaderboardPrize[]; tiers: LeaderboardPrizeTier[] }> => {
     const { data } = await $authHost.put('api/admin/leaderboard/prize-tiers', payload);
+    return data;
+};
+
+export const setLeaderboardTierCases = async (payload: {
+    rankFrom: number;
+    rankTo: number;
+    cases: Array<{ caseId: number; quantity: number }>;
+}): Promise<{ prizes: LeaderboardPrize[]; tiers: LeaderboardPrizeTier[] }> => {
+    const { data } = await $authHost.put('api/admin/leaderboard/case-tiers', payload);
     return data;
 };
