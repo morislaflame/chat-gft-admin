@@ -646,3 +646,158 @@ export const activatePromptVersion = async (
     );
     return data;
 };
+
+// ========== LEADERBOARD ==========
+
+export type LeaderboardActionType =
+    | 'energy_spent'
+    | 'referral_active'
+    | 'artifact_use'
+    | 'premium_purchase'
+    | 'energy_pack_purchase'
+    | 'mission_complete'
+    | 'daily_reward';
+
+export interface LeaderboardRule {
+    actionType: LeaderboardActionType;
+    points: number;
+    unit: string | null;
+}
+
+export interface LeaderboardSeason {
+    id: number;
+    status: 'active' | 'closed';
+    startedAt: string;
+    endedAt: string | null;
+    closedByUserId: number | null;
+}
+
+export interface LeaderboardTopEntry {
+    rank: number;
+    points: number;
+    user: {
+        id: number;
+        username: string | null;
+        firstName: string | null;
+    };
+}
+
+export const getLeaderboardRules = async (): Promise<{
+    rules: LeaderboardRule[];
+    energyPacks: LeaderboardEnergyPack[];
+}> => {
+    const { data } = await $authHost.get('api/admin/leaderboard/rules');
+    return data;
+};
+
+export const updateLeaderboardRules = async (
+    rules: Partial<Record<LeaderboardActionType, number>>
+): Promise<{ rules: LeaderboardRule[] }> => {
+    const { data } = await $authHost.put('api/admin/leaderboard/rules', rules);
+    return data;
+};
+
+export interface LeaderboardEnergyPack {
+    productId: number;
+    name: string;
+    energy: number;
+    points: number;
+}
+
+export const updateLeaderboardEnergyPacks = async (
+    packs: Array<{ productId: number; points: number }>
+): Promise<{ energyPacks: LeaderboardEnergyPack[] }> => {
+    const { data } = await $authHost.put('api/admin/leaderboard/energy-packs', { packs });
+    return data;
+};
+
+export const getLeaderboardSeasons = async (): Promise<{
+    current: LeaderboardSeason | null;
+    seasons: LeaderboardSeason[];
+}> => {
+    const { data } = await $authHost.get('api/admin/leaderboard/season');
+    return data;
+};
+
+export const closeLeaderboardSeason = async (): Promise<{
+    closed: LeaderboardSeason;
+    opened: LeaderboardSeason;
+    awarded: number;
+    premiumReset: number;
+}> => {
+    const { data } = await $authHost.post('api/admin/leaderboard/season/close');
+    return data;
+};
+
+export const getLeaderboardSeasonTop = async (
+    seasonId: number,
+    limit?: number
+): Promise<{ seasonId: number; top: LeaderboardTopEntry[] }> => {
+    const { data } = await $authHost.get(`api/admin/leaderboard/season/${seasonId}/top`, {
+        params: limit != null ? { limit } : undefined,
+    });
+    return data;
+};
+
+export interface LeaderboardPrizeMedia {
+    id: number;
+    url: string;
+    mimeType: string | null;
+}
+
+export interface LeaderboardPrize {
+    id: number;
+    name: string;
+    preview: LeaderboardPrizeMedia | null;
+    animation: LeaderboardPrizeMedia | null;
+}
+
+export interface LeaderboardPrizeTier {
+    id: string;
+    from: number;
+    to: number;
+    kind: 'podium' | 'single' | 'pool';
+    titleKey: string;
+    prizeIds: number[];
+}
+
+export const getLeaderboardPrizes = async (): Promise<{
+    prizes: LeaderboardPrize[];
+    tiers: LeaderboardPrizeTier[];
+}> => {
+    const { data } = await $authHost.get('api/admin/leaderboard/prizes');
+    return data;
+};
+
+export const createLeaderboardPrize = async (name: string, animationFile: File): Promise<LeaderboardPrize> => {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('image', animationFile);
+    const { data } = await $authHost.post('api/admin/leaderboard/prizes', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+};
+
+export const uploadLeaderboardPrizePreview = async (id: number, previewFile: File): Promise<LeaderboardPrize> => {
+    const formData = new FormData();
+    formData.append('preview', previewFile);
+    const { data } = await $authHost.put(`api/admin/leaderboard/prizes/${id}/preview`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+};
+
+export const deleteLeaderboardPrize = async (id: number): Promise<{ ok: boolean }> => {
+    const { data } = await $authHost.delete(`api/admin/leaderboard/prizes/${id}`);
+    return data;
+};
+
+export const setLeaderboardTierPrizes = async (payload: {
+    rankFrom: number;
+    rankTo: number;
+    prizeIds: number[];
+}): Promise<{ prizes: LeaderboardPrize[]; tiers: LeaderboardPrizeTier[] }> => {
+    const { data } = await $authHost.put('api/admin/leaderboard/prize-tiers', payload);
+    return data;
+};

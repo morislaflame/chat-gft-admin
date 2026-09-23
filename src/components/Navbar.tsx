@@ -20,10 +20,11 @@ import {
   Menu,
   Bell,
   FileText,
+  Trophy,
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
-import { PROMPTS_ROUTE, PREMIUM_ROUTE } from '@/utils/consts';
+import { PROMPTS_ROUTE, PREMIUM_ROUTE, LEADERBOARD_ROUTE } from '@/utils/consts';
 
 const Navbar = observer(() => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const Navbar = observer(() => {
     { key: 'quests', label: 'Quests', icon: Target, path: '/quests' },
     { key: 'products', label: 'Products', icon: Package, path: '/products' },
     { key: 'premium', label: 'Premium', icon: Crown, path: PREMIUM_ROUTE },
+    { key: 'leaderboard', label: 'Лидерборд', icon: Trophy, path: LEADERBOARD_ROUTE },
     { key: 'rewards', label: 'Rewards', icon: Gift, path: '/rewards' },
     { key: 'cases', label: 'Cases', icon: Box, path: '/cases' },
     { key: 'withdrawals', label: 'Withdrawals', icon: Download, path: '/withdrawals' },
