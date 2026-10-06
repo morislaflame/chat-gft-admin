@@ -757,6 +757,7 @@ export interface LeaderboardTierCase {
     quantity: number;
     name: string;
     imageUrl: string | null;
+    mediaFile?: { url: string; mimeType: string } | null;
 }
 
 export interface LeaderboardPrizeTier {

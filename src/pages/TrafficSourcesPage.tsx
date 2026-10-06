@@ -37,6 +37,13 @@ import {
 
 const BOT_STARTAPP_PREFIX = "https://t.me/gftrobot?startapp=";
 
+function trafficLink(item: Pick<TrafficSource, "code" | "sourceUrl">) {
+  if (item.code.toLowerCase().includes("_tgr_")) {
+    return item.sourceUrl || `https://t.me/gftrobot?start=${item.code}`;
+  }
+  return `${BOT_STARTAPP_PREFIX}${item.code}`;
+}
+
 type MetricsBlock = {
   days: string[];
   activeDays?: number;
@@ -238,7 +245,7 @@ const TrafficSourcesPage = observer(() => {
   ];
 
   const renderCell = (item: TrafficSource, columnKey: string) => {
-    const link = `${BOT_STARTAPP_PREFIX}${item.code}`;
+    const link = trafficLink(item);
     switch (columnKey) {
       case "name":
         return (

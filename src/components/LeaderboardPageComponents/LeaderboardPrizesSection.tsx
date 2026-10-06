@@ -129,6 +129,52 @@ function UploadSlot({
   );
 }
 
+function CaseThumb({ media }: { media?: { url: string; mimeType: string } | null }) {
+  const [animation, setAnimation] = useState<Record<string, unknown> | null>(null);
+
+  useEffect(() => {
+    if (!media?.url || media.mimeType !== 'application/json') {
+      setAnimation(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(media.url)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled) setAnimation(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [media?.url, media?.mimeType]);
+
+  if (media?.mimeType === 'application/json' && animation) {
+    return <Lottie animationData={animation} loop style={{ width: 32, height: 32 }} />;
+  }
+  if (media?.url && media.mimeType.startsWith('image/')) {
+    return <img src={media.url} alt="" className="h-8 w-8 shrink-0 object-contain" />;
+  }
+  return (
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-zinc-900 text-[10px] text-zinc-500">
+      нет
+    </div>
+  );
+}
+
+function caseMedia(
+  row: LeaderboardTierCase,
+  catalog: Case[],
+): { url: string; mimeType: string } | null {
+  if (row.mediaFile?.url) return row.mediaFile;
+  const fromCatalog = catalog.find((item) => item.id === row.caseId)?.mediaFile;
+  if (fromCatalog?.url && fromCatalog.mimeType) {
+    return { url: fromCatalog.url, mimeType: fromCatalog.mimeType };
+  }
+  if (row.imageUrl) return { url: row.imageUrl, mimeType: 'image/png' };
+  return null;
+}
+
 function CaseRewardEditor({
   tier,
   catalog,
@@ -166,11 +212,7 @@ function CaseRewardEditor({
         <div className="space-y-2">
           {assigned.map((row) => (
             <div key={row.caseId} className="flex items-center gap-2">
-              {row.imageUrl ? (
-                <img src={row.imageUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
-              ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-zinc-900 text-[10px] text-zinc-500">нет</div>
-              )}
+              <CaseThumb media={caseMedia(row, catalog)} />
               <span className="min-w-0 flex-1 truncate text-xs">{row.name}</span>
               <Input
                 size="sm"
