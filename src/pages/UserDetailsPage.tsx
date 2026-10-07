@@ -15,6 +15,7 @@ import {
   getUserArtifactsGrantCatalog,
   getUserResourceEvents,
   setUserPremium,
+  setUserFreeMissionAccess,
   type UserDetailsResponse,
   type UserChatHistoryResponse,
   type PurchasedRewardAdmin,
@@ -68,6 +69,7 @@ import {
   Gem,
   AlertTriangle,
   Crown,
+  Unlock,
 } from 'lucide-react';
 import GrantUserArtifactsModal from '@/components/UsersPageComponents/GrantUserArtifactsModal';
 import UserArtifactsInventorySection from '@/components/UsersPageComponents/UserArtifactsInventorySection';
@@ -566,6 +568,30 @@ const UserDetailsPage = observer(() => {
     }
   };
 
+  const handleToggleFreeMissionAccess = async () => {
+    if (!userId) return;
+    const next = !userDetails?.user.freeMissionAccess;
+    const label = next
+      ? 'включить свободный доступ к миссиям'
+      : 'выключить свободный доступ к миссиям';
+    if (!window.confirm(`Точно ${label} этому пользователю? Премиум-миссии останутся закрытыми без Premium. Уже начатые миссии не сбросятся.`)) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      await setUserFreeMissionAccess(userId, next);
+      await loadUserDetails();
+    } catch (err: unknown) {
+      console.error('Не удалось обновить свободный доступ к миссиям:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setError(errorObj.response?.data?.message || 'Не удалось обновить свободный доступ к миссиям');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading && !userDetails) {
     return (
       <div className="p-6 flex justify-center items-center min-h-screen">
@@ -633,6 +659,16 @@ const UserDetailsPage = observer(() => {
                   startContent={userDetails.user.isPremium ? <Crown size={12} /> : undefined}
                 >
                   {userDetails.user.isPremium ? 'Активен' : 'Нет'}
+                </Chip>
+              </div>
+              <div className="flex justify-between items-center gap-3">
+                <span className="text-gray-200">Свободный доступ к миссиям:</span>
+                <Chip
+                  size="sm"
+                  color={userDetails.user.freeMissionAccess ? 'success' : 'default'}
+                  variant="flat"
+                >
+                  {userDetails.user.freeMissionAccess ? 'Включён' : 'Нет'}
                 </Chip>
               </div>
               {userDetails.user.premiumPurchasedAt && (
@@ -755,6 +791,17 @@ const UserDetailsPage = observer(() => {
               isLoading={loading}
             >
               {userDetails.user.isPremium ? 'Снять Premium' : 'Выдать Premium'}
+            </Button>
+            <Button
+              color="success"
+              variant="flat"
+              startContent={<Unlock size={16} />}
+              onPress={handleToggleFreeMissionAccess}
+              isLoading={loading}
+            >
+              {userDetails.user.freeMissionAccess
+                ? 'Выключить свободный доступ к миссиям'
+                : 'Свободный доступ к миссиям'}
             </Button>
             <Button
               color="warning"

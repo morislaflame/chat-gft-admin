@@ -68,6 +68,7 @@ export interface UserDetailsResponse {
         selectedHistoryName: string;
         selectedChatMissionId?: number | null;
         isPremium?: boolean;
+        freeMissionAccess?: boolean;
         premiumPurchasedAt?: string | null;
         premiumOrderId?: number | null;
     };
@@ -284,6 +285,20 @@ export const upsertPremiumProduct = async (payload: {
     referralBonus?: { energy?: number; balance?: number } | null;
 }): Promise<EconomySettings> => {
     const { data } = await $authHost.put('api/admin/premium/product', payload);
+    return data;
+};
+
+export const setUserFreeMissionAccess = async (
+    userId: string | number,
+    freeMissionAccess: boolean,
+): Promise<{
+    success: boolean;
+    userId: number;
+    freeMissionAccess: boolean;
+}> => {
+    const { data } = await $authHost.put(`api/admin/user/${userId}/free-mission-access`, {
+        freeMissionAccess,
+    });
     return data;
 };
 
