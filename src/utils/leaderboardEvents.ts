@@ -26,6 +26,8 @@ export type EventTierDraft = {
   rankTo: number;
   prizeIds: number[];
   cases: Array<{ caseId: number; quantity: number }>;
+  energy: number;
+  gems: number;
 };
 
 export function eventTierLabel(from: number, to: number) {
@@ -39,11 +41,11 @@ export function buildEventTiers(count: number): EventTierDraft[] {
   const capped = Math.min(100, places);
   const tiers: EventTierDraft[] = [];
   for (let place = 1; place <= Math.min(10, capped); place += 1) {
-    tiers.push({ id: String(place), rankFrom: place, rankTo: place, prizeIds: [], cases: [] });
+    tiers.push({ id: String(place), rankFrom: place, rankTo: place, prizeIds: [], cases: [], energy: 0, gems: 0 });
   }
   for (let from = 11; from <= capped; from += 10) {
     const to = Math.min(from + 9, capped);
-    tiers.push({ id: `${from}-${to}`, rankFrom: from, rankTo: to, prizeIds: [], cases: [] });
+    tiers.push({ id: `${from}-${to}`, rankFrom: from, rankTo: to, prizeIds: [], cases: [], energy: 0, gems: 0 });
   }
   return tiers;
 }

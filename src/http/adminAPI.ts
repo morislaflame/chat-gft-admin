@@ -783,6 +783,8 @@ export interface LeaderboardPrizeTier {
     titleKey: string;
     prizeIds: number[];
     cases: LeaderboardTierCase[];
+    energy: number;
+    gems: number;
 }
 
 export const getLeaderboardPrizes = async (): Promise<{
@@ -826,6 +828,16 @@ export const setLeaderboardTierPrizes = async (payload: {
     return data;
 };
 
+export const setLeaderboardTierCurrency = async (payload: {
+    rankFrom: number;
+    rankTo: number;
+    energy: number;
+    gems: number;
+}): Promise<{ prizes: LeaderboardPrize[]; tiers: LeaderboardPrizeTier[] }> => {
+    const { data } = await $authHost.put('api/admin/leaderboard/currency-tiers', payload);
+    return data;
+};
+
 export const setLeaderboardTierCases = async (payload: {
     rankFrom: number;
     rankTo: number;
@@ -853,6 +865,8 @@ export interface LeaderboardEventTier {
     titleKey: string | null;
     prizeIds: number[];
     cases: LeaderboardEventCaseReward[];
+    energy?: number;
+    gems?: number;
 }
 
 export interface LeaderboardEventTopEntry {
@@ -875,6 +889,8 @@ export interface LeaderboardEventResult {
     };
     prizes: Array<{ name: string }>;
     cases: Array<{ name: string; nameEn?: string | null; quantity: number }>;
+    energy?: number;
+    gems?: number;
 }
 
 export interface LeaderboardEventStats {
@@ -916,6 +932,8 @@ export interface LeaderboardEventWrite {
         rankTo: number;
         prizeIds: number[];
         cases: Array<{ caseId: number; quantity: number }>;
+        energy: number;
+        gems: number;
     }>;
 }
 

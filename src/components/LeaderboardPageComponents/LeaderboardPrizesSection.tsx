@@ -20,6 +20,7 @@ import {
   deleteLeaderboardPrize,
   getLeaderboardPrizes,
   setLeaderboardTierCases,
+  setLeaderboardTierCurrency,
   setLeaderboardTierPrizes,
   uploadLeaderboardPrizePreview,
   type LeaderboardPrize,
@@ -280,6 +281,63 @@ function CaseRewardEditor({
   );
 }
 
+function CurrencyRewardEditor({
+  tier,
+  busy,
+  onSave,
+}: {
+  tier: LeaderboardPrizeTier;
+  busy: boolean;
+  onSave: (energy: number, gems: number) => void;
+}) {
+  const [energy, setEnergy] = useState(tier.energy ? String(tier.energy) : '');
+  const [gems, setGems] = useState(tier.gems ? String(tier.gems) : '');
+
+  useEffect(() => {
+    setEnergy(tier.energy ? String(tier.energy) : '');
+    setGems(tier.gems ? String(tier.gems) : '');
+  }, [tier.energy, tier.gems]);
+
+  const commit = (nextEnergy: string, nextGems: string) => {
+    if (nextEnergy !== '' && !/^\d+$/.test(nextEnergy)) return;
+    if (nextGems !== '' && !/^\d+$/.test(nextGems)) return;
+    const energyAmount = nextEnergy === '' ? 0 : Number(nextEnergy);
+    const gemsAmount = nextGems === '' ? 0 : Number(nextGems);
+    if (energyAmount > 1000000 || gemsAmount > 1000000) return;
+    if (energyAmount === (tier.energy || 0) && gemsAmount === (tier.gems || 0)) return;
+    onSave(energyAmount, gemsAmount);
+  };
+
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2">
+      <Input
+        size="sm"
+        type="number"
+        min={0}
+        max={1000000}
+        label="Энергия"
+        placeholder="0"
+        value={energy}
+        isDisabled={busy}
+        onValueChange={setEnergy}
+        onBlur={() => commit(energy, gems)}
+      />
+      <Input
+        size="sm"
+        type="number"
+        min={0}
+        max={1000000}
+        label="Гемы"
+        placeholder="0"
+        value={gems}
+        isDisabled={busy}
+        onValueChange={setGems}
+        onBlur={() => commit(energy, gems)}
+      />
+    </div>
+  );
+}
+
 const LeaderboardPrizesSection = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [loading, setLoading] = useState(true);
@@ -365,7 +423,9 @@ const LeaderboardPrizesSection = () => {
       .filter((tier) => tier.prizeIds.includes(prizeId))
       .map((tier) => TIER_LABELS[tier.id] || tier.id);
 
-  const filledCount = tiers.filter((tier) => tier.prizeIds.length > 0 || (tier.cases || []).length > 0).length;
+  const filledCount = tiers.filter(
+    (tier) => tier.prizeIds.length > 0 || (tier.cases || []).length > 0 || tier.energy > 0 || tier.gems > 0
+  ).length;
 
   const resetForm = () => {
     setName('');
@@ -448,6 +508,26 @@ const LeaderboardPrizesSection = () => {
       );
     } catch (err: unknown) {
       setError(errorMessage(err, 'Не удалось сохранить кейсы'));
+    } finally {
+      setSavingTierId(null);
+    }
+  };
+
+  const saveCurrency = async (tier: LeaderboardPrizeTier, energy: number, gems: number) => {
+    setSavingTierId(tier.id);
+    setError(null);
+    setNotice(null);
+    try {
+      applyCatalog(
+        await setLeaderboardTierCurrency({
+          rankFrom: tier.from,
+          rankTo: tier.to,
+          energy,
+          gems,
+        })
+      );
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Не удалось сохранить энергию и гемы'));
     } finally {
       setSavingTierId(null);
     }
@@ -648,6 +728,11 @@ const LeaderboardPrizesSection = () => {
                         catalog={caseCatalog}
                         busy={busy}
                         onSave={(next) => saveCases(tier, next)}
+                      />
+                      <CurrencyRewardEditor
+                        tier={tier}
+                        busy={busy}
+                        onSave={(energy, gems) => saveCurrency(tier, energy, gems)}
                       />
                     </div>
                   );

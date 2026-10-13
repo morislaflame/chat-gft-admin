@@ -192,7 +192,7 @@ const LeaderboardEventPage = () => {
           {event.settledAt ? (
             <div className="space-y-2">
               <p className="text-sm text-zinc-400">
-                Места записаны {formatEventWhen(event.settledAt)}. Призы выдаются вручную, кейсы уже в инвентаре игроков.
+                Места записаны {formatEventWhen(event.settledAt)}. Призы выдаются вручную. Кейсы, энергия и гемы уже начислены.
               </p>
               <DataTable
                 title="Зафиксированные итоги"
@@ -203,6 +203,7 @@ const LeaderboardEventPage = () => {
                   { key: 'points', label: 'Баллы' },
                   { key: 'prizes', label: 'Призы (вручную)' },
                   { key: 'cases', label: 'Кейсы (начислены)' },
+                  { key: 'currency', label: 'Энергия и гемы' },
                 ]}
                 data={results.map((row) => ({ ...row, id: row.user.id }))}
                 emptyMessage="В призовые места никто не попал"
@@ -219,6 +220,12 @@ const LeaderboardEventPage = () => {
                         .map((caseRow) => (caseRow.quantity > 1 ? `${caseRow.name} ×${caseRow.quantity}` : caseRow.name))
                         .join(', ') || '—'
                     );
+                  }
+                  if (columnKey === 'currency') {
+                    const parts = [];
+                    if ((row.energy || 0) > 0) parts.push(`${row.energy} энергии`);
+                    if ((row.gems || 0) > 0) parts.push(`${row.gems} гемов`);
+                    return parts.join(', ') || '—';
                   }
                   return '-';
                 }}

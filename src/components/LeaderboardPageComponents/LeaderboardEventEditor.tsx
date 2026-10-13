@@ -31,7 +31,13 @@ function mergeTiers(count: number, previous: EventTierDraft[]): EventTierDraft[]
   return next.map((tier) => {
     const saved = byKey.get(`${tier.rankFrom}:${tier.rankTo}`);
     if (!saved) return tier;
-    return { ...tier, prizeIds: saved.prizeIds, cases: saved.cases };
+    return {
+      ...tier,
+      prizeIds: saved.prizeIds,
+      cases: saved.cases,
+      energy: saved.energy || 0,
+      gems: saved.gems || 0,
+    };
   });
 }
 
@@ -48,6 +54,8 @@ function tiersFromEvent(event: LeaderboardEvent | null | undefined): EventTierDr
         caseId: item.caseId,
         quantity: item.quantity || 1,
       })),
+      energy: tier.energy || 0,
+      gems: tier.gems || 0,
     }))
   );
 }
@@ -93,7 +101,7 @@ function TierRewards({ tier, prizes, cases, onChange }: TierRewardsProps) {
   return (
     <div className="rounded-xl border border-zinc-800 p-3">
       <div className="mb-2 text-sm font-medium">{eventTierLabel(tier.rankFrom, tier.rankTo)}</div>
-      {tier.prizeIds.length === 0 && tier.cases.length === 0 ? (
+      {tier.prizeIds.length === 0 && tier.cases.length === 0 && !tier.energy && !tier.gems ? (
         <p className="mb-2 text-xs text-zinc-500">Награды не выбраны</p>
       ) : null}
       {tier.prizeIds.length > 0 ? (
@@ -209,6 +217,38 @@ function TierRewards({ tier, prizes, cases, onChange }: TierRewardsProps) {
           ))}
         </Select>
       </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Input
+          size="sm"
+          type="number"
+          min={0}
+          max={1000000}
+          label="Энергия"
+          placeholder="0"
+          value={tier.energy ? String(tier.energy) : ''}
+          onValueChange={(value) => {
+            if (value !== '' && !/^\d+$/.test(value)) return;
+            const amount = value === '' ? 0 : Number(value);
+            if (amount > 1000000) return;
+            onChange((current) => ({ ...current, energy: amount }));
+          }}
+        />
+        <Input
+          size="sm"
+          type="number"
+          min={0}
+          max={1000000}
+          label="Гемы"
+          placeholder="0"
+          value={tier.gems ? String(tier.gems) : ''}
+          onValueChange={(value) => {
+            if (value !== '' && !/^\d+$/.test(value)) return;
+            const amount = value === '' ? 0 : Number(value);
+            if (amount > 1000000) return;
+            onChange((current) => ({ ...current, gems: amount }));
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -317,6 +357,8 @@ const LeaderboardEventEditor = ({ initial, submitLabel, onSubmit }: LeaderboardE
           rankTo: tier.rankTo,
           prizeIds: tier.prizeIds,
           cases: tier.cases,
+          energy: tier.energy || 0,
+          gems: tier.gems || 0,
         })),
       });
     } catch (err) {
