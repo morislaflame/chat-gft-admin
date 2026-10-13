@@ -76,7 +76,7 @@ function errorMessage(err: unknown, fallback: string) {
   return errorObj.response?.data?.message || fallback;
 }
 
-function PrizeThumb({ prize, className }: { prize?: LeaderboardPrize | null; className?: string }) {
+export function PrizeThumb({ prize, className }: { prize?: LeaderboardPrize | null; className?: string }) {
   if (prize?.preview?.url) {
     return <img src={prize.preview.url} alt="" className={className || 'h-14 w-14 object-contain'} />;
   }
@@ -129,7 +129,7 @@ function UploadSlot({
   );
 }
 
-function CaseThumb({ media }: { media?: { url: string; mimeType: string } | null }) {
+export function CaseThumb({ media }: { media?: { url: string; mimeType: string } | null }) {
   const [animation, setAnimation] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {

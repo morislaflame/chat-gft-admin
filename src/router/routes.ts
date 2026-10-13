@@ -22,6 +22,7 @@ import PushPage from '@/pages/PushPage';
 import PromptsPage from '@/pages/PromptsPage';
 import PremiumPage from '@/pages/PremiumPage';
 import LeaderboardPage from '@/pages/LeaderboardPage';
+import LeaderboardEventPage from '@/pages/LeaderboardEventPage';
 import {
   MAIN_ROUTE,
   AUTH_ROUTE,
@@ -45,6 +46,7 @@ import {
   PROMPTS_ROUTE,
   PREMIUM_ROUTE,
   LEADERBOARD_ROUTE,
+  LEADERBOARD_EVENT_ROUTE,
 } from '@/utils/consts';
 
 interface Route {
@@ -78,4 +80,5 @@ export const privateRoutes: Route[] = [
   { path: PROMPTS_ROUTE, Component: PromptsPage },
   { path: PREMIUM_ROUTE, Component: PremiumPage },
   { path: LEADERBOARD_ROUTE, Component: LeaderboardPage },
+  { path: LEADERBOARD_EVENT_ROUTE, Component: LeaderboardEventPage },
 ];

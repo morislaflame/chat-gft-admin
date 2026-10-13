@@ -29,6 +29,7 @@ import {
 import { Save, Sparkles, Flag } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import LeaderboardPrizesSection from '@/components/LeaderboardPageComponents/LeaderboardPrizesSection';
+import LeaderboardEventsSection from '@/components/LeaderboardPageComponents/LeaderboardEventsSection';
 
 const RULE_FIELDS: Array<{
   actionType: LeaderboardActionType;
@@ -217,7 +218,7 @@ const LeaderboardPage = observer(() => {
     <div className="p-6 space-y-6">
       <PageHeader
         title="Лидерборд"
-        description="Баллы, призы сезона и таблица лидеров. При закрытии сезона награды фиксируются, бот пишет победителям, купленный Premium сбрасывается."
+        description="Баллы, призы сезона, ивенты и таблица лидеров. При закрытии сезона награды фиксируются, бот пишет победителям, купленный Premium сбрасывается."
       />
 
       {error && (
@@ -262,6 +263,8 @@ const LeaderboardPage = observer(() => {
       </Card>
 
       <LeaderboardPrizesSection />
+
+      <LeaderboardEventsSection />
 
       <Card>
         <CardBody className="space-y-4">

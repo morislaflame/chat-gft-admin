@@ -834,3 +834,115 @@ export const setLeaderboardTierCases = async (payload: {
     const { data } = await $authHost.put('api/admin/leaderboard/case-tiers', payload);
     return data;
 };
+
+export type LeaderboardEventStatus = 'upcoming' | 'active' | 'ended';
+
+export interface LeaderboardEventCaseReward {
+    caseId: number;
+    quantity: number;
+    name?: string;
+}
+
+export interface LeaderboardEventTier {
+    id: string;
+    from: number;
+    to: number;
+    rankFrom: number;
+    rankTo: number;
+    kind: 'podium' | 'single' | 'pool';
+    titleKey: string | null;
+    prizeIds: number[];
+    cases: LeaderboardEventCaseReward[];
+}
+
+export interface LeaderboardEventTopEntry {
+    rank: number;
+    points: number;
+    user: {
+        id: number;
+        username: string | null;
+        firstName: string | null;
+    };
+}
+
+export interface LeaderboardEventResult {
+    rank: number;
+    points: number;
+    user: {
+        id: number;
+        username: string | null;
+        firstName: string | null;
+    };
+    prizes: Array<{ name: string }>;
+    cases: Array<{ name: string; nameEn?: string | null; quantity: number }>;
+}
+
+export interface LeaderboardEventStats {
+    participants: number;
+    totalPoints: number;
+    byAction: Array<{
+        actionType: LeaderboardActionType;
+        points: number;
+        eventCount: number;
+    }>;
+    top: LeaderboardEventTopEntry[];
+}
+
+export interface LeaderboardEvent {
+    id: number;
+    title: string;
+    startsAt: string;
+    endsAt: string;
+    status: LeaderboardEventStatus;
+    allActions: boolean;
+    actionTypes: LeaderboardActionType[];
+    prizePlaceCount: number;
+    settledAt: string | null;
+    results: LeaderboardEventResult[];
+    tiers: LeaderboardEventTier[];
+    preview: Array<{ previewUrl: string | null; mediaFile: { url: string; mimeType: string } | null }>;
+    stats?: LeaderboardEventStats;
+}
+
+export interface LeaderboardEventWrite {
+    title: string;
+    startsAt: string;
+    endsAt: string;
+    allActions: boolean;
+    actionTypes: LeaderboardActionType[];
+    prizePlaceCount: number;
+    tiers: Array<{
+        rankFrom: number;
+        rankTo: number;
+        prizeIds: number[];
+        cases: Array<{ caseId: number; quantity: number }>;
+    }>;
+}
+
+export const getLeaderboardEvents = async (): Promise<LeaderboardEvent[]> => {
+    const { data } = await $authHost.get('api/admin/leaderboard/events');
+    return data.events || [];
+};
+
+export const getLeaderboardEvent = async (id: number): Promise<LeaderboardEvent> => {
+    const { data } = await $authHost.get(`api/admin/leaderboard/events/${id}`);
+    return data;
+};
+
+export const createLeaderboardEvent = async (payload: LeaderboardEventWrite): Promise<LeaderboardEvent> => {
+    const { data } = await $authHost.post('api/admin/leaderboard/events', payload);
+    return data;
+};
+
+export const updateLeaderboardEvent = async (
+    id: number,
+    payload: LeaderboardEventWrite
+): Promise<LeaderboardEvent> => {
+    const { data } = await $authHost.put(`api/admin/leaderboard/events/${id}`, payload);
+    return data;
+};
+
+export const deleteLeaderboardEvent = async (id: number): Promise<{ ok: boolean }> => {
+    const { data } = await $authHost.delete(`api/admin/leaderboard/events/${id}`);
+    return data;
+};

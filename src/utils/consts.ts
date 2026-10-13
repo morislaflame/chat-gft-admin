@@ -25,3 +25,4 @@ export const PUSH_ROUTE = '/push';
 export const PROMPTS_ROUTE = '/prompts';
 export const PREMIUM_ROUTE = '/premium';
 export const LEADERBOARD_ROUTE = '/leaderboard';
+export const LEADERBOARD_EVENT_ROUTE = '/leaderboard/events/:eventId';
