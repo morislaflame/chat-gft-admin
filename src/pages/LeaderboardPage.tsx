@@ -236,6 +236,9 @@ const LeaderboardPage = observer(() => {
         </Card>
       )}
 
+      <LeaderboardEventsSection />
+
+      <div className="space-y-6 border-t border-zinc-800 pt-8">
       <Card>
         <CardBody className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -263,8 +266,6 @@ const LeaderboardPage = observer(() => {
       </Card>
 
       <LeaderboardPrizesSection />
-
-      <LeaderboardEventsSection />
 
       <Card>
         <CardBody className="space-y-4">
@@ -360,6 +361,7 @@ const LeaderboardPage = observer(() => {
           return '-';
         }}
       />
+      </div>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
