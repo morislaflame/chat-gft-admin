@@ -4,7 +4,7 @@ import { Plus, RotateCcw } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { PageHeader } from '@/components/ui';
-import { DailyRewardStats, DailyRewardsTable, DailyRewardFormModal } from '@/components/DailyRewardsPageComponents';
+import { DailyRewardStats, DailyRewardsTable, DailyRewardFormModal, StreakRewardsPanel } from '@/components/DailyRewardsPageComponents';
 import { type DailyReward } from '@/http/dailyRewardAPI';
 
 type DailyRewardUpdatePayload = {
@@ -26,7 +26,7 @@ type DailyRewardCreatePayload = {
 };
 
 const DailyRewardsPage = observer(() => {
-  const { dailyReward, caseStore } = useContext(Context) as IStoreContext;
+  const { dailyReward, caseStore, reward } = useContext(Context) as IStoreContext;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [formData, setFormData] = useState({
     day: '',
@@ -39,7 +39,8 @@ const DailyRewardsPage = observer(() => {
   useEffect(() => {
     dailyReward.fetchAllDailyRewards();
     caseStore.fetchAllCasesAdmin();
-  }, [dailyReward, caseStore]);
+    reward.fetchAllRewards();
+  }, [dailyReward, caseStore, reward]);
 
   const handleCreateReward = () => {
     setFormData({
@@ -148,6 +149,11 @@ const DailyRewardsPage = observer(() => {
         onInlineUpdateReward={handleInlineUpdateReward}
         onInlineUpdateError={handleInlineUpdateError}
         cases={caseStore.cases}
+      />
+
+      <StreakRewardsPanel
+        cases={caseStore.cases}
+        rewards={reward.rewards}
       />
 
       <DailyRewardFormModal
