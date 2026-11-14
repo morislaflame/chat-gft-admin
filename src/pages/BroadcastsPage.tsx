@@ -161,7 +161,7 @@ const BroadcastsPage = observer(() => {
     <div className="p-6 flex flex-col gap-4">
       <PageHeader
         title="Рассылки"
-        description="Сообщение уходит в Telegram всем выбранным игрокам. Картинка — JPEG, PNG или WebP до 5 МБ. HTML: <b>, <i>, <a>."
+        description="Сообщение уходит в Telegram всем выбранным игрокам. Медиа — JPEG, PNG, WebP, GIF или MP4 до 20 МБ. С медиа текст не длиннее 1024 символов. HTML: <b>, <i>, <a>."
         actionButton={{
           label: "Новая",
           onClick: () => {
@@ -224,33 +224,39 @@ const BroadcastsPage = observer(() => {
               isDisabled={!editable}
               onValueChange={(textEn) => setForm({ ...form, textEn })}
             />
-            <div className="flex items-center gap-3">
+            <label className="flex flex-col gap-1 text-sm text-zinc-300">
+              Медиа
               <input
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime"
                 disabled={!editable || busy}
+                className="text-sm text-zinc-200 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-700 file:px-3 file:py-1.5 file:text-white"
                 onChange={(event) => setFile(event.target.files?.[0] ?? null)}
               />
-              {hasImage && <span className="text-xs text-zinc-400">Картинка уже загружена</span>}
+              <span className="text-xs text-zinc-500">
+                JPEG, PNG, WebP, GIF или MP4, до 20 МБ. GIF уходит анимацией.
+              </span>
+              {hasImage && <span className="text-xs text-zinc-400">Файл уже загружен</span>}
               {file && <span className="text-xs text-zinc-300">{file.name}</span>}
               {editable && hasImage && selected && (
                 <Button
                   size="sm"
                   variant="flat"
+                  className="w-fit"
                   isDisabled={busy}
                   onPress={() =>
                     run(async () => {
                       const updated = await removeBroadcastImage(selected.id);
                       setHasImage(updated.hasImage);
                       await load();
-                      return "Картинка убрана";
+                      return "Файл убран";
                     })
                   }
                 >
-                  Убрать картинку
+                  Убрать файл
                 </Button>
               )}
-            </div>
+            </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Select
                 label="Кому"
