@@ -19,12 +19,13 @@ import {
   Download,
   Menu,
   Bell,
+  Megaphone,
   FileText,
   Trophy,
 } from 'lucide-react';
 import { Context, type IStoreContext } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
-import { PROMPTS_ROUTE, PREMIUM_ROUTE, LEADERBOARD_ROUTE } from '@/utils/consts';
+import { PROMPTS_ROUTE, PREMIUM_ROUTE, LEADERBOARD_ROUTE, BROADCASTS_ROUTE } from '@/utils/consts';
 
 const Navbar = observer(() => {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ const Navbar = observer(() => {
     { key: 'errorReports', label: 'Ошибки чата', icon: AlertTriangle, path: '/error-reports' },
     { key: 'trafficSources', label: 'Трафик', icon: Link2, path: '/traffic-sources' },
     { key: 'push', label: 'Пуши', icon: Bell, path: '/push' },
+    { key: 'broadcasts', label: 'Рассылки', icon: Megaphone, path: BROADCASTS_ROUTE },
   ];
 
   const isActive = (path: string) => {

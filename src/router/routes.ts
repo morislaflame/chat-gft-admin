@@ -19,6 +19,7 @@ import TrafficSourcesPage from '@/pages/TrafficSourcesPage';
 import LLMDebugPage from '@/pages/LLMDebugPage';
 import ErrorReportsPage from '@/pages/ErrorReportsPage';
 import PushPage from '@/pages/PushPage';
+import BroadcastsPage from '@/pages/BroadcastsPage';
 import PromptsPage from '@/pages/PromptsPage';
 import PremiumPage from '@/pages/PremiumPage';
 import LeaderboardPage from '@/pages/LeaderboardPage';
@@ -43,6 +44,7 @@ import {
   ERROR_REPORTS_ROUTE,
   USER_DETAILS_ROUTE,
   PUSH_ROUTE,
+  BROADCASTS_ROUTE,
   PROMPTS_ROUTE,
   PREMIUM_ROUTE,
   LEADERBOARD_ROUTE,
@@ -77,6 +79,7 @@ export const privateRoutes: Route[] = [
   { path: LLM_DEBUG_ROUTE, Component: LLMDebugPage },
   { path: ERROR_REPORTS_ROUTE, Component: ErrorReportsPage },
   { path: PUSH_ROUTE, Component: PushPage },
+  { path: BROADCASTS_ROUTE, Component: BroadcastsPage },
   { path: PROMPTS_ROUTE, Component: PromptsPage },
   { path: PREMIUM_ROUTE, Component: PremiumPage },
   { path: LEADERBOARD_ROUTE, Component: LeaderboardPage },

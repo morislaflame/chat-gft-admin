@@ -554,6 +554,84 @@ export const getPushStats = async (): Promise<PushStats> => {
     return data;
 };
 
+export type BroadcastAudience = 'all' | 'ru' | 'en' | 'telegram_ids';
+export type BroadcastStatus = 'draft' | 'sending' | 'done' | 'cancelled';
+
+export interface PushBroadcast {
+    id: number;
+    title: string;
+    textRu: string;
+    textEn: string;
+    hasImage: boolean;
+    imageContentType: string | null;
+    buttonTextRu: string;
+    buttonTextEn: string;
+    buttonUrl: string;
+    openApp: boolean;
+    audience: BroadcastAudience;
+    telegramIds: string;
+    status: BroadcastStatus;
+    totalCount: number;
+    sentCount: number;
+    failedCount: number;
+    blockedCount: number;
+    startedAt: string | null;
+    finishedAt: string | null;
+    createdAt: string;
+}
+
+export const getBroadcasts = async (): Promise<PushBroadcast[]> => {
+    const { data } = await $authHost.get('api/admin/push/broadcasts');
+    return data;
+};
+
+export const previewBroadcast = async (
+    audience: BroadcastAudience,
+    telegramIds: string,
+): Promise<{ count: number }> => {
+    const { data } = await $authHost.get('api/admin/push/broadcasts/preview', {
+        params: { audience, telegramIds },
+    });
+    return data;
+};
+
+export const createBroadcast = async (body: Partial<PushBroadcast>): Promise<PushBroadcast> => {
+    const { data } = await $authHost.post('api/admin/push/broadcasts', body);
+    return data;
+};
+
+export const updateBroadcast = async (id: number, body: Partial<PushBroadcast>): Promise<PushBroadcast> => {
+    const { data } = await $authHost.put(`api/admin/push/broadcasts/${id}`, body);
+    return data;
+};
+
+export const uploadBroadcastImage = async (id: number, file: File): Promise<PushBroadcast> => {
+    const form = new FormData();
+    form.append('image', file);
+    const { data } = await $authHost.post(`api/admin/push/broadcasts/${id}/image`, form);
+    return data;
+};
+
+export const removeBroadcastImage = async (id: number): Promise<PushBroadcast> => {
+    const { data } = await $authHost.delete(`api/admin/push/broadcasts/${id}/image`);
+    return data;
+};
+
+export const launchBroadcast = async (id: number): Promise<PushBroadcast> => {
+    const { data } = await $authHost.post(`api/admin/push/broadcasts/${id}/launch`);
+    return data;
+};
+
+export const cancelBroadcast = async (id: number): Promise<PushBroadcast> => {
+    const { data } = await $authHost.post(`api/admin/push/broadcasts/${id}/cancel`);
+    return data;
+};
+
+export const deleteBroadcast = async (id: number): Promise<{ success: boolean }> => {
+    const { data } = await $authHost.delete(`api/admin/push/broadcasts/${id}`);
+    return data;
+};
+
 // ========== LLM PROMPT REGISTRY ==========
 
 export type PromptCategory = 'engine' | 'runtime' | 'compose';

@@ -57,6 +57,8 @@ const TRIGGERS = [
   { key: "daily_ready", label: "Доступна дейли награда (daily_ready)" },
   { key: "unfinished_mission", label: "Не закончил миссию (unfinished_mission)" },
   { key: "unopened_case", label: "Не открыл кейс (unopened_case)" },
+  { key: "streak_alive", label: "Живой ударный режим (streak_alive)" },
+  { key: "streak_ending_soon", label: "Серия сгорит сегодня, с 18:00 МСК (streak_ending_soon)" },
 ];
 
 const SEGMENTS = [
@@ -73,6 +75,12 @@ const SEGMENTS = [
   { key: "DAILY_READY", label: "Доступна дейли награда (DAILY_READY)" },
   { key: "IS_REFERRER", label: "Пригласил кого-то (IS_REFERRER)" },
   { key: "WHALE", label: "Киты >= 500 звезд (WHALE)" },
+  { key: "STREAK_ANY", label: "Любая живая серия (STREAK_ANY)" },
+  { key: "STREAK_1_2", label: "Ударный режим 1–2 дня (STREAK_1_2)" },
+  { key: "STREAK_3_6", label: "Ударный режим 3–6 дней (STREAK_3_6)" },
+  { key: "STREAK_7_13", label: "Ударный режим 7–13 дней (STREAK_7_13)" },
+  { key: "STREAK_14_29", label: "Ударный режим 14–29 дней (STREAK_14_29)" },
+  { key: "STREAK_30_PLUS", label: "Ударный режим 30+ дней (STREAK_30_PLUS)" },
 ];
 
 const STATUS_COLORS = {
@@ -566,7 +574,7 @@ const PushPage = observer(() => {
                 value={formData.textRu}
                 onChange={(e) => setFormData({ ...formData, textRu: e.target.value })}
                 minRows={3}
-                description="Перед отправкой {username} и {first_name} заменятся на имя игрока: сначала firstName из Telegram, иначе @username, иначе «Player»."
+                description="Перед отправкой {username} и {first_name} заменятся на имя игрока: сначала firstName из Telegram, иначе @username, иначе «Player». {streak} — текущая длина живой серии, иначе 0."
               />
 
               <Textarea
@@ -575,7 +583,7 @@ const PushPage = observer(() => {
                 value={formData.textEn}
                 onChange={(e) => setFormData({ ...formData, textEn: e.target.value })}
                 minRows={3}
-                description="Same placeholders as RU: {username} and {first_name} resolve to the player's display name."
+                description="Same placeholders as RU. {streak} is the living streak length, or 0 if it is already broken."
               />
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
