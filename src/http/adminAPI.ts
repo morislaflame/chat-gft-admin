@@ -554,7 +554,17 @@ export const getPushStats = async (): Promise<PushStats> => {
     return data;
 };
 
-export type BroadcastAudience = 'all' | 'ru' | 'en' | 'telegram_ids';
+export type BroadcastAudience =
+    | 'all'
+    | 'with_balance'
+    | 'zero_balance'
+    | 'payers'
+    | 'non_payers'
+    | 'active_7d'
+    | 'inactive_30d'
+    | 'referrers'
+    | 'telegram_ids';
+export type BroadcastLanguage = 'all' | 'ru' | 'en';
 export type BroadcastStatus = 'draft' | 'sending' | 'done' | 'cancelled';
 
 export interface PushBroadcast {
@@ -569,6 +579,7 @@ export interface PushBroadcast {
     buttonUrl: string;
     openApp: boolean;
     audience: BroadcastAudience;
+    language: BroadcastLanguage;
     telegramIds: string;
     status: BroadcastStatus;
     totalCount: number;
@@ -587,10 +598,11 @@ export const getBroadcasts = async (): Promise<PushBroadcast[]> => {
 
 export const previewBroadcast = async (
     audience: BroadcastAudience,
+    language: BroadcastLanguage,
     telegramIds: string,
 ): Promise<{ count: number }> => {
     const { data } = await $authHost.get('api/admin/push/broadcasts/preview', {
-        params: { audience, telegramIds },
+        params: { audience, language, telegramIds },
     });
     return data;
 };

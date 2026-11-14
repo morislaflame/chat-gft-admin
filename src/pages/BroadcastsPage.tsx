@@ -22,14 +22,26 @@ import {
   updateBroadcast,
   uploadBroadcastImage,
   type BroadcastAudience,
+  type BroadcastLanguage,
   type PushBroadcast,
 } from "@/http/adminAPI";
 
 const AUDIENCES: { key: BroadcastAudience; label: string }[] = [
-  { key: "all", label: "Все, кто не отписался" },
-  { key: "ru", label: "Только RU" },
-  { key: "en", label: "Все, кроме RU" },
+  { key: "all", label: "Все пользователи" },
+  { key: "with_balance", label: "С балансом > 0" },
+  { key: "zero_balance", label: "С нулевым балансом" },
+  { key: "payers", label: "Платившие" },
+  { key: "non_payers", label: "Ни разу не платившие" },
+  { key: "active_7d", label: "Заходили за 7 дней" },
+  { key: "inactive_30d", label: "Заходили раньше, но не за последние 30 дней" },
+  { key: "referrers", label: "Пригласившие хотя бы одного" },
   { key: "telegram_ids", label: "Список Telegram ID" },
+];
+
+const LANGUAGES: { key: BroadcastLanguage; label: string }[] = [
+  { key: "all", label: "Все языки" },
+  { key: "ru", label: "Только RU" },
+  { key: "en", label: "Только EN" },
 ];
 
 const STATUS_LABEL: Record<PushBroadcast["status"], string> = {
@@ -48,6 +60,7 @@ const emptyForm = () => ({
   buttonUrl: "",
   openApp: true,
   audience: "all" as BroadcastAudience,
+  language: "all" as BroadcastLanguage,
   telegramIds: "",
 });
 
@@ -86,12 +99,12 @@ const BroadcastsPage = observer(() => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      previewBroadcast(form.audience, form.telegramIds)
+      previewBroadcast(form.audience, form.language, form.telegramIds)
         .then((result) => setPreviewCount(result.count))
         .catch(() => setPreviewCount(null));
     }, 400);
     return () => window.clearTimeout(timer);
-  }, [form.audience, form.telegramIds]);
+  }, [form.audience, form.language, form.telegramIds]);
 
   const fill = (item: PushBroadcast) => {
     setSelectedId(item.id);
@@ -106,6 +119,7 @@ const BroadcastsPage = observer(() => {
       buttonUrl: item.buttonUrl,
       openApp: item.openApp,
       audience: item.audience,
+      language: item.language || "all",
       telegramIds: item.telegramIds,
     });
     setError(null);
@@ -237,19 +251,34 @@ const BroadcastsPage = observer(() => {
                 </Button>
               )}
             </div>
-            <Select
-              label="Кому"
-              selectedKeys={[form.audience]}
-              isDisabled={!editable}
-              onSelectionChange={(keys) => {
-                const audience = String(Array.from(keys)[0] || "all") as BroadcastAudience;
-                setForm({ ...form, audience });
-              }}
-            >
-              {AUDIENCES.map((item) => (
-                <SelectItem key={item.key}>{item.label}</SelectItem>
-              ))}
-            </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Select
+                label="Кому"
+                selectedKeys={[form.audience]}
+                isDisabled={!editable}
+                onSelectionChange={(keys) => {
+                  const audience = String(Array.from(keys)[0] || "all") as BroadcastAudience;
+                  setForm({ ...form, audience });
+                }}
+              >
+                {AUDIENCES.map((item) => (
+                  <SelectItem key={item.key}>{item.label}</SelectItem>
+                ))}
+              </Select>
+              <Select
+                label="Язык"
+                selectedKeys={[form.language]}
+                isDisabled={!editable}
+                onSelectionChange={(keys) => {
+                  const language = String(Array.from(keys)[0] || "all") as BroadcastLanguage;
+                  setForm({ ...form, language });
+                }}
+              >
+                {LANGUAGES.map((item) => (
+                  <SelectItem key={item.key}>{item.label}</SelectItem>
+                ))}
+              </Select>
+            </div>
             {form.audience === "telegram_ids" && (
               <Textarea
                 label="Telegram ID, по одному на строку"
