@@ -577,6 +577,8 @@ export interface PushBroadcast {
     buttonTextRu: string;
     buttonTextEn: string;
     buttonUrl: string;
+    linkTextRu: string;
+    linkTextEn: string;
     openApp: boolean;
     audience: BroadcastAudience;
     language: BroadcastLanguage;

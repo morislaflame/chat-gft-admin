@@ -58,6 +58,8 @@ const emptyForm = () => ({
   buttonTextRu: "",
   buttonTextEn: "",
   buttonUrl: "",
+  linkTextRu: "",
+  linkTextEn: "",
   openApp: true,
   audience: "all" as BroadcastAudience,
   language: "all" as BroadcastLanguage,
@@ -117,6 +119,8 @@ const BroadcastsPage = observer(() => {
       buttonTextRu: item.buttonTextRu,
       buttonTextEn: item.buttonTextEn,
       buttonUrl: item.buttonUrl,
+      linkTextRu: item.linkTextRu || "",
+      linkTextEn: item.linkTextEn || "",
       openApp: item.openApp,
       audience: item.audience,
       language: item.language || "all",
@@ -302,23 +306,40 @@ const BroadcastsPage = observer(() => {
               isDisabled={!editable}
               onValueChange={(openApp) => setForm({ ...form, openApp })}
             >
-              Кнопка «Открыть приложение»
+              Кнопка входа в игру
             </Switch>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Input
-                label="Текст кнопки-ссылки RU"
+                label="Текст кнопки входа RU"
+                description="Пусто — «Открыть приложение»"
                 value={form.buttonTextRu}
-                isDisabled={!editable}
+                isDisabled={!editable || !form.openApp}
                 onValueChange={(buttonTextRu) => setForm({ ...form, buttonTextRu })}
               />
               <Input
-                label="Текст кнопки-ссылки EN"
+                label="Текст кнопки входа EN"
+                description="Пусто — «Open the app»"
                 value={form.buttonTextEn}
-                isDisabled={!editable}
+                isDisabled={!editable || !form.openApp}
                 onValueChange={(buttonTextEn) => setForm({ ...form, buttonTextEn })}
               />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Input
-                label="Ссылка https://"
+                label="Доп. кнопка: текст RU"
+                description="Вторая кнопка, не заменяет вход в игру"
+                value={form.linkTextRu}
+                isDisabled={!editable}
+                onValueChange={(linkTextRu) => setForm({ ...form, linkTextRu })}
+              />
+              <Input
+                label="Доп. кнопка: текст EN"
+                value={form.linkTextEn}
+                isDisabled={!editable}
+                onValueChange={(linkTextEn) => setForm({ ...form, linkTextEn })}
+              />
+              <Input
+                label="Доп. кнопка: ссылка https://"
                 value={form.buttonUrl}
                 isDisabled={!editable}
                 onValueChange={(buttonUrl) => setForm({ ...form, buttonUrl })}
